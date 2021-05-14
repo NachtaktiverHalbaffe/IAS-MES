@@ -45,7 +45,7 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateWorkingPiece
         fields = (
-            'state', 'lastUpdate', 'location', 'partNo', 'carrierId', 'ressourceId', 'color', 'isAssembled', 'isPackaged'
+            'lastUpdate', 'location', 'partNo', 'carrierId', 'ressourceId', 'color', 'isAssembled', 'isPackaged'
         )
 
 
@@ -69,7 +69,7 @@ class WorkingStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingStep
         fields = (
-            'name', 'description', 'assignedToUnit', 'workingPlan', 'color', 'stepNo', 'operationNo'
+            'name', 'description', 'task', 'assignedToUnit', 'workingPlan', 'color', 'stepNo', 'operationNo'
         )
 
 

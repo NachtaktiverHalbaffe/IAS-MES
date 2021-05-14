@@ -48,28 +48,26 @@ class StateVisualisationUnit(models.Model):
     # ip adress of the PLC
     ipAdress = models.GenericIPAddressField()
     # ressourceID from the unit where the visualisation unit is mounted
-    boundToRessource = models.PositiveSmallIntegerField()
+    boundToRessource = models.PositiveSmallIntegerField(primary_key=True)
     # distance from ultrasonic sensors when theres no corrier or somethink like that underneath it
     baseLevelHeight = models.DecimalField(decimal_places=2, max_digits=5)
     # current assigned Visualisationtask
     assignedTask = models.CharField(max_length=10, default="None")
 
     def __str__(self):
-        return self.boundToRessource
+        return str(self.boundToRessource)
 
 # model representing the state of a working piece. Usually the working piece is fictive and
 # is represented by an empty carrier in the real world
 
 
 class StateWorkingPiece(models.Model):
-    # state string which describes the state
-    state = models.CharField(max_length=30)
     # timestamp of last update. Will be auto generated
     lastUpdate = models.DateTimeField(auto_now_add=True)
     # ressourceID where the working piece is currently located
     location = models.PositiveSmallIntegerField()
     # part number
-    partNo = models.PositiveIntegerField()
+    partNo = models.PositiveIntegerField(primary_key=True)
     # id of the carrier where the (fictive) wokring piece is located
     carrierId = models.PositiveSmallIntegerField()
     # ressourceID of the ressource. Shouldnt be mistaken with the ressource id of the PLC
@@ -82,7 +80,7 @@ class StateWorkingPiece(models.Model):
     isPackaged = models.BooleanField()
 
     def __str__(self):
-        return self.ressourceId
+        return str(self.partNo)
 
 
 # model representing a Task for a Visualisation Unit
@@ -104,7 +102,7 @@ class VisualisationTask(models.Model):
         StateWorkingPiece, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.task
+        return self.TASK_CHOICES[self.task][0]
 
 
 # Model representing a Order which is assigned by the user
@@ -116,7 +114,7 @@ class AssignedOrder(models.Model):
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
     # order number
-    orderNo = models.PositiveIntegerField()
+    orderNo = models.PositiveIntegerField(primary_key=True)
     # order psoition (optional)
     orderPos = models.PositiveSmallIntegerField(default=0)
     # main order position (optional)
@@ -143,8 +141,18 @@ class WorkingPlan(models.Model):
 
 # Model of a single task in a working plan. represents one step in a working plan
 class WorkingStep(models.Model):
+    TASK_CHOICES = [
+        ('assemble', 'Assemble the workingpiece'),
+        ('package', 'Package the workingpiece'),
+        ('unpackage', 'Unpackage the workingpiece'),
+        ('color', 'Paint the workingpiece'),
+        ('generic', 'Own implementation of a task'),
+    ]
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, default="")
+    # task which the visualisation unit should display
+    task = models.CharField(
+        max_length=15, choices=TASK_CHOICES, default='assemble')
     # ressourceID of assigned unit which should execute the task
     assignedToUnit = models.PositiveIntegerField()
     # working plan which the step belongs to
@@ -152,7 +160,7 @@ class WorkingStep(models.Model):
     # if task is painting
     color = ColorField(default='#000000')
     # step number inside the Workingplan
-    stepNo = models.PositiveSmallIntegerField()
+    stepNo = models.PositiveSmallIntegerField(primary_key=True)
     # operation number, see CP Factory documentation
     operationNo = models.PositiveSmallIntegerField(default=510)
 
@@ -200,7 +208,7 @@ class Setting(models.Model):
     ipAdressMES4 = models.GenericIPAddressField()
 
     def __str__(self):
-        return self.costumer
+        return " "
 
 
 # model representing a costumer
@@ -213,3 +221,6 @@ class Costumer(models.Model):
     phone = models.PositiveIntegerField(null=True)
     eMail = models.EmailField(null=True)
     company = models.CharField(max_length=100, null=True)
+
+    def __str__(self):
+        return self.firstName + self.lastName
