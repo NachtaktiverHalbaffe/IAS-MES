@@ -102,7 +102,7 @@ class VisualisationTask(models.Model):
         StateWorkingPiece, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.TASK_CHOICES[self.task][0]
+        return self.task
 
 
 # Model representing a Order which is assigned by the user
