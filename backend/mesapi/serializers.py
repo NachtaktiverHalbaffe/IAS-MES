@@ -37,7 +37,7 @@ class VisualisationTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = VisualisationTask
         fields = (
-            'task', 'assignedUnit'
+            'task', 'assignedUnit', 'assignedWorkingPiece'
         )
 
 
@@ -45,7 +45,7 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateWorkingPiece
         fields = (
-            'state', 'lastUpdate', 'location', 'partNo', 'carrierId', 'ressourceId', 'assignedVisualisationTask', 'color', 'isAssemled', 'isPackaged'
+            'state', 'lastUpdate', 'location', 'partNo', 'carrierId', 'ressourceId', 'color', 'isAssembled', 'isPackaged'
         )
 
 

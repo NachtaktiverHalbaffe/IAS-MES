@@ -16,7 +16,7 @@ urlpatterns = [
     path('api/WorkingPlan/', WorkingPlanView.as_view()),
     path('api/AssignedOrder/', AssignedOrderView.as_view()),
     path('api/StateWorkingPiece/', StateWorkingPieceView.as_view()),
-    path('api/VisualisationTask/', VisualisationTaskView.as_view()),
+    path('api/VisualisationTask/',  VisualisationTaskView.as_view()),
     path('api/StateVisualisationUnit/', StateVisualisationUnitView.as_view()),
     path('api/StatePLC/', StatePLCView.as_view()),
     path('api/', APIOverview.as_view()),

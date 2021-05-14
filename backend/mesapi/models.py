@@ -57,29 +57,10 @@ class StateVisualisationUnit(models.Model):
     def __str__(self):
         return self.boundToRessource
 
-
-# model representing a Task for a Visualisation Unit
-class VisualisationTask(models.Model):
-    TASK_CHOICES = [
-        ('assemble', 'Assemble the workingpiece'),
-        ('package', 'Package the workingpiece'),
-        ('unpackage', 'Unpackage the workingpiece'),
-        ('color', 'Paint the workingpiece'),
-        ('generic', 'Own implementation of a task'),
-    ]
-    # task which the visualisation unit should display
-    task = models.CharField(
-        max_length=10, choices=TASK_CHOICES, default='assemble')
-    # visualisation unit which should execute the task
-    assignedUnit = models.OneToOneField(
-        StateVisualisationUnit, on_delete=models.CASCADE, null=True)
-
-    def __str__(self):
-        return self.task
-
-
 # model representing the state of a working piece. Usually the working piece is fictive and
 # is represented by an empty carrier in the real world
+
+
 class StateWorkingPiece(models.Model):
     # state string which describes the state
     state = models.CharField(max_length=30)
@@ -93,8 +74,6 @@ class StateWorkingPiece(models.Model):
     carrierId = models.PositiveSmallIntegerField()
     # ressourceID of the ressource. Shouldnt be mistaken with the ressource id of the PLC
     ressourceId = models.PositiveSmallIntegerField()
-    # Visualisation task which the working piece is assigned to
-    assignedVisualisationTask = models.ManyToManyField(VisualisationTask)
     # color of the working piece
     color = ColorField()
     # working piece is in assembled state
@@ -104,6 +83,28 @@ class StateWorkingPiece(models.Model):
 
     def __str__(self):
         return self.ressourceId
+
+
+# model representing a Task for a Visualisation Unit
+class VisualisationTask(models.Model):
+    TASK_CHOICES = [
+        ('assemble', 'Assemble the workingpiece'),
+        ('package', 'Package the workingpiece'),
+        ('unpackage', 'Unpackage the workingpiece'),
+        ('color', 'Paint the workingpiece'),
+        ('generic', 'Own implementation of a task'),
+    ]
+    # task which the visualisation unit should display
+    task = models.CharField(
+        max_length=15, choices=TASK_CHOICES, default='assemble')
+    # visualisation unit which should execute the task
+    assignedUnit = models.OneToOneField(
+        StateVisualisationUnit, on_delete=models.CASCADE, null=True)
+    assignedWorkingPiece = models.OneToOneField(
+        StateWorkingPiece, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.task
 
 
 # Model representing a Order which is assigned by the user

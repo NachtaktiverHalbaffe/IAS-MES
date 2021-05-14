@@ -60,9 +60,6 @@ class StatePLCView(mixins.ListModelMixin,
 
 class StateVisualisationUnitView(mixins.ListModelMixin,
                                  mixins.CreateModelMixin,
-                                 mixins.UpdateModelMixin,
-                                 mixins.RetrieveModelMixin,
-                                 mixins.DestroyModelMixin,
                                  generics.GenericAPIView):
     serializer_class = StateVisualisationUnitSerializer
     queryset = StateVisualisationUnit.objects.all()
@@ -76,9 +73,6 @@ class StateVisualisationUnitView(mixins.ListModelMixin,
 
 class VisualisationTaskView(mixins.ListModelMixin,
                             mixins.CreateModelMixin,
-                            mixins.UpdateModelMixin,
-                            mixins.RetrieveModelMixin,
-                            mixins.DestroyModelMixin,
                             generics.GenericAPIView):
     serializer_class = VisualisationTaskSerializer
     queryset = VisualisationTask.objects.all()
