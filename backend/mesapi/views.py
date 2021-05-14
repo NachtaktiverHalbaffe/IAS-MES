@@ -24,16 +24,16 @@ class APIOverview(APIView):
 
     def get(self, request, *args, **kwargs):
         overview = {
-            'Get or Post on states of all PLC': '/api/StatePLC',
-            'Get or Post on states of all Visualisationunits': '/api/StateVisualisationUnit',
-            'Get or Post on all VisualisationTasks': '/api/VisualisationTask',
-            'Get or Post on states of all WorkingPieces': '/api/StateWorkingPiece',
-            'Get or Post on all assigned Orders': '/api/AssignedOrder',
-            'Get or Post on all WorkingPlans': '/api/WorkingPlan',
-            'Get or Post on all WorkingSteps': '/api/WorkingStep',
-            'Get or Post on all Error': '/api/Error',
-            'Get or Post on all Settings': '/api/Setting',
-            'Get or Post on all Costumers': '/api/Costumer',
+            'Get or Post on states of all PLC': 'api/StatePLC/',
+            'Get or Post on states of all Visualisationunits': 'api/StateVisualisationUnit/',
+            'Get or Post on all VisualisationTasks': 'api/VisualisationTask/',
+            'Get or Post on states of all WorkingPieces': 'api/StateWorkingPiece/',
+            'Get or Post on all assigned Orders': 'api/AssignedOrder/',
+            'Get or Post on all WorkingPlans': 'api/WorkingPlan/',
+            'Get or Post on all WorkingSteps': 'api/WorkingStep/',
+            'Get or Post on all Error': 'api/Error/',
+            'Get or Post on all Settings': 'api/Setting/',
+            'Get or Post on all Costumers': 'api/Costumer/',
         }
         return Response(overview)
 
