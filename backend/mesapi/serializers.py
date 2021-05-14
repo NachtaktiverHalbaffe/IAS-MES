@@ -49,7 +49,7 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
         )
 
 
-class AssignedOrderVisualiser(serializers.ModelSerializer):
+class AssignedOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignedOrder
         fields = (
