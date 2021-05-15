@@ -7,8 +7,6 @@ from mesapi.views import *
 urlpatterns = [
     # url for API authenication
     path("api-auth/", include("rest_framework.urls")),
-    # admin panel
-    path("admin/", admin.site.urls),
     # API urls. Each model has a endpoint for a view for all entities
     # and a enpoint for a single entity of an object
     path("api/Costumer/<pk>", SingleCostumerView.as_view()),
@@ -31,4 +29,6 @@ urlpatterns = [
     path("api/StatePLC/", StatePLCView.as_view()),
     # Overview for all endpoints
     path("api/", APIOverview.as_view()),
+    # admin panel as landing pager
+    path("", admin.site.urls),
 ]

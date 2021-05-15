@@ -1,5 +1,6 @@
 {
     "editor.tabSize": 4,
-    "editor.minimap.maxColumn":  80
+    "editor.minimap.maxColumn": 80,
+    "python.formatting.provider": "black"
   
 }
