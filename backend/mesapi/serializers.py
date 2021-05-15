@@ -2,7 +2,7 @@
 Filename: serializers.py
 Version name: 0.1, 2021-05-14
 Short description: Serializers for all data models. Needed to serialize Models for e.g. JSON Responses.
-Structure is the same on evry serialiser, so code will be documentet only on first one
+Structure is the same on every serializer, so code will be documented only on first one
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -21,7 +21,15 @@ class StatePLCSerializer(serializers.ModelSerializer):
         # Defines the fields of the JSON response. Should be named the same as the models Fields
         # The kind of fields is looked up in the background by the framework
         fields = (
-            'state', 'lastUpdate', 'name', 'id', 'mode', 'mesMode', 'ipAdress', 'buffNo', 'buffPos'
+            "state",
+            "lastUpdate",
+            "name",
+            "id",
+            "mode",
+            "mesMode",
+            "ipAdress",
+            "buffNo",
+            "buffPos",
         )
 
 
@@ -29,15 +37,12 @@ class StateVisualisationUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateVisualisationUnit
         fields = (
-            'state', 'lastUpdate', 'ipAdress', 'boundToRessource', 'baseLevelHeight', 'assignedTask'
-        )
-
-
-class VisualisationTaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VisualisationTask
-        fields = (
-            'task', 'assignedUnit', 'assignedWorkingPiece'
+            "state",
+            "lastUpdate",
+            "ipAdress",
+            "boundToRessource",
+            "baseLevelHeight",
+            "assignedTask",
         )
 
 
@@ -45,7 +50,14 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateWorkingPiece
         fields = (
-            'lastUpdate', 'location', 'partNo', 'carrierId', 'ressourceId', 'color', 'isAssembled', 'isPackaged'
+            "lastUpdate",
+            "location",
+            "partNo",
+            "carrierId",
+            "ressourceId",
+            "color",
+            "isAssembled",
+            "isPackaged",
         )
 
 
@@ -53,45 +65,59 @@ class AssignedOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignedOrder
         fields = (
-            'name', 'description', 'assignedAt', 'orderNo', 'orderPos', 'mainOrderPos', 'costumerNo'
+            "name",
+            "description",
+            "assigendWorkingPlan",
+            "assignedAt",
+            "orderNo",
+            "orderPos",
+            "mainOrderPos",
+            "costumerNo",
         )
 
 
 class WorkingPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingPlan
-        fields = (
-            'name', 'description', 'workingPlanNo', 'assignedToOrder'
-        )
+        fields = ("name", "description", "workingPlanNo")
 
 
 class WorkingStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingStep
         fields = (
-            'name', 'description', 'task', 'assignedToUnit', 'workingPlan', 'color', 'stepNo', 'operationNo'
+            "name",
+            "description",
+            "task",
+            "assignedToUnit",
+            "workingPlan",
+            "color",
+            "stepNo",
+            "operationNo",
         )
 
 
 class ErrorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Error
-        fields = (
-            'level', 'msg', 'category', 'id', 'timestamp', 'isSolved'
-        )
+        fields = ("level", "msg", "category", "id", "timestamp", "isSolved")
 
 
 class SettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
-        fields = (
-            'isInBridgingMode', 'ipAdressMES4'
-        )
+        fields = ("isInBridgingMode", "ipAdressMES4")
 
 
 class CostumerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Costumer
         fields = (
-            'costumerNo', 'firstName', 'lastName', 'adress', 'phone', 'eMail', 'company'
+            "costumerNo",
+            "firstName",
+            "lastName",
+            "adress",
+            "phone",
+            "eMail",
+            "company",
         )
