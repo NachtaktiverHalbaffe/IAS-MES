@@ -57,19 +57,18 @@ class StateVisualisationUnit(models.Model):
     def __str__(self):
         return str(self.boundToRessource)
 
+
 # model representing the state of a working piece. Usually the working piece is fictive and
 # is represented by an empty carrier in the real world
-
-
 class StateWorkingPiece(models.Model):
     # timestamp of last update. Will be auto generated
     lastUpdate = models.DateTimeField(auto_now_add=True)
     # ressourceID where the working piece is currently located
-    location = models.PositiveSmallIntegerField()
+    location = models.PositiveSmallIntegerField(default=1)
     # part number
-    partNo = models.PositiveIntegerField(primary_key=True)
+    partNo = models.PositiveIntegerField(default=210)
     # id of the carrier where the (fictive) wokring piece is located
-    carrierId = models.PositiveSmallIntegerField()
+    carrierId = models.PositiveSmallIntegerField(primary_key=True)
     # ressourceID of the ressource. Shouldnt be mistaken with the ressource id of the PLC
     ressourceId = models.PositiveSmallIntegerField()
     # color of the working piece
@@ -83,26 +82,45 @@ class StateWorkingPiece(models.Model):
         return str(self.partNo)
 
 
-# model representing a Task for a Visualisation Unit
-class VisualisationTask(models.Model):
-    TASK_CHOICES = [
-        ('assemble', 'Assemble the workingpiece'),
-        ('package', 'Package the workingpiece'),
-        ('unpackage', 'Unpackage the workingpiece'),
-        ('color', 'Paint the workingpiece'),
-        ('generic', 'Own implementation of a task'),
-    ]
-    # task which the visualisation unit should display
-    task = models.CharField(
-        max_length=15, choices=TASK_CHOICES, default='assemble')
-    # visualisation unit which should execute the task
-    assignedUnit = models.OneToOneField(
-        StateVisualisationUnit, on_delete=models.CASCADE, null=True)
-    assignedWorkingPiece = models.OneToOneField(
-        StateWorkingPiece, on_delete=models.SET_NULL, null=True)
+# Model of a working plan. Working order define the production process of an order
+class WorkingPlan(models.Model):
+    name = models.CharField(max_length=30)
+    description = models.CharField(max_length=200, default="")
+    # number of the workingplan
+    workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
 
     def __str__(self):
-        return self.task
+        return self.name
+
+
+# Model of a single task in a working plan. represents one step in a working plan
+class WorkingStep(models.Model):
+    TASK_CHOICES = [
+        ("assemble", "Assemble the workingpiece"),
+        ("package", "Package the workingpiece"),
+        ("unpackage", "Unpackage the workingpiece"),
+        ("color", "Paint the workingpiece"),
+        ("generic", "Own implementation of a task"),
+        ("store", "Store a workingpiece"),
+        ("unstore", "Unstore a workingpiece"),
+    ]
+    name = models.CharField(max_length=30)
+    description = models.CharField(max_length=200, default="")
+    # task which the visualisation unit should display
+    task = models.CharField(max_length=15, choices=TASK_CHOICES, default="assemble")
+    # ressourceID of assigned unit which should execute the task
+    assignedToUnit = models.PositiveIntegerField()
+    # working plan which the step belongs to
+    workingPlan = models.ForeignKey(WorkingPlan, on_delete=models.CASCADE)
+    # if task is painting
+    color = ColorField(default="#000000")
+    # step number inside the Workingplan
+    stepNo = models.PositiveSmallIntegerField(primary_key=True)
+    # operation number, see CP Factory documentation
+    operationNo = models.PositiveSmallIntegerField(default=510)
+
+    def __str__(self):
+        return self.name
 
 
 # Model representing a Order which is assigned by the user
@@ -110,7 +128,9 @@ class AssignedOrder(models.Model):
     # name of the working plan
     name = models.CharField(max_length=30)
     # short description of working plan (optional)
-    description = models.CharField(max_length=200, default='')
+    description = models.CharField(max_length=200, default="")
+    # Workingplan which should be executed
+    assigendWorkingPlan = models.OneToOneField(WorkingPlan, on_delete=models.CASCADE)
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
     # order number
@@ -126,72 +146,34 @@ class AssignedOrder(models.Model):
         return self.name
 
 
-# Model of a working plan. Working order define the production process of an order
-class WorkingPlan(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=200, default='')
-    # number of the workingplan
-    workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
-    # the order which the workingplan belongs to
-    assignedToOrder = models.ManyToManyField(AssignedOrder)
-
-    def __str__(self):
-        return self.name
-
-
-# Model of a single task in a working plan. represents one step in a working plan
-class WorkingStep(models.Model):
-    TASK_CHOICES = [
-        ('assemble', 'Assemble the workingpiece'),
-        ('package', 'Package the workingpiece'),
-        ('unpackage', 'Unpackage the workingpiece'),
-        ('color', 'Paint the workingpiece'),
-        ('generic', 'Own implementation of a task'),
-    ]
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=200, default="")
-    # task which the visualisation unit should display
-    task = models.CharField(
-        max_length=15, choices=TASK_CHOICES, default='assemble')
-    # ressourceID of assigned unit which should execute the task
-    assignedToUnit = models.PositiveIntegerField()
-    # working plan which the step belongs to
-    workingPlan = models.ForeignKey(WorkingPlan, on_delete=models.CASCADE)
-    # if task is painting
-    color = ColorField(default='#000000')
-    # step number inside the Workingplan
-    stepNo = models.PositiveSmallIntegerField(primary_key=True)
-    # operation number, see CP Factory documentation
-    operationNo = models.PositiveSmallIntegerField(default=510)
-
-    def __str__(self):
-        return self.name
-
-
+# Model for safteymonitoring. Errors are stored and handled in this format
 class Error(models.Model):
     ERROR_LEVEL = [
-        ('[WARNING]', 'Warning Level'),
-        ('[ERROR]', 'Error Level'),
-        ('[CRITICAL]', 'Critical Level'),
+        ("[WARNING]", "Warning Level"),
+        ("[ERROR]", "Error Level"),
+        ("[CRITICAL]", "Critical Level"),
     ]
     ERROR_CATEGORY = [
-        ('Connection issues', 'Issues related to network communication and connections'),
-        ('Invalid input', 'Issues related to invalid inputs or invalid input Data'),
-        ('Operational issue', 'Issues related to operating the system'),
-        ('Integrity & Consistency issue',
-         'Issues related to integrity and consitency of data'),
-        ('Unkown', 'Unkown Error')
+        (
+            "Connection issues",
+            "Issues related to network communication and connections",
+        ),
+        ("Invalid input", "Issues related to invalid inputs or invalid input Data"),
+        ("Operational issue", "Issues related to operating the system"),
+        (
+            "Integrity & Consistency issue",
+            "Issues related to integrity and consitency of data",
+        ),
+        ("Unkown", "Unkown Error"),
     ]
     # level of the Error. See componentspecifiaction for details
-    level = models.CharField(
-        max_length=10, choices=ERROR_LEVEL, default='[WARNING]')
+    level = models.CharField(max_length=10, choices=ERROR_LEVEL, default="[WARNING]")
     # message of the error. See componentspecifiaction for details
     msg = models.CharField(max_length=200)
     # category of the error. See componentspecifiaction for details
-    category = models.CharField(
-        max_length=30, choices=ERROR_CATEGORY, default='Unkown')
+    category = models.CharField(max_length=30, choices=ERROR_CATEGORY, default="Unkown")
     # id of the error. Autogenerated
-    id = models.PositiveIntegerField(primary_key=True, auto_created=True)
+    id = models.AutoField(primary_key=True)
     # Autogenerated
     timestamp = models.DateTimeField(auto_now_add=True)
     # if error is solved. level [WARNING] is alsways solved
