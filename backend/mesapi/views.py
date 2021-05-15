@@ -13,163 +13,121 @@ from django.http import JsonResponse
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics, mixins
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 
 
 from .serializers import *
 from .models import *
 
-
+# Overview of all API Endpoints
 class APIOverview(APIView):
-
     def get(self, request, *args, **kwargs):
         overview = {
-            'Get or Post on states of all PLC': 'api/StatePLC/',
-            'Get or Post on states of all Visualisationunits': 'api/StateVisualisationUnit/',
-            'Get or Post on all VisualisationTasks': 'api/VisualisationTask/',
-            'Get or Post on states of all WorkingPieces': 'api/StateWorkingPiece/',
-            'Get or Post on all assigned Orders': 'api/AssignedOrder/',
-            'Get or Post on all WorkingPlans': 'api/WorkingPlan/',
-            'Get or Post on all WorkingSteps': 'api/WorkingStep/',
-            'Get or Post on all Error': 'api/Error/',
-            'Get or Post on all Settings': 'api/Setting/',
-            'Get or Post on all Costumers': 'api/Costumer/',
+            "Get or Post on states of all PLC": "api/StatePLC/",
+            "Get or Post on states of all Visualisationunits": "api/StateVisualisationUnit/",
+            "Get or Post on all VisualisationTasks": "api/VisualisationTask/",
+            "Get or Post on states of all WorkingPieces": "api/StateWorkingPiece/",
+            "Get or Post on all assigned Orders": "api/AssignedOrder/",
+            "Get or Post on all WorkingPlans": "api/WorkingPlan/",
+            "Get or Post on all WorkingSteps": "api/WorkingStep/",
+            "Get or Post on all Error": "api/Error/",
+            "Get or Post on all Settings": "api/Setting/",
+            "Get or Post on all Costumers": "api/Costumer/",
         }
         return Response(overview)
 
 
-class StatePLCView(mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.DestroyModelMixin,
-                   generics.GenericAPIView):
+# ListCreateView creates view with get and post options for collection of entities
+class StatePLCView(ListCreateAPIView):
     # serializer class so it can be used. needed for serializing request and responsen
     serializer_class = StatePLCSerializer
     # queryset with which the requests will be handled. All entities will be loaded into this object
     queryset = StatePLC.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        # return repsonse with the help of the ListModelMixin Class
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        # return repsonse with the help of the CreateModelMixin Class
-        return self.create(request, *args, **kwargs)
+# RetrieveUpdateDestroVIew provides a view with put, patch, get and delete capabilities for single entity
+class SingleStatePLCView(RetrieveUpdateDestroyAPIView):
+    # serializer class so it can be used. needed for serializing request and responsen
+    serializer_class = StatePLCSerializer
+    # queryset with which the requests will be handled. All entities will be loaded into this object
+    queryset = StatePLC.objects.all()
 
 
-class StateVisualisationUnitView(mixins.ListModelMixin,
-                                 mixins.CreateModelMixin,
-                                 generics.GenericAPIView):
+class StateVisualisationUnitView(ListCreateAPIView):
     serializer_class = StateVisualisationUnitSerializer
     queryset = StateVisualisationUnit.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-class VisualisationTaskView(mixins.ListModelMixin,
-                            mixins.CreateModelMixin,
-                            generics.GenericAPIView):
-    serializer_class = VisualisationTaskSerializer
-    queryset = VisualisationTask.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleStateVisualisationUnitView(RetrieveUpdateDestroyAPIView):
+    serializer_class = StateVisualisationUnitSerializer
+    queryset = StateVisualisationUnit.objects.all()
 
 
-class StateWorkingPieceView(mixins.ListModelMixin,
-                            mixins.CreateModelMixin,
-                            generics.GenericAPIView):
+class StateWorkingPieceView(ListCreateAPIView):
     serializer_class = StateWorkingPieceSerializer
     queryset = StateWorkingPiece.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleStateWorkingPieceView(RetrieveUpdateDestroyAPIView):
+    serializer_class = StateWorkingPieceSerializer
+    queryset = StateWorkingPiece.objects.all()
 
 
-class AssignedOrderView(mixins.ListModelMixin,
-                        mixins.CreateModelMixin,
-                        generics.GenericAPIView):
+class AssignedOrderView(ListCreateAPIView):
     serializer_class = AssignedOrderSerializer
     queryset = AssignedOrder.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleAssignedOrderView(RetrieveUpdateDestroyAPIView):
+    serializer_class = AssignedOrderSerializer
+    queryset = AssignedOrder.objects.all()
 
 
-class WorkingPlanView(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      generics.GenericAPIView):
+class WorkingPlanView(ListCreateAPIView):
     serializer_class = WorkingPlanSerializer
     queryset = WorkingPlan.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleWorkingPlanView(RetrieveUpdateDestroyAPIView):
+    serializer_class = WorkingPlanSerializer
+    queryset = WorkingPlan.objects.all()
 
 
-class WorkingStepView(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      generics.GenericAPIView):
+class WorkingStepView(ListCreateAPIView):
     serializer_class = WorkingStepSerializer
     queryset = WorkingStep.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleWorkingStepView(RetrieveUpdateDestroyAPIView):
+    serializer_class = WorkingStepSerializer
+    queryset = WorkingStep.objects.all()
 
 
-class ErrorView(mixins.ListModelMixin,
-                mixins.CreateModelMixin,
-                generics.GenericAPIView):
+class ErrorView(ListCreateAPIView):
     serializer_class = ErrorSerializer
     queryset = Error.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleErrorView(RetrieveUpdateDestroyAPIView):
+    serializer_class = ErrorSerializer
+    queryset = Error.objects.all()
 
 
-class SettingView(mixins.ListModelMixin,
-                  mixins.CreateModelMixin,
-                  generics.GenericAPIView):
+class SettingView(ListCreateAPIView):
     serializer_class = SettingSerializer
     queryset = Setting.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleSettingView(RetrieveUpdateDestroyAPIView):
+    serializer_class = SettingSerializer
+    queryset = Setting.objects.all()
 
 
-class CostumerView(mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   generics.GenericAPIView):
+class CostumerView(ListCreateAPIView):
     serializer_class = CostumerSerializer
     queryset = Costumer.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+class SingleCostumerView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CostumerSerializer
+    queryset = Costumer.objects.all()
