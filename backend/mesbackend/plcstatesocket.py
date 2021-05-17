@@ -52,9 +52,10 @@ class PLCStateSocket(object):
             if msg:
                 SystemMonitoring().decodeCyclicMessage(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
+            #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
-                print("Keine Message")
                 client.close()
+                print("[CONNECTION]: Connection " + str(addr) + " closed")
                 break
 
     # Waits for a connection from a plc. When a plc connects,

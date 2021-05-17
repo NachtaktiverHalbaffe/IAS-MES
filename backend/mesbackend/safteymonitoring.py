@@ -30,17 +30,18 @@ class SafteyMonitoring(object):
     # msg: message of the error
 
     def decodeError(self, errorLevel, errorCategory, msg):
-        error = Error
-        error.level = errorLevel
-        error.category = errorCategory
-        error.msg = msg
+        level = errorLevel
+        category = errorCategory
+        msg = msg
+        isSolved = False
 
         # When error is of category warning it will automatically be marked as solved
         if errorLevel == self.LEVEL_WARNING:
-            error.isSolved = True
+            isSolved = True
         else:
-            error.isSolved = False
-
+            isSolved = False
+        error = Error(level=level, category=category,
+                      msg=msg, isSolved=isSolved)
         error.save()
 
     # Gets executed when a error is saved. It analyses the error and decides what the system has to do

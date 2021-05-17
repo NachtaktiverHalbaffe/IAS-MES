@@ -41,9 +41,9 @@ class SystemMonitoring(object):
             spsTypeStr = msg[8:12]
             spsType = int(spsTypeStr, 0)
             if spsType != 1 and spsType != 2:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring.CATEGORY_INPUT,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                     msg=self.ERROR_MSG_SPSTYPE,
                 )
                 return
@@ -68,9 +68,9 @@ class SystemMonitoring(object):
                 errorL2 = statusbits[1]
                 mesMode = bool(statusbits[0])
             else:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring.CATEGORY_INPUT,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                     msg=self.ERROR_MSG_STATUS + str(ressourceId),
                 )
                 return
@@ -81,21 +81,21 @@ class SystemMonitoring(object):
 
             # check error bits
             if errorL0 == 1:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_ERROR,
-                    errorCategory=SafteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L0 + str(ressourceId),
                 )
             elif errorL1 == 1:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_ERROR,
-                    errorCategory=SafteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L1 + str(ressourceId),
                 )
             elif errorL2 == 1:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L2 + str(ressourceId),
                 )
 
@@ -107,9 +107,9 @@ class SystemMonitoring(object):
         if StatePLC.objects.filter(id=location).exists:
             stateWorkingPiece.update(location=location)
         else:
-            SafteyMonitoring.decodeError(
-                errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                errorCategory=SafteyMonitoring.CATEGORY_DATA,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_DATA,
                 msg=self.ERROR_MSG_DATA1 +
                 str(location) + self.ERROR_MSG_DATA2,
             )
@@ -143,9 +143,9 @@ class SystemMonitoring(object):
         elif busy == 0 and reset == 1:
             state = "direct"
         else:
-            SafteyMonitoring.decodeError(
-                errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                errorCategory=SafteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_STATE + str(ressourceId),
             )
             return
@@ -156,9 +156,9 @@ class SystemMonitoring(object):
         elif autoMode == 0 and manualMode == 1:
             mode = "default"
         else:
-            SafteyMonitoring.decodeError(
-                errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                errorCategory=SafteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_MODE + str(ressourceId),
             )
             return
@@ -192,8 +192,8 @@ class SystemMonitoring(object):
             return int(ressourceIDStr, 0)
         else:
             # error
-            SafteyMonitoring.decodeError(
-                errorLevel=SafteyMonitoring.LEVEL_WARNING,
-                errorCategory=SafteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_RESSID,
             )
