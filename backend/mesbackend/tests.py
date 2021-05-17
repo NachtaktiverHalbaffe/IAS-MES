@@ -21,5 +21,7 @@ class TestPLCStateSocket(object):
         client.close()
 
 
+print("Starting Test of cyclic state communication with the PLC")
 test = TestPLCStateSocket()
 test.sendTestMessage()
+print("Test messgage send.")

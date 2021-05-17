@@ -7,7 +7,7 @@ Short description: Module for error handling and for monitoring saftey constrain
 
 """
 
-from backend.mesapi.models import Error
+from mesapi.models import Error
 
 
 class SafteyMonitoring(object):
