@@ -29,6 +29,6 @@ urlpatterns = [
     path("api/StatePLC/", StatePLCView.as_view()),
     # Overview for all endpoints
     path("api/", APIOverview.as_view()),
-    # admin panel as landing pager
+    # admin panel as landing page
     path("", admin.site.urls),
 ]
