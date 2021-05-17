@@ -6,31 +6,33 @@ Short description: Module for cyclic tcp communications with the plc
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
-from socket import AF_INET, socket, SOCK_STREAM
+import socket
 from threading import Thread
 import time
 
 from .systemmonitoring import SystemMonitoring
 from .safteymonitoring import SafteyMonitoring
-from backend.mesapi.models import Setting
+from mesapi.models import Setting
 
 
 class PLCStateSocket(object):
 
     def __init__(self):
+        self.systemMonitoring = SystemMonitoring()
         # socket params
-        self.HOST = socket.gethostbyname(socket.gethostname())
+        hostname = socket.gethostname()
+        self.HOST = socket.gethostbyname(hostname)
         self.PORT = 2001
         self.ADDR = (self.HOST, self.PORT)
         self.BUFFSIZE = 512
         # setting up socket for server
-        self.SERVER = socket(AF_INET, SOCK_STREAM)
+        self.SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.SERVER.bind(self.ADDR)
         # setting up forwarding if server should be in bridging mode
-        settings = Setting.objects.latest()
+        settings = Setting.objects.all().first()
         self.isBridging = settings.isInBridgingMode
         self.ipAdressMES4 = settings.ipAdressMES4
-        self.CLIENT = socket(AF_INET, SOCK_STREAM)
+        self.CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.isBridging:
             self.CLIENT.connect((self.ipAdressMES4, self.PORT))
 
@@ -47,8 +49,13 @@ class PLCStateSocket(object):
             if self.isBridging:
                 self.CLIENT.send(msg)
             # decode message
-            SystemMonitoring.decodeCyclicMessage(
-                msg=msg.decode("utf8"), ipAdress=addr)
+            if msg:
+                SystemMonitoring().decodeCyclicMessage(
+                    msg=str(msg.decode("utf8")), ipAdress=addr)
+            elif not msg:
+                print("Keine Message")
+                client.close()
+                break
 
     # Waits for a connection from a plc. When a plc connects,
     # it starts a new thread for the cyclic communication
@@ -57,7 +64,7 @@ class PLCStateSocket(object):
         while True:
             try:
                 client, addr = self.SERVER.accept()
-                print("[CONNECTION]: " + addr + "connected to socket")
+                print("[CONNECTION]: " + str(addr) + "connected to socket")
                 Thread(target=self.cyclicCommunication,
                        args=(client, addr)).start()
             except Exception as e:
@@ -68,6 +75,7 @@ class PLCStateSocket(object):
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server
 
     def runServer(self):
+
         self.SERVER.listen()
         print("[CONNECTION] PLCStateSocket-Server started")
         # Start Tcp server on seperate Thread

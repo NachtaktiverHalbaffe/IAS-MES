@@ -7,10 +7,12 @@ ServiceOrderHandler
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
+from os import name
 from .safteymonitoring import SafteyMonitoring
-from backend.mesapi.models import StatePLC, StateVisualisationUnit, StateWorkingPiece
+from mesapi.models import StatePLC, StateVisualisationUnit, StateWorkingPiece
 
 import numpy as np
+from django.utils import timezone
 
 
 class SystemMonitoring(object):
@@ -74,7 +76,7 @@ class SystemMonitoring(object):
                 return
 
             # save state and validate parameter if they arent already validated
-            self._updateState(self, ressourceId, autoMode,
+            self._updateState(ressourceId, autoMode,
                               manualMode, busy, reset, mesMode, ipAdress)
 
             # check error bits
@@ -131,6 +133,7 @@ class SystemMonitoring(object):
     ):
         mode = ""
         state = ""
+        lastUpdate = timezone.now()
 
         # determine state of plc
         if busy == 1 and reset == 0:
@@ -161,17 +164,15 @@ class SystemMonitoring(object):
             return
 
         # Check if stateobject already exists. If it exists, then update it, otherwise create new one
-        if StatePLC.objects.filter(id=ressourceId).exists:
+        if StatePLC.objects.filter(id=ressourceId).count() == 1:
             statePLC = StatePLC.objects.filter(id=ressourceId)
             statePLC.update(state=state)
             statePLC.update(mode=mode)
             statePLC.update(mesMode=mesMode)
+            statePLC.update(lastUpdate=lastUpdate)
         else:
-            statePLC = StatePLC()
-            statePLC.state = state
-            statePLC.mode = mode
-            statePLC.mesMode = mesMode
-            statePLC.ipAdress = ipAdress
+            statePLC = StatePLC(id=ressourceId, name='', buffNo=0, buffPos=0,
+                                state=state, mode=mode, mesMode=mesMode, ipAdress=ipAdress[0], lastUpdate=lastUpdate)
             statePLC.save()
 
     # Decodes the ressourceId. Wether the PLC is big endian(Siemens) or little endian(Codesys) it needs
