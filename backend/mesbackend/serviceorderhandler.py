@@ -7,7 +7,9 @@ Short description: Module for handling the service request and creating response
 
 """
 
+from backend.mesbackend.servicecalls import Servicecalls
 from .safteymonitoring import SafteyMonitoring
+from .servicecalls import Servicecalls
 
 
 class ServiceOrderHandler(object):
@@ -51,10 +53,16 @@ class ServiceOrderHandler(object):
         self.serviceParams = []
         # Errorhandling
         self.safteyMonitoring = SafteyMonitoring()
-        self.ERROR_ENCODING = "Couldn't encode message"
+        self.ERROR_ENCODING = "Couldn't encode message. Tcpident must me wrong"
+        self.ERROR_DECODING = "Couldn't decode message. No tcpident found in message"
 
     def createResponse(self, msg, ipAdress):
-        pass
+        self.decodeMessage(msg)
+        self.getOutputParams()
+
+        # TODO derive state
+
+        return self.encodeMessage()
 
     def decodeMessage(self, msg):
         self.msg = msg
@@ -71,9 +79,55 @@ class ServiceOrderHandler(object):
         elif '444' in msg:
             # msg is in full string format
             self._decodeStrFull()
+        else:
+            self.safteyMonitoring.decodeError(
+                errorLevel=self.safteyMonitoring.LEVEL_ERROR,
+                errorCategory=self.safteyMonitoring.CATEGORY_INPUT,
+                msg=self.ERROR_DECODING,
+            )
+
+    # Sets the attributes of the object corresponding to the needed Output params depending on the servicecall.
+    # The businesslogic is done in serviceclass.py. There for each servicecall a response is calculated an the output
+    # parameter set.
 
     def getOutputParams(self):
-        pass
+        servicecalls = Servicecalls()
+        # GetFirstOpForRsc
+        if self.mClass == 100 and self.mNo == 4:
+            self = servicecalls.getFirstOpForRsc(self)
+            return
+        # GetOpForONoOPos
+        elif self.mClass == 100 and self.mNo == 6:
+            self = servicecalls.getOpForONoOPos(self)
+            return
+        # OpStart
+        elif self.mClass == 101 and self.mNo == 10:
+            self = servicecalls.opStart(self)
+            return
+        # OpReset
+        elif self.mClass == 101 and self.mNo == 15:
+            self = servicecalls.opResetself(self)
+            return
+        # OpEnd
+        elif self.mClass == 101 and self.mNo == 20:
+            self = servicecalls.opEnd(self)
+            return
+        # GetShuntForTarget
+        elif self.mClass == 110 and self.mNo == 1:
+            self = servicecalls.getShuntForTarget(self)
+            return
+        # GetBufForBufNo
+        elif self.mClass == 150 and self.mNo == 1:
+            self = servicecalls.getBufForBufNo(self)
+            return
+        # GetBufPos
+        elif self.mClass == 150 and self.mNo == 5:
+            self = servicecalls.getBufPos(self)
+            return
+        # GetToAGVBuf
+        elif self.mClass == 200 and self.mNo == 21:
+            self = servicecalls.getToAGVBuf(self)
+            return
 
     # encodes message for PlcServiceOrderSocket in a format so it can be send
     # @params: Takes all the neccessary attributes of the Object and parses them
