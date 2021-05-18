@@ -42,7 +42,7 @@ class PLCStateSocket(object):
     # addr: ipv4 adress of the plc
 
     def cyclicCommunication(self, client, addr):
-
+        systemMonitoring = SystemMonitoring()
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -50,7 +50,7 @@ class PLCStateSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
-                SystemMonitoring().decodeCyclicMessage(
+                systemMonitoring.decodeCyclicMessage(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
             #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
@@ -62,6 +62,7 @@ class PLCStateSocket(object):
     # it starts a new thread for the cyclic communication
 
     def waitForConnection(self):
+        safteyMonitoring = SafteyMonitoring()
         while True:
             try:
                 client, addr = self.SERVER.accept()
@@ -69,8 +70,8 @@ class PLCStateSocket(object):
                 Thread(target=self.cyclicCommunication,
                        args=(client, addr)).start()
             except Exception as e:
-                SafteyMonitoring.decodeError(
-                    errorLevel=SafteyMonitoring.LEVEL_ERROR, errorCategory=SafteyMonitoring.CATEGORY_CONNECTION, msg=e)
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR, errorCategory=safteyMonitoring.CATEGORY_CONNECTION, msg=e)
                 break
 
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server

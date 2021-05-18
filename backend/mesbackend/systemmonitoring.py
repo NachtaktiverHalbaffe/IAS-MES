@@ -27,6 +27,7 @@ class SystemMonitoring(object):
         self.ERROR_MSG_L2 = "warning on ressource "
         self.ERROR_MSG_DATA1 = "tried to update workingpiece with location "
         self.ERROR_MSG_DATA2 = "where no ressource exists"
+        self.ERROR_MSG_LEN = "invalid length of message"
 
     # Gets cyclic messages from PLCStateSocket, decodes it to StatePLC and saves it. All neccessary inputs are validated.
     # @params:
@@ -34,16 +35,24 @@ class SystemMonitoring(object):
     # ipAdress: ip Adress from which the PLC send the Socket the message
 
     def decodeCyclicMessage(self, msg, ipAdress):
+        safteyMonitoring = SafteyMonitoring()
         if msg == "0000":
+            return
+        elif len(msg) != 16:
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_WARNING,
+                errorCategory=safteyMonitoring.CATEGORY_INPUT,
+                msg=self.ERROR_MSG_LEN,
+            )
             return
         else:
             # slice message to get sps type
             spsTypeStr = msg[8:12]
             spsType = int(spsTypeStr, 0)
             if spsType != 1 and spsType != 2:
-                SafteyMonitoring().decodeError(
-                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_WARNING,
+                    errorCategory=safteyMonitoring.CATEGORY_INPUT,
                     msg=self.ERROR_MSG_SPSTYPE,
                 )
                 return
@@ -68,9 +77,9 @@ class SystemMonitoring(object):
                 errorL2 = statusbits[1]
                 mesMode = bool(statusbits[0])
             else:
-                SafteyMonitoring().decodeError(
-                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_WARNING,
+                    errorCategory=safteyMonitoring.CATEGORY_INPUT,
                     msg=self.ERROR_MSG_STATUS + str(ressourceId),
                 )
                 return
@@ -81,21 +90,21 @@ class SystemMonitoring(object):
 
             # check error bits
             if errorL0 == 1:
-                SafteyMonitoring().decodeError(
-                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
-                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L0 + str(ressourceId),
                 )
             elif errorL1 == 1:
-                SafteyMonitoring().decodeError(
-                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
-                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L1 + str(ressourceId),
                 )
             elif errorL2 == 1:
-                SafteyMonitoring().decodeError(
-                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_WARNING,
+                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L2 + str(ressourceId),
                 )
 
@@ -107,9 +116,9 @@ class SystemMonitoring(object):
         if StatePLC.objects.filter(id=location).exists:
             stateWorkingPiece.update(location=location)
         else:
-            SafteyMonitoring().decodeError(
-                errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                errorCategory=SafteyMonitoring().CATEGORY_DATA,
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_WARNING,
+                errorCategory=safteyMonitoring.CATEGORY_DATA,
                 msg=self.ERROR_MSG_DATA1 +
                 str(location) + self.ERROR_MSG_DATA2,
             )
@@ -143,9 +152,9 @@ class SystemMonitoring(object):
         elif busy == 0 and reset == 1:
             state = "direct"
         else:
-            SafteyMonitoring().decodeError(
-                errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_WARNING,
+                errorCategory=safteyMonitoring.CATEGORY_INPUT,
                 msg=self.ERROR_MSG_STATE + str(ressourceId),
             )
             return
@@ -156,9 +165,9 @@ class SystemMonitoring(object):
         elif autoMode == 0 and manualMode == 1:
             mode = "default"
         else:
-            SafteyMonitoring().decodeError(
-                errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_WARNING,
+                errorCategory=safteyMonitoring.CATEGORY_INPUT,
                 msg=self.ERROR_MSG_MODE + str(ressourceId),
             )
             return
@@ -192,8 +201,8 @@ class SystemMonitoring(object):
             return int(ressourceIDStr, 0)
         else:
             # error
-            SafteyMonitoring().decodeError(
-                errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_WARNING,
+                errorCategory=safteyMonitoring.CATEGORY_INPUT,
                 msg=self.ERROR_MSG_RESSID,
             )
