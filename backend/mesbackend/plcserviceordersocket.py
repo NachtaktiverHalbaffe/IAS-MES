@@ -7,19 +7,17 @@ Short description: Module for tcp communication with PLC regarding servicereques
 
 """
 
+
 import socket
 from threading import Thread
 import time
-
-from .serviceorderhandler import ServiceOrderHandler
-from .safteymonitoring import SafteyMonitoring
-from mesapi.models import Setting
+import django
 
 
 class PLCServiceOrderSocket(object):
 
     def __init__(self):
-        self.serviceOrderHandler = ServiceOrderHandler()
+        from django.apps import apps
         # socket params
         hostname = socket.gethostname()
         self.HOST = socket.gethostbyname(hostname)
@@ -28,9 +26,11 @@ class PLCServiceOrderSocket(object):
         self.BUFFSIZE = 512
         # setting up socket for server
         self.SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.SERVER.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.SERVER.bind(self.ADDR)
         # setting up forwarding if server should be in bridging mode
-        settings = Setting.objects.all().first()
+        settings = apps.get_model('mesapi', 'Setting')
+        settings = settings.objects.all().first()
         self.isBridging = settings.isInBridgingMode
         self.ipAdressMES4 = settings.ipAdressMES4
         self.CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,6 +43,7 @@ class PLCServiceOrderSocket(object):
     # addr: ipv4 adress of the plc
 
     def serviceCommunication(self, client, addr):
+
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -50,10 +51,10 @@ class PLCServiceOrderSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
+                django.setup()
+                from .serviceorderhandler import ServiceOrderHandler
                 # create and send response
-                response = ""
-                print(msg.decode("utf8"))
-                response = self.serviceOrderHandler.createResponse(
+                response = ServiceOrderHandler().createResponse(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
                 if response:
                     try:
@@ -70,6 +71,7 @@ class PLCServiceOrderSocket(object):
     # it starts a new thread for the cyclic communication
 
     def waitForConnection(self):
+        from .safteymonitoring import SafteyMonitoring
         safteyMonitoring = SafteyMonitoring()
         while True:
             try:

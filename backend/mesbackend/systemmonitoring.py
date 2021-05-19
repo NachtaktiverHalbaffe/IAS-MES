@@ -8,11 +8,12 @@ ServiceOrderHandler
 
 """
 from os import name
-from .safteymonitoring import SafteyMonitoring
-from mesapi.models import StatePLC, StateVisualisationUnit, StateWorkingPiece
-
+from django.apps import apps
 import numpy as np
 from django.utils import timezone
+
+from .safteymonitoring import SafteyMonitoring
+from mesapi.models import StatePLC
 
 
 class SystemMonitoring(object):
@@ -35,13 +36,12 @@ class SystemMonitoring(object):
     # ipAdress: ip Adress from which the PLC send the Socket the message
 
     def decodeCyclicMessage(self, msg, ipAdress):
-        safteyMonitoring = SafteyMonitoring()
         if msg == "0000":
             return
         elif len(msg) != 16:
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_WARNING,
-                errorCategory=safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_LEN,
             )
             return
@@ -50,9 +50,9 @@ class SystemMonitoring(object):
             spsTypeStr = msg[8:12]
             spsType = int(spsTypeStr, 0)
             if spsType != 1 and spsType != 2:
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_WARNING,
-                    errorCategory=safteyMonitoring.CATEGORY_INPUT,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                     msg=self.ERROR_MSG_SPSTYPE,
                 )
                 return
@@ -77,9 +77,9 @@ class SystemMonitoring(object):
                 errorL2 = statusbits[1]
                 mesMode = bool(statusbits[0])
             else:
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_WARNING,
-                    errorCategory=safteyMonitoring.CATEGORY_INPUT,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                     msg=self.ERROR_MSG_STATUS + str(ressourceId),
                 )
                 return
@@ -90,35 +90,37 @@ class SystemMonitoring(object):
 
             # check error bits
             if errorL0 == 1:
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L0 + str(ressourceId),
                 )
             elif errorL1 == 1:
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L1 + str(ressourceId),
                 )
             elif errorL2 == 1:
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_WARNING,
-                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                SafteyMonitoring().decodeError(
+                    errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                    errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L2 + str(ressourceId),
                 )
 
     # updates or create state of an workingpiece if ServiceOrderHandler determined from a message from a
     # PLC that the state had changed. ServiceOrderHandler can only determine if location or part number has changed
     def decodeStateWorkingPiece(self, location, carrierId):
-        stateWorkingPiece = StateWorkingPiece.objects.filter(
+
+        stateWorkingPiece = apps.get_model('mesapi', 'StateWorkingPiece').objects.filter(
             carrierId=carrierId)
-        if StatePLC.objects.filter(id=location).exists:
+        if stateWorkingPiece.filter(id=location).exists:
             stateWorkingPiece.update(location=location)
+
         else:
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_WARNING,
-                errorCategory=safteyMonitoring.CATEGORY_DATA,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_DATA,
                 msg=self.ERROR_MSG_DATA1 +
                 str(location) + self.ERROR_MSG_DATA2,
             )
@@ -140,6 +142,7 @@ class SystemMonitoring(object):
         mesMode,
         ipAdress,
     ):
+
         mode = ""
         state = ""
         lastUpdate = timezone.now()
@@ -152,9 +155,9 @@ class SystemMonitoring(object):
         elif busy == 0 and reset == 1:
             state = "direct"
         else:
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_WARNING,
-                errorCategory=safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_STATE + str(ressourceId),
             )
             return
@@ -165,24 +168,21 @@ class SystemMonitoring(object):
         elif autoMode == 0 and manualMode == 1:
             mode = "default"
         else:
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_WARNING,
-                errorCategory=safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_MODE + str(ressourceId),
             )
             return
 
-        # Check if stateobject already exists. If it exists, then update it, otherwise create new one
-        if StatePLC.objects.filter(id=ressourceId).count() == 1:
-            statePLC = StatePLC.objects.filter(id=ressourceId)
-            statePLC.update(state=state)
-            statePLC.update(mode=mode)
-            statePLC.update(mesMode=mesMode)
-            statePLC.update(lastUpdate=lastUpdate)
-        else:
-            statePLC = StatePLC(id=ressourceId, name='', buffNo=0, buffPos=0,
-                                state=state, mode=mode, mesMode=mesMode, ipAdress=ipAdress[0], lastUpdate=lastUpdate)
-            statePLC.save()
+        statePLC = StatePLC()
+        statePLC.id = ressourceId
+        statePLC.state = state
+        statePLC.mode = mode
+        statePLC.mesMode = mesMode
+        statePLC.ipAdress = ipAdress[0]
+        statePLC.lastUpdate = lastUpdate
+        statePLC.save()
 
     # Decodes the ressourceId. Wether the PLC is big endian(Siemens) or little endian(Codesys) it needs
     # to be decoded diffrently
@@ -201,8 +201,8 @@ class SystemMonitoring(object):
             return int(ressourceIDStr, 0)
         else:
             # error
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_WARNING,
-                errorCategory=safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_WARNING,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_MSG_RESSID,
             )

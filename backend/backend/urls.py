@@ -1,3 +1,6 @@
+import django
+from mesbackend.plcstatesocket import PLCStateSocket
+from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
 from django import urls
 from django.contrib import admin
 from django.urls import path, include
@@ -23,7 +26,8 @@ urlpatterns = [
     path("api/AssignedOrder/", AssignedOrderView.as_view()),
     path("api/StateWorkingPiece/<pk>", SingleStateWorkingPieceView.as_view()),
     path("api/StateWorkingPiece/", StateWorkingPieceView.as_view()),
-    path("api/StateVisualisationUnit/<pk>", SingleStateVisualisationUnitView.as_view()),
+    path("api/StateVisualisationUnit/<pk>",
+         SingleStateVisualisationUnitView.as_view()),
     path("api/StateVisualisationUnit/", StateVisualisationUnitView.as_view()),
     path("api/StatePLC/<pk>", SingleStatePLCView.as_view()),
     path("api/StatePLC/", StatePLCView.as_view()),

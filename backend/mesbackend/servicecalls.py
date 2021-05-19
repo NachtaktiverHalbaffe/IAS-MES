@@ -8,12 +8,11 @@ is handled here. Given on the servicecalls some output parameters are set
 
 """
 
-from .systemmonitoring import SystemMonitoring
-
 
 class Servicecalls(object):
 
     def __init__(self):
+        from .systemmonitoring import SystemMonitoring
         self.systemmonitoring = SystemMonitoring()
 
     def getFirstOpForRsc(self, obj):

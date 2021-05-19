@@ -41,8 +41,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "colorfield",
     # apps
-    "mesapi",
     "mesbackend",
+    "mesapi",
 ]
 
 MIDDLEWARE = [

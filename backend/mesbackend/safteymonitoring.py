@@ -7,11 +7,10 @@ Short description: Module for error handling and for monitoring saftey constrain
 
 """
 
-from mesapi.models import Error
-
 
 class SafteyMonitoring(object):
     def __init__(self):
+        # self.error = apps.get_model('mesapi', 'Error')
         self.LEVEL_WARNING = "[WARNING]"
         self.LEVEL_ERROR = "[ERROR]"
         self.LEVEL_CRITICIAL = "[CRITICAL]"
@@ -30,6 +29,8 @@ class SafteyMonitoring(object):
     # msg: message of the error
 
     def decodeError(self, errorLevel, errorCategory, msg):
+        from django.apps import apps
+        from mesapi.models import Error
         level = errorLevel
         category = errorCategory
         msg = msg
@@ -40,8 +41,12 @@ class SafteyMonitoring(object):
             isSolved = True
         else:
             isSolved = False
-        error = Error(level=level, category=category,
-                      msg=msg, isSolved=isSolved)
+
+        error = Error()
+        error.level = level
+        error.category = category
+        error.msg = msg
+        error.isSolved = isSolved
         error.save()
 
     # Gets executed when a error is saved. It analyses the error and decides what the system has to do

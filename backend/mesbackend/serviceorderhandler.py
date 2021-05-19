@@ -7,10 +7,6 @@ Short description: Module for handling the service request and creating response
 
 """
 
-from mesbackend.servicecalls import Servicecalls
-from .safteymonitoring import SafteyMonitoring
-from .servicecalls import Servicecalls
-
 
 class ServiceOrderHandler(object):
 
@@ -52,7 +48,6 @@ class ServiceOrderHandler(object):
         self.mainPNo = 0
         self.serviceParams = []
         # Errorhandling
-        self.safteyMonitoring = SafteyMonitoring()
         self.ERROR_ENCODING = "Couldn't encode message. Tcpident must me wrong"
         self.ERROR_DECODING = "Couldn't decode message. No tcpident found in message"
         self.ERROR_DECODINGSTRFULL = "Couldn't decode message. Tried to decode message in short format with method for full format"
@@ -66,6 +61,7 @@ class ServiceOrderHandler(object):
         return self.encodeMessage()
 
     def decodeMessage(self, msg):
+        from .safteymonitoring import SafteyMonitoring
         self.msg = msg
         if ':' in msg:
             # msg is in binary format
@@ -81,9 +77,9 @@ class ServiceOrderHandler(object):
             # msg is in full string format
             self._decodeStrFull()
         else:
-            self.safteyMonitoring.decodeError(
-                errorLevel=self.safteyMonitoring.LEVEL_ERROR,
-                errorCategory=self.safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_DECODING,
             )
 
@@ -92,6 +88,7 @@ class ServiceOrderHandler(object):
     # parameter set.
 
     def getOutputParams(self):
+        from .servicecalls import Servicecalls
         servicecalls = Servicecalls()
         # GetFirstOpForRsc
         if self.mClass == 100 and self.mNo == 4:
@@ -133,6 +130,7 @@ class ServiceOrderHandler(object):
     # encodes message for PlcServiceOrderSocket in a format so it can be send
     # @params: Takes all the neccessary attributes of the Object and parses them
     def encodeMessage(self):
+        from .safteymonitoring import SafteyMonitoring
         if self.tcpIdent == 445:
             # String coding shortend
             return self._encodeStrFull()
@@ -143,9 +141,9 @@ class ServiceOrderHandler(object):
             # Binary coding
             return self._encodeBin()
         else:
-            self.safteyMonitoring.decodeError(
-                errorLevel=self.safteyMonitoring.LEVEL_ERROR,
-                errorCategory=self.safteyMonitoring.CATEGORY_INPUT,
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
                 msg=self.ERROR_ENCODING,
             )
             return
