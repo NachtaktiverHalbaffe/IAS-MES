@@ -7,13 +7,16 @@ class MesapiConfig(AppConfig):
     name = "mesapi"
 
     def ready(self):
-        from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
-        from mesbackend.plcstatesocket import PLCStateSocket
+        # from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
+        # from mesbackend.plcstatesocket import PLCStateSocket
 
-        serviceProcess = Process(target=PLCServiceOrderSocket().runServer)
-        stateProcess = Process(target=PLCStateSocket().runServer)
-        # serviceProcess.daemon = True
-        # stateProcess.daemon = True
-        serviceProcess.start()
-        stateProcess.start()
+        # try:
+        #     serviceProcess = Process(target=PLCServiceOrderSocket().runServer)
+        #     stateProcess = Process(target=PLCStateSocket().runServer)
+        #     # serviceProcess.daemon = True
+        #     # stateProcess.daemon = True
+        #     serviceProcess.start()
+        #     stateProcess.start()
+        # except Exception:
+        #     pass
         return super().ready()

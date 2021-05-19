@@ -1,6 +1,6 @@
 """
 Filename: plcserviceordersocket.py
-Version name: 0.1, 2021-05-17
+Version name: 0.1, 2021-05-19
 Short description: Module for tcp communication with PLC regarding servicerequests
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -37,7 +37,7 @@ class PLCServiceOrderSocket(object):
         if self.isBridging:
             self.CLIENT.connect((self.ipAdressMES4, self.PORT))
 
-    # Thread for the cyclic communication. Receives messages from plc and gives them to SafteyMonitoring
+    # Thread for the service communication.
     # @params:
     # client: socket of the plc
     # addr: ipv4 adress of the plc
@@ -51,6 +51,7 @@ class PLCServiceOrderSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
+                # make sure apps and models are loaded
                 django.setup()
                 from .serviceorderhandler import ServiceOrderHandler
                 # create and send response
@@ -68,7 +69,7 @@ class PLCServiceOrderSocket(object):
                 break
 
     # Waits for a connection from a plc. When a plc connects,
-    # it starts a new thread for the cyclic communication
+    # it starts a new thread for the service specific communication
 
     def waitForConnection(self):
         from .safteymonitoring import SafteyMonitoring

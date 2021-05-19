@@ -73,13 +73,14 @@ class AssignedOrderSerializer(serializers.ModelSerializer):
             "orderPos",
             "mainOrderPos",
             "costumerNo",
+            "status"
         )
 
 
 class WorkingPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingPlan
-        fields = ("name", "description", "workingPlanNo")
+        fields = ("name", "description", "workingPlanNo", "workingSteps")
 
 
 class WorkingStepSerializer(serializers.ModelSerializer):
@@ -90,7 +91,6 @@ class WorkingStepSerializer(serializers.ModelSerializer):
             "description",
             "task",
             "assignedToUnit",
-            "workingPlan",
             "color",
             "stepNo",
             "operationNo",

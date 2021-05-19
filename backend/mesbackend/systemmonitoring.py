@@ -13,7 +13,6 @@ import numpy as np
 from django.utils import timezone
 
 from .safteymonitoring import SafteyMonitoring
-from mesapi.models import StatePLC
 
 
 class SystemMonitoring(object):
@@ -142,7 +141,7 @@ class SystemMonitoring(object):
         mesMode,
         ipAdress,
     ):
-
+        from mesapi.models import StatePLC
         mode = ""
         state = ""
         lastUpdate = timezone.now()
@@ -175,14 +174,16 @@ class SystemMonitoring(object):
             )
             return
 
-        statePLC = StatePLC()
-        statePLC.id = ressourceId
-        statePLC.state = state
-        statePLC.mode = mode
-        statePLC.mesMode = mesMode
-        statePLC.ipAdress = ipAdress[0]
-        statePLC.lastUpdate = lastUpdate
-        statePLC.save()
+        if StatePLC.objects.filter(id=ressourceId).count() == 1:
+            statePLC = StatePLC.objects.filter(id=ressourceId)
+            statePLC.update(state=state)
+            statePLC.update(mode=mode)
+            statePLC.update(mesMode=mesMode)
+            statePLC.update(lastUpdate=lastUpdate)
+        else:
+            statePLC = StatePLC(id=ressourceId, name='', buffNo=0, buffPos=0,
+                                state=state, mode=mode, mesMode=mesMode, ipAdress=ipAdress[0], lastUpdate=lastUpdate)
+            statePLC.save()
 
     # Decodes the ressourceId. Wether the PLC is big endian(Siemens) or little endian(Codesys) it needs
     # to be decoded diffrently

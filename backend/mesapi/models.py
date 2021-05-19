@@ -12,6 +12,7 @@ from django.db.models.base import Model
 from django.db.models.deletion import CASCADE
 from django.db.models.fields import CharField, DateField
 from colorfield.fields import ColorField
+import json
 
 
 # Model representing the state of an PLC
@@ -80,20 +81,9 @@ class StateWorkingPiece(models.Model):
 
     def __str__(self):
         return str(self.partNo)
-
-
-# Model of a working plan. Working order define the production process of an order
-class WorkingPlan(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=200, default="")
-    # number of the workingplan
-    workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
-
-    def __str__(self):
-        return self.name
-
-
 # Model of a single task in a working plan. represents one step in a working plan
+
+
 class WorkingStep(models.Model):
     TASK_CHOICES = [
         ("assemble", "Assemble the workingpiece"),
@@ -111,8 +101,6 @@ class WorkingStep(models.Model):
         max_length=15, choices=TASK_CHOICES, default="assemble")
     # ressourceID of assigned unit which should execute the task
     assignedToUnit = models.PositiveIntegerField()
-    # working plan which the step belongs to
-    workingPlan = models.ForeignKey(WorkingPlan, on_delete=models.CASCADE)
     # if task is painting
     color = ColorField(default="#000000")
     # step number inside the Workingplan
@@ -123,15 +111,29 @@ class WorkingStep(models.Model):
     def __str__(self):
         return self.name
 
+# Model of a working plan. Working order define the production process of an order
+
+
+class WorkingPlan(models.Model):
+    name = models.CharField(max_length=30)
+    description = models.CharField(max_length=200, default="")
+    # number of the workingplan
+    workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
+    workingSteps = models.ManyToManyField(WorkingStep, blank=True)
+
+    def __str__(self):
+        return self.name
 
 # Model representing a Order which is assigned by the user
+
+
 class AssignedOrder(models.Model):
     # name of the working plan
     name = models.CharField(max_length=30)
     # short description of working plan (optional)
     description = models.CharField(max_length=200, default="")
     # Workingplan which should be executed
-    assigendWorkingPlan = models.OneToOneField(
+    assigendWorkingPlan = models.ForeignKey(
         WorkingPlan, on_delete=models.CASCADE)
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
@@ -143,6 +145,15 @@ class AssignedOrder(models.Model):
     mainOrderPos = models.PositiveSmallIntegerField(default=0)
     # costumer number (optional)
     costumerNo = models.PositiveIntegerField(default=1000)
+    # Status
+    status = models.CharField(max_length=30, null=True)
+
+    # getter and setter for status cause it needs to be converted to string and vise versa
+    def setStatus(self, statusArray):
+        self.status = json.dumps(statusArray)
+
+    def getStatus(self):
+        return json.loads(self.status)
 
     def __str__(self):
         return self.name

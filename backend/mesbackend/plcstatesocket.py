@@ -17,6 +17,8 @@ class PLCStateSocket(object):
     def __init__(self):
         # socket params
         from django.apps import apps
+        from .systemmonitoring import SystemMonitoring
+        self.systemMonitoring = SystemMonitoring()
         hostname = socket.gethostname()
         self.HOST = socket.gethostbyname(hostname)
         self.PORT = 2001
@@ -42,7 +44,7 @@ class PLCStateSocket(object):
 
     def cyclicCommunication(self, client, addr):
 
-        print(self.ipAdressMES4)
+        django.setup()
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -50,9 +52,8 @@ class PLCStateSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
-                django.setup()
-                from .systemmonitoring import SystemMonitoring
-                SystemMonitoring().decodeCyclicMessage(
+
+                self.systemMonitoring.decodeCyclicMessage(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
             #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
