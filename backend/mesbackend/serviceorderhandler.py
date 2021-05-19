@@ -7,7 +7,7 @@ Short description: Module for handling the service request and creating response
 
 """
 
-from backend.mesbackend.servicecalls import Servicecalls
+from mesbackend.servicecalls import Servicecalls
 from .safteymonitoring import SafteyMonitoring
 from .servicecalls import Servicecalls
 
@@ -55,6 +55,7 @@ class ServiceOrderHandler(object):
         self.safteyMonitoring = SafteyMonitoring()
         self.ERROR_ENCODING = "Couldn't encode message. Tcpident must me wrong"
         self.ERROR_DECODING = "Couldn't decode message. No tcpident found in message"
+        self.ERROR_DECODINGSTRFULL = "Couldn't decode message. Tried to decode message in short format with method for full format"
 
     def createResponse(self, msg, ipAdress):
         self.decodeMessage(msg)
@@ -73,10 +74,10 @@ class ServiceOrderHandler(object):
             elif "33:33:33:02:" in msg:
                 self.tcpIdent = "33:33:33:02:"
             self._decodeBin()
-        elif '445' in msg:
+        elif '<CR>' in msg and len(msg.split("<CR>")) > 3:
             # msg is in shortened string format
             self._decodeStrShort()
-        elif '444' in msg:
+        elif '=' in msg:
             # msg is in full string format
             self._decodeStrFull()
         else:
@@ -156,7 +157,7 @@ class ServiceOrderHandler(object):
         # Header
         msg = str(self.tcpIdent)
         if self.requestID != 0:
-            msg += ";RequestID=" + str(self.requestID)
+            msg += ";RequestId=" + str(self.requestID)
         if self.mClass != 0:
             msg += ";MClass=" + str(self.mClass)
         if self.mNo != 0:
@@ -237,9 +238,13 @@ class ServiceOrderHandler(object):
         for item in msg:
             # Header
             param = item.split("=")
-            if '444' in item:
+            # replace <CR> if its in item
+            if len(param) == 2:
+                if "<CR>" in param[1]:
+                    param[1] = param[1].replace('<CR>', '')
+            if '444' in item or '445' in item:
                 self.tcpIdent = int(item)
-            elif 'RequestID' in item:
+            elif 'RequestId' in item:
                 self.requestID = param[1]
             elif 'MClass' in item:
                 self.mClass = param[1]

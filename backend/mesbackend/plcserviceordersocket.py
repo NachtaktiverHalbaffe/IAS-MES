@@ -1,27 +1,29 @@
 """
-Filename: plcstatesocket.py
+Filename: plcserviceordersocket.py
 Version name: 0.1, 2021-05-17
-Short description: Module for cyclic tcp communications with the plc
+Short description: Module for tcp communication with PLC regarding servicerequests
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
+
 import socket
 from threading import Thread
 import time
 
-from .systemmonitoring import SystemMonitoring
+from .serviceorderhandler import ServiceOrderHandler
 from .safteymonitoring import SafteyMonitoring
 from mesapi.models import Setting
 
 
-class PLCStateSocket(object):
+class PLCServiceOrderSocket(object):
 
     def __init__(self):
+        self.serviceOrderHandler = ServiceOrderHandler()
         # socket params
         hostname = socket.gethostname()
         self.HOST = socket.gethostbyname(hostname)
-        self.PORT = 2001
+        self.PORT = 2000
         self.ADDR = (self.HOST, self.PORT)
         self.BUFFSIZE = 512
         # setting up socket for server
@@ -40,8 +42,7 @@ class PLCStateSocket(object):
     # client: socket of the plc
     # addr: ipv4 adress of the plc
 
-    def cyclicCommunication(self, client, addr):
-        systemMonitoring = SystemMonitoring()
+    def serviceCommunication(self, client, addr):
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -49,8 +50,16 @@ class PLCStateSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
-                systemMonitoring.decodeCyclicMessage(
+                # create and send response
+                response = ""
+                print(msg.decode("utf8"))
+                response = self.serviceOrderHandler.createResponse(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
+                if response:
+                    try:
+                        client.send(response.encode("utf8"))
+                    except Exception:
+                        pass
             #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
                 client.close()
@@ -66,7 +75,7 @@ class PLCStateSocket(object):
             try:
                 client, addr = self.SERVER.accept()
                 print("[CONNECTION]: " + str(addr) + "connected to socket")
-                Thread(target=self.cyclicCommunication,
+                Thread(target=self.serviceCommunication,
                        args=(client, addr)).start()
             except Exception as e:
                 safteyMonitoring.decodeError(
@@ -78,7 +87,7 @@ class PLCStateSocket(object):
     def runServer(self):
 
         self.SERVER.listen()
-        print("[CONNECTION] PLCStateSocket-Server started")
+        print("[CONNECTION] PLCServiceOrderSocket-Server started")
         # Start Tcp server on seperate Thread
         SERVER_THREADING = Thread(target=self.waitForConnection)
         SERVER_THREADING.start()
