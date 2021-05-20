@@ -119,7 +119,7 @@ class WorkingPlan(models.Model):
     description = models.CharField(max_length=200, default="")
     # number of the workingplan
     workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
-    workingSteps = models.ManyToManyField(WorkingStep, blank=True)
+    workingSteps = models.ManyToManyField(WorkingStep)
 
     def __str__(self):
         return self.name
