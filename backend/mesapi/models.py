@@ -109,7 +109,7 @@ class WorkingStep(models.Model):
     operationNo = models.PositiveSmallIntegerField(default=510)
 
     def __str__(self):
-        return self.name
+        return self.name + " (Step Number: " + str(self.stepNo) + ")"
 
 # Model of a working plan. Working order define the production process of an order
 

@@ -30,6 +30,9 @@ def handleError(sender, instance, **kwargs):
     elif "Workingplan not saved!" in instance.msg:
         Error.objects.filter(id=instance.id).update(isSolved=True)
         return
+    elif "Visualisation unit is not reachable." in instance.msg:
+        # TODO Delete workingstep from working order
+        return
 
 
 # Gets executed before a order is saved. It creates a array of
@@ -52,17 +55,32 @@ def sendVisualisationtasks(sender, instance, **kwargs):
     for step in workingsteps:
         unit = step.assignedToUnit
         task = step.task
-        # ipAdress = StateVisualisationUnit.objects.all().filter(
-        #     boundToRessource=unit).ipAdress
+        stepNo = step.stepNo
+        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count == 1:
+            ipAdress = StateVisualisationUnit.objects.all().filter(
+                boundToRessource=unit).ipAdress
+            payload = {
+                "task": task,
+                "assignedToUnit": unit,
+                "stepNo": stepNo
+            }
+            request = requests.post(ipAdress, data=payload)
 
-        payload = {
-            "task": task,
-            "assignedToUnit": unit
-        }
-        #request = requests.post(ipAdress, data=payload)
-
-        if not request.ok:
-            pass
+            if not request.ok:
+                # Error message
+                safteyMonitoring = SafteyMonitoring()
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                )
+        else:
+            safteyMonitoring = SafteyMonitoring()
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_ERROR,
+                errorCategory=safteyMonitoring.CATEGORY_DATA,
+                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
+            )
 
 
 @receiver(post_delete, sender=AssignedOrder)
