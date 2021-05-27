@@ -36,6 +36,7 @@ class TestPLCServiceOrderSocket(object):
             response = client.recv(2048).decode(self.FORMAT)
             if response:
                 print(response)
+                print(len(response))
                 break
         client.close()
 

@@ -382,7 +382,7 @@ class ServiceOrderHandler(object):
 
     def _encodeBin(self):
         # Header
-        msg = str(self.tcpIdent)
+        msg = "33333333"
         msg += self._parseToEndian(self.requestID, False)
         msg += self._parseToEndian(self.mClass, False)
         msg += self._parseToEndian(self.mNo, False)
@@ -419,16 +419,12 @@ class ServiceOrderHandler(object):
         msg += self._parseToEndian(self.mainPNo, True)
         # standardparameter bytes reserved
         for item in range(44):
-            msg += "00:"
+            msg += "00"
 
         # servicespecific parameter
         for i in range(len(self.serviceParams)):
-            if i != len(self.serviceParams):
-                msg += self._parseToEndian(self.serviceParams[i], False) + ":"
-            else:
-                msg += self._parseToEndian(self.serviceParams[i], False)
-                # cut of last ":"
-                msg = msg[:len(msg)-1]
+            msg += self._parseToEndian(self.serviceParams[i], False)
+            msg = msg[:len(msg)-1]
 
         return msg
 
@@ -450,31 +446,31 @@ class ServiceOrderHandler(object):
         self.bufNo = self._parseFromEndian(bytes[26:28])
         self.bufPos = self._parseFromEndian(bytes[28:30])
         self.carrierId = self._parseFromEndian(bytes[30:32])
-        self.palletID = self._parseFromEndian(bytes[34:36])
-        self.palletPos = self._parseFromEndian(bytes[36:38])
-        self.pNo = self._parseFromEndian(bytes[38:42])
-        self.stopperId = self._parseFromEndian(bytes[42:44])
-        self.errorStepNo = self._parseFromEndian(bytes[44:46])
-        self.stepNo = self._parseFromEndian(bytes[46:48])
-        self.maxRecords = self._parseFromEndian(bytes[48:50])
-        self.boxId = self._parseFromEndian(bytes[50:52])
-        self.boxPos = self._parseFromEndian(bytes[52:54])
-        self.mainOPos = self._parseFromEndian(bytes[54:56])
-        self.beltNo = self._parseFromEndian(bytes[56:58])
-        self.cNo = self._parseFromEndian(bytes[58:62])
-        self.boxPNo = self._parseFromEndian(bytes[62:66])
-        self.palletPNo = self._parseFromEndian(bytes[66:70])
-        self.aux1Int = self._parseFromEndian(bytes[70:72])
-        self.aux2Int = self._parseFromEndian(bytes[72:74])
-        self.aux1DInt = self._parseFromEndian(bytes[74:78])
-        self.aux2DInt = self._parseFromEndian(bytes[78:82])
-        self.mainPNo = self._parseFromEndian(bytes[82:86])
+        self.palletID = self._parseFromEndian(bytes[32:34])
+        self.palletPos = self._parseFromEndian(bytes[34:36])
+        self.pNo = self._parseFromEndian(bytes[36:40])
+        self.stopperId = self._parseFromEndian(bytes[40:42])
+        self.errorStepNo = self._parseFromEndian(bytes[42:44])
+        self.stepNo = self._parseFromEndian(bytes[44:46])
+        self.maxRecords = self._parseFromEndian(bytes[46:48])
+        self.boxId = self._parseFromEndian(bytes[48:50])
+        self.boxPos = self._parseFromEndian(bytes[50:52])
+        self.mainOPos = self._parseFromEndian(bytes[52:54])
+        self.beltNo = self._parseFromEndian(bytes[54:56])
+        self.cNo = self._parseFromEndian(bytes[56:60])
+        self.boxPNo = self._parseFromEndian(bytes[60:64])
+        self.palletPNo = self._parseFromEndian(bytes[64:68])
+        self.aux1Int = self._parseFromEndian(bytes[68:70])
+        self.aux2Int = self._parseFromEndian(bytes[70:72])
+        self.aux1DInt = self._parseFromEndian(bytes[72:76])
+        self.aux2DInt = self._parseFromEndian(bytes[76:80])
+        self.mainPNo = self._parseFromEndian(bytes[80:84])
 
         # service-specific parameter
         if len(bytes) != 128:
             for i in range(128, len(bytes), 2):
                 self.serviceParams.append(
-                    self._parseFromEndian(bytes[128+i, 130+i]))
+                    self._parseFromEndian(bytes[i, i+2]))
 
     # parses a number to hex in the binary format
     # @params:
