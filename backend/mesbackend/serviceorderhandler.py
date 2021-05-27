@@ -465,10 +465,10 @@ class ServiceOrderHandler(object):
         self.boxPNo = self._parseFromEndian(bytes[62:66])
         self.palletPNo = self._parseFromEndian(bytes[66:70])
         self.aux1Int = self._parseFromEndian(bytes[70:72])
-        self.aux2Int = self._parseFromEndian(bytes[72:72])
-        self.aux1DInt = self._parseFromEndian(bytes[72:76])
-        self.aux2DInt = self._parseFromEndian(bytes[76:80])
-        self.mainPNo = self._parseFromEndian(bytes[80:84])
+        self.aux2Int = self._parseFromEndian(bytes[72:74])
+        self.aux1DInt = self._parseFromEndian(bytes[74:78])
+        self.aux2DInt = self._parseFromEndian(bytes[78:82])
+        self.mainPNo = self._parseFromEndian(bytes[82:86])
 
         # service-specific parameter
         if len(bytes) != 128:
