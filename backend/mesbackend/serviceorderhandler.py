@@ -63,12 +63,12 @@ class ServiceOrderHandler(object):
     def decodeMessage(self, msg):
         from .safteymonitoring import SafteyMonitoring
         self.msg = msg
-        if ':' in msg:
+        if msg[:6] == '333333':
             # msg is in binary format
-            if "33:33:33:01:" in msg:
-                self.tcpIdent = "33:33:33:01:"
-            elif "33:33:33:02:" in msg:
-                self.tcpIdent = "33:33:33:02:"
+            if msg[:8] == "33333301":
+                self.tcpIdent = "33333301"
+            elif msg[:8] == "33333302":
+                self.tcpIdent = "33333302"
             self._decodeBin()
         elif '<CR>' in msg and len(msg.split("<CR>")) > 3:
             # msg is in shortened string format
@@ -98,6 +98,18 @@ class ServiceOrderHandler(object):
         elif self.mClass == 100 and self.mNo == 6:
             self = servicecalls.getOpForONoOPos(self)
             return
+        # GetOpForASRS
+        elif self.mClass == 100 and self.mNo == 25:
+            self = servicecalls.getOpForASRS(self)
+            return
+        # getFreeString
+        elif self.mClass == 100 and self.mNo == 111:
+            self = servicecalls.getFreeString(self)
+            return
+        # SetPar
+        elif self.mClass == 101 and self.mNo == 1:
+            self = servicecalls.setPar(self)
+            return
         # OpStart
         elif self.mClass == 101 and self.mNo == 10:
             self = servicecalls.opStart(self)
@@ -122,6 +134,14 @@ class ServiceOrderHandler(object):
         elif self.mClass == 150 and self.mNo == 5:
             self = servicecalls.getBufPos(self)
             return
+        # GetBufDockedAgv
+        elif self.mClass == 150 and self.mNo == 20:
+            self = servicecalls.getBufDockedAgv(self)
+            return
+        # SetBufPos
+        elif self.mclass == 151 and self.mNo == 10:
+            self = servicecalls.setBufPos(self)
+            return
         # GetToAGVBuf
         elif self.mClass == 200 and self.mNo == 21:
             self = servicecalls.getToAGVBuf(self)
@@ -137,7 +157,7 @@ class ServiceOrderHandler(object):
         elif self.tcpIdent == 444:
             # String coding full
             return self._encodeStrFull()
-        elif self.tcpIdent == '33:33:33:01:' or self.tcpIdent == "33:33:33:02:":
+        elif self.tcpIdent == '33333301' or self.tcpIdent == "33333302":
             # Binary coding
             return self._encodeBin()
         else:
@@ -414,7 +434,7 @@ class ServiceOrderHandler(object):
 
     def _decodeBin(self):
         # header
-        bytes = self.msg.split(":")
+        bytes = list((self.msg[i:i+2] for i in range(0, len(self.msg), 2)))
         self.requestID = self._parseFromEndian(bytes[4:6])
         self.mClass = self._parseFromEndian(bytes[6:8])
         self.mNo = self._parseFromEndian(bytes[8:10])
@@ -470,12 +490,12 @@ class ServiceOrderHandler(object):
         binArray = [hex[i:i+2] for i in range(0, len(hex), 2)]
         binStr = ""
 
-        if self.tcpIdent == "33:33:33:02:":
+        if self.tcpIdent == "33333302":
             for i in range(0, len(binArray), 1):
-                binStr += binArray[i] + ":"
-        elif self.tcpIdent == "33:33:33:01:":
+                binStr += binArray[i]
+        elif self.tcpIdent == "33333301":
             for i in range(len(binArray)-1, -1, -1):
-                binStr += binArray[i] + ":"
+                binStr += binArray[i]
 
         return binStr
 
@@ -484,10 +504,10 @@ class ServiceOrderHandler(object):
     # bytes: bytes to parse
     def _parseFromEndian(self, bytes):
         nmbrstr = ""
-        if self.tcpIdent == "33:33:33:02:":
+        if self.tcpIdent == "33333302":
             for i in range(0, len(bytes), 1):
                 nmbrstr += bytes[i]
-        elif self.tcpIdent == "33:33:33:01:":
+        elif self.tcpIdent == "33333301":
             for i in range(len(bytes)-1, -1, -1):
                 nmbrstr += bytes[i]
 

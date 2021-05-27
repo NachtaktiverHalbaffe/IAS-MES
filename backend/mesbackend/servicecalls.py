@@ -21,6 +21,15 @@ class Servicecalls(object):
     def getOpForONoOPos(self, obj):
         return
 
+    def getOpForASRS(self, obj):
+        return
+
+    def getFreeString(self, obj):
+        return
+
+    def setPar(self, obj):
+        return
+
     def opStart(self, obj):
         return
 
@@ -37,6 +46,12 @@ class Servicecalls(object):
         return
 
     def getBufPos(self, obj):
+        return
+
+    def getBufDockedAgv(self, obj):
+        return
+
+    def setBufPos(self, obj):
         return
 
     def getToAGVBuf(self, obj):

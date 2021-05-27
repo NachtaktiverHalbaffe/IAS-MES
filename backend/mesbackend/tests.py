@@ -51,14 +51,13 @@ except Exception as e:
     print("Test failed")
     print(e)
 
-# print("Starting Test of service order communication with the PLC")
-# test2 = TestPLCServiceOrderSocket()
-# try:
-#     test2.sendTestMessage(
-#         "444;RequestId=4;MClass=100;MNo=33;ONo=1395;OPos=1<CR>")
-#     print("Test messgage send. Now sending invalid data")
-#     # test2.sendTestMessage('')
-#     # print("Invalid data send.")
-# except Exception as e:
-#     print("Test failed")
-#     print(e)
+print("Starting Test of service order communication with the PLC")
+test2 = TestPLCServiceOrderSocket()
+try:
+    test2.sendTestMessage("3333330200020064000400000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+    print("Test messgage send. Now sending invalid data")
+    # test2.sendTestMessage('')
+    # print("Invalid data send.")
+except Exception as e:
+    print("Test failed")
+    print(e)
