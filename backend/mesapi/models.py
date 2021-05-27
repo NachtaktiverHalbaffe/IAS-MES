@@ -67,11 +67,13 @@ class StateWorkingPiece(models.Model):
     # ressourceID where the working piece is currently located
     location = models.PositiveSmallIntegerField(default=1)
     # part number
-    partNo = models.PositiveIntegerField(default=210)
+    partNo = models.PositiveIntegerField(default=25)
     # id of the carrier where the (fictive) wokring piece is located
     carrierId = models.PositiveSmallIntegerField(primary_key=True)
     # ressourceID of the ressource. Shouldnt be mistaken with the ressource id of the PLC
     ressourceId = models.PositiveSmallIntegerField()
+    # location in storage location=0 : isnt in storage
+    storageLocation = models.PositiveSmallIntegerField(default=0)
     # color of the working piece
     color = ColorField()
     # working piece is in assembled state
@@ -135,6 +137,9 @@ class AssignedOrder(models.Model):
     # Workingplan which should be executed
     assigendWorkingPlan = models.ForeignKey(
         WorkingPlan, on_delete=models.CASCADE)
+    # Assigned workingpiece
+    assignedWorkingPiece = models.ForeignKey(
+        StateWorkingPiece, on_delete=models.CASCADE)
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
     # order number
