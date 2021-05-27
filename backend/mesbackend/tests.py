@@ -43,22 +43,22 @@ class TestPLCServiceOrderSocket(object):
 print("Starting Test of cyclic state communication with the PLC")
 test = TestPLCStateSocket()
 try:
-    test.sendTestMessage('0x000x020x020x82')
+    test.sendTestMessage('00010285')
     print("Test messgage send. Now sending invalid data")
-    test.sendTestMessage('0x000x020x040x82')
-    print("Invalid data send.")
-except Exception as e:
-    print("Test failed")
-    print(e)
-
-print("Starting Test of service order communication with the PLC")
-test2 = TestPLCServiceOrderSocket()
-try:
-    test2.sendTestMessage(
-        "444;RequestId=4;MClass=100;MNo=33;ONo=1395;OPos=1<CR>")
-    print("Test messgage send. Now sending invalid data")
-    # test2.sendTestMessage('')
+    # test.sendTestMessage('0x000x020x040x82')
     # print("Invalid data send.")
 except Exception as e:
     print("Test failed")
     print(e)
+
+# print("Starting Test of service order communication with the PLC")
+# test2 = TestPLCServiceOrderSocket()
+# try:
+#     test2.sendTestMessage(
+#         "444;RequestId=4;MClass=100;MNo=33;ONo=1395;OPos=1<CR>")
+#     print("Test messgage send. Now sending invalid data")
+#     # test2.sendTestMessage('')
+#     # print("Invalid data send.")
+# except Exception as e:
+#     print("Test failed")
+#     print(e)

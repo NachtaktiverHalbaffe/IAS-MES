@@ -37,7 +37,7 @@ class SystemMonitoring(object):
     def decodeCyclicMessage(self, msg, ipAdress):
         if msg == "0000":
             return
-        elif len(msg) != 16:
+        elif len(msg) != 8:
             SafteyMonitoring().decodeError(
                 errorLevel=SafteyMonitoring().LEVEL_WARNING,
                 errorCategory=SafteyMonitoring().CATEGORY_INPUT,
@@ -46,8 +46,8 @@ class SystemMonitoring(object):
             return
         else:
             # slice message to get sps type
-            spsTypeStr = msg[8:12]
-            spsType = int(spsTypeStr, 0)
+            spsTypeStr = msg[4:6]
+            spsType = int(spsTypeStr, 16)
             if spsType != 1 and spsType != 2:
                 SafteyMonitoring().decodeError(
                     errorLevel=SafteyMonitoring().LEVEL_WARNING,
@@ -57,12 +57,12 @@ class SystemMonitoring(object):
                 return
 
             # slice message to get raw ressourceId, needs to be decodes afterwards
-            ressourceIDStr = msg[:8]
+            ressourceIDStr = msg[:4]
             ressourceId = self._getRessourceID(ressourceIDStr, spsType)
 
             # slice statusbyte to get status byte
-            statusStr = msg[12:16]
-            status = int(statusStr, 0)
+            statusStr = msg[6:8]
+            status = int(statusStr, 16)
             # convert to bit array
             statusbits = np.unpackbits(np.uint8(status))
             if len(statusbits) == 8:
@@ -194,12 +194,12 @@ class SystemMonitoring(object):
     def _getRessourceID(self, ressourceIDStr, spsType):
         if spsType == 2:
             # sps is big endian
-            ressourceIDStr = ressourceIDStr[:4] + ressourceIDStr[6:8]
-            return int(ressourceIDStr, 0)
+            ressourceIDStr = ressourceIDStr[:2] + ressourceIDStr[2:4]
+            return int(ressourceIDStr, 16)
         elif spsType == 1:
             # sps is little endian
-            ressourceIDStr = ressourceIDStr[6:8] + ressourceIDStr[:4]
-            return int(ressourceIDStr, 0)
+            ressourceIDStr = ressourceIDStr[2:4] + ressourceIDStr[:2]
+            return int(ressourceIDStr, 16)
         else:
             # error
             SafteyMonitoring().decodeError(
