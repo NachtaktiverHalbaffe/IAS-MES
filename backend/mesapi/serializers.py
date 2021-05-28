@@ -28,8 +28,9 @@ class StatePLCSerializer(serializers.ModelSerializer):
             "mode",
             "mesMode",
             "ipAdress",
-            "buffNo",
-            "buffPos",
+            "buffIn",
+            "buffOut",
+            "dockedAt",
         )
 
 
@@ -108,7 +109,7 @@ class ErrorSerializer(serializers.ModelSerializer):
 class SettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
-        fields = ("isInBridgingMode", "ipAdressMES4")
+        fields = ("isInBridgingMode", "ipAdressMES4", "storage", "costumer")
 
 
 class CostumerSerializer(serializers.ModelSerializer):

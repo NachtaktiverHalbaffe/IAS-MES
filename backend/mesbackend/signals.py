@@ -13,7 +13,7 @@ from django.db import transaction
 import requests
 
 from .safteymonitoring import SafteyMonitoring
-from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingPlan, WorkingStep
+from backend.mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingPlan, WorkingStep, Setting
 
 
 # Gets executed after a error is saved. It analyses the error and decides what the system has to do
@@ -106,6 +106,15 @@ def validateWorkingPlan(sender, instance, **kwargs):
                 errorCategory=safteyMonitoring.CATEGORY_INPUT,
                 msg="Workingplan not saved!"
             )
+
+
+@receiver(post_save, sender=Setting)
+def setStorage(sender, instance, **kwargs):
+    if instance.storage == None:
+        storageArray = []
+        for i in range(30):
+            storageArray.append(0)
+        Setting.setStorage(storageArray)
 
 
 # condition checking if all conditions are met so the workingplan can run correctly

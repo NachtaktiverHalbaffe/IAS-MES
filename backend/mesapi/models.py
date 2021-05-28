@@ -31,10 +31,12 @@ class StatePLC(models.Model):
     mesMode = models.BooleanField()
     # ip adress of the PLC
     ipAdress = models.GenericIPAddressField()
-    # buffer number
-    buffNo = models.PositiveIntegerField(default=0)
-    # buffer position
-    buffPos = models.PositiveIntegerField(default=0)
+    # buffer input
+    buffIn = models.BooleanField(default=False)
+    # buffer output
+    buffOut = models.BooleanField(default=False)
+    # if plc is robotino this is the id of the station where the robotino is docked
+    dockedAt = models.PositiveSmallIntegerField(null=True)
 
     def __str__(self):
         return self.name
@@ -145,7 +147,7 @@ class AssignedOrder(models.Model):
     # order number
     orderNo = models.PositiveIntegerField(primary_key=True)
     # order psoition (optional)
-    orderPos = models.PositiveSmallIntegerField(default=0)
+    orderPos = models.PositiveSmallIntegerField(default=1)
     # main order position (optional)
     mainOrderPos = models.PositiveSmallIntegerField(default=0)
     # costumer number (optional)
@@ -203,16 +205,6 @@ class Error(models.Model):
         return self.level + self.category + self.msg
 
 
-class Setting(models.Model):
-    # if tcp connections are forwared to mes4
-    isInBridgingMode = models.BooleanField()
-    # ip adress of mes4
-    ipAdressMES4 = models.GenericIPAddressField()
-
-    def __str__(self):
-        return " "
-
-
 # model representing a costumer
 class Costumer(models.Model):
     # costumer number which identifies the costumer. needs to be unique
@@ -226,3 +218,37 @@ class Costumer(models.Model):
 
     def __str__(self):
         return self.firstName + self.lastName
+
+
+class Setting(models.Model):
+    # if tcp connections are forwared to mes4
+    isInBridgingMode = models.BooleanField()
+    # ip adress of mes4
+    ipAdressMES4 = models.GenericIPAddressField()
+    # array for storage, if a element is 1 then place in storage is occupied
+    storage = models.CharField(max_length=100, null=True)
+    # costumer
+    costumer = models.ForeignKey(
+        Costumer, on_delete=models.SET_NULL, blank=True)
+
+    def setStorage(self, storageArray):
+        self.storage = json.dumps(storageArray)
+
+    def getStorage(self):
+        return json.loads(self.storage)
+
+    # search for the first free place in storage and sets it as occupied afterwards
+    def getFirstFreePlace(self):
+        storage = self.getStorage
+        for i in len(storage):
+            if storage[i] == 0:
+                return i+1
+
+    def updateStoragePosition(self, position, isEmpty):
+        if isEmpty:
+            self.getStorage[position-1] = 0
+        elif not isEmpty:
+            self.getStorage[position-1] = 1
+
+    def __str__(self):
+        return "Setting"
