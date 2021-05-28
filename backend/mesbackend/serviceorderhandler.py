@@ -424,7 +424,6 @@ class ServiceOrderHandler(object):
         # servicespecific parameter
         for i in range(len(self.serviceParams)):
             msg += self._parseToEndian(self.serviceParams[i], False)
-            msg = msg[:len(msg)-1]
 
         return msg
 
@@ -468,9 +467,16 @@ class ServiceOrderHandler(object):
 
         # service-specific parameter
         if len(bytes) != 128:
-            for i in range(128, len(bytes), 2):
-                self.serviceParams.append(
-                    self._parseFromEndian(bytes[i, i+2]))
+            # serviceparams is string
+            if self.mClass == 100 and self.mNo == 111:
+                for i in range(128, len(bytes), 1):
+                    self.serviceParams.append(
+                        self._parseFromEndian(bytes[i: i+1]))
+            # serviceparams are normal bytes
+            else:
+                for i in range(128, len(bytes), 2):
+                    self.serviceParams.append(
+                        self._parseFromEndian(bytes[i: i+2]))
 
     # parses a number to hex in the binary format
     # @params:
