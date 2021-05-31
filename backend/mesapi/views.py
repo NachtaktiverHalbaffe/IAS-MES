@@ -20,6 +20,8 @@ from .serializers import *
 from .models import *
 
 # Overview of all API Endpoints
+
+
 class APIOverview(APIView):
     def get(self, request, *args, **kwargs):
         overview = {
@@ -51,6 +53,16 @@ class SingleStatePLCView(RetrieveUpdateDestroyAPIView):
     serializer_class = StatePLCSerializer
     # queryset with which the requests will be handled. All entities will be loaded into this object
     queryset = StatePLC.objects.all()
+
+
+class BufferView(ListCreateAPIView):
+    serializer_class = BufferSerializer
+    queryset = Buffer.objects.all()
+
+
+class SingleBuffer(RetrieveUpdateDestroyAPIView):
+    serializer_class = BufferSerializer
+    queryset = Buffer.objects.all()
 
 
 class StateVisualisationUnitView(ListCreateAPIView):

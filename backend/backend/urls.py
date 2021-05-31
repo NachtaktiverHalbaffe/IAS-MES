@@ -29,6 +29,8 @@ urlpatterns = [
     path("api/StateVisualisationUnit/", StateVisualisationUnitView.as_view()),
     path("api/StatePLC/<pk>", SingleStatePLCView.as_view()),
     path("api/StatePLC/", StatePLCView.as_view()),
+    path("api/Buffer/<pk>", SingleBuffer.as_view()),
+    path("api/Buffer/", BufferView.as_view()),
     # Overview for all endpoints
     path("api/", APIOverview.as_view()),
     # admin panel as landing page

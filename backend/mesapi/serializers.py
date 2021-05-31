@@ -14,12 +14,26 @@ from rest_framework import serializers
 from .models import *
 
 
-class StatePLCSerializer(serializers.ModelSerializer):
+class BufferSerializer(serializers.ModelSerializer):
     class Meta:
         # defines the model which should be serialized
-        model = StatePLC
+        model = Buffer
         # Defines the fields of the JSON response. Should be named the same as the models Fields
         # The kind of fields is looked up in the background by the framework
+        fields = (
+            "resourceId",
+            "bufferIn",
+            "bufferOut",
+            "bufInONo",
+            "bufInOPos",
+            "bufOutONo",
+            "bufOutOPos",
+        )
+
+
+class StatePLCSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatePLC
         fields = (
             "state",
             "lastUpdate",
@@ -28,8 +42,7 @@ class StatePLCSerializer(serializers.ModelSerializer):
             "mode",
             "mesMode",
             "ipAdress",
-            "buffIn",
-            "buffOut",
+            "buffer",
             "dockedAt",
         )
 

@@ -8,7 +8,7 @@ is handled here. Given on the servicecalls some output parameters are set
 
 """
 
-from backend.mesapi.models import AssignedOrder, Setting, StatePLC, WorkingPlan, WorkingStep, StateWorkingPiece
+from backend.mesapi.models import AssignedOrder, Buffer, Setting, StatePLC, WorkingPlan, WorkingStep, StateWorkingPiece
 
 
 class Servicecalls(object):
@@ -17,6 +17,7 @@ class Servicecalls(object):
         from .systemmonitoring import SystemMonitoring
         self.systemmonitoring = SystemMonitoring()
 
+    # get first operation for resource
     def getFirstOpForRsc(self, obj):
         print("[SERVICEORDERHANDLER] Request GetFirstOpForRsc")
         resourceId = obj.resourceId
@@ -29,6 +30,8 @@ class Servicecalls(object):
             workingsteps = workingPlan.workingSteps
             for step in workingsteps:
                 if step.assignedToUnit == resourceId:
+                    print(
+                        "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
                     obj.stepNo = step.stepNo
                     obj.oNo = order.orderNo
                     obj.oPos = order.orderPos
@@ -43,8 +46,12 @@ class Servicecalls(object):
             if hasFoundOrder:
                 # has found order, only first order is requested => exit
                 break
+        if not hasFoundOrder:
+            print("[GETFIRSTOPFORRSC] No active order for resource " +
+                  str(resourceId) + " found")
         return obj
 
+    # get next operation for ONo and OPos
     def getOpForONoOPos(self, obj):
         print("[SERVICEORDERHANDLER] Request GetOpForONoOPos")
         requestId = obj.requestID
@@ -62,6 +69,8 @@ class Servicecalls(object):
                 if status[i] == 0:
                     # only send operation if step is assigned to requested unit
                     if workingsteps[i].assignedToUnit == requestId:
+                        print(
+                            "[GETOPFORONOOPOS] Found active order for ordernumber " + str(oNo)+" for resource " + str(requestId))
                         obj.stepNo = workingsteps[i].stepNo
                         obj.resourceId = workingsteps[i].assignedToUnit
                         obj.wpNo = workingPlan.workingPlanNo
@@ -84,11 +93,14 @@ class Servicecalls(object):
                                              0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
                         break
                     else:
+                        print(
+                            "[GETOPFORONOOPOS] No active order for ordernumber " + str(oNo) + " for resource " + str(requestId) + " found")
                         obj.oNo = 0
                         obj.oPos = 0
                         obj.stopperId = 0
         return obj
 
+    # get operation that is for this Stopper and the PNo is available
     def getOpForASRS(self, obj):
         print("[SERVICEORDERHANDLER] Request GetOpForASRS")
         resourceId = obj.resourceId
@@ -101,6 +113,7 @@ class Servicecalls(object):
             for i in range(len(status)):
                 if status[i] == 0:
                     if workingsteps[i].assignedToUnit == resourceId:
+                        print("[GETOPFORASRS] Found active order for ASRS")
                         obj.oNo = order.orderNo
                         obj.oPos = order.orderPos
                         obj.stepNo = workingsteps[i].stepNo
@@ -123,12 +136,15 @@ class Servicecalls(object):
                         obj.bufNo = 1
                         break
                     else:
+                        print("[GETOPFORASRS] No active order for ASRS found")
                         obj.stopperId = 0
                 else:
+                    print("[GETOPFORASRS] No active order for ASRS found")
                     obj.stopperId = 0
 
         return obj
 
+    # get the free string for the actual order field defined as parameter will be replaced
     def getFreeString(self, obj):
         print("[SERVICEORDERHANDLER] Request GetFreeString")
         requestId = obj.requestID
@@ -156,6 +172,7 @@ class Servicecalls(object):
         obj.serviceParams = serviceParams
         return obj
 
+    # set parameters on runtime
     def setPar(self, obj):
         print("[SERVICEORDERHANDLER] Request SetPar")
         requestId = obj.requestId
@@ -165,6 +182,7 @@ class Servicecalls(object):
         currentOrder = AssignedOrder.objects.all()
         for order in currentOrder:
             if order.orderNo == oNo and order.orderPos == oPos:
+                print("[SETPAR] Found order to set parameter")
                 obj.stepNo = 0
                 obj.resourceId = 0
                 obj.wpNo = 0
@@ -177,6 +195,7 @@ class Servicecalls(object):
                 break
         return obj
 
+    # operation start
     def opStart(self, obj):
         print("[SERVICEORDERHANDLER] Request OpStart")
         # to state update stuff
@@ -188,6 +207,8 @@ class Servicecalls(object):
             orderNo=oNo).filter(orderPos=oPos)
         if currentOrder.count() == 1:
             # TODO update states if necessary
+            print("[OPSTART] Operation " + str(obj.opNo) +
+                  " started on resource " + str(requestId))
             obj.stepNo = 0
             obj.resourceId = 0
             obj.wpNo = 0
@@ -199,10 +220,12 @@ class Servicecalls(object):
             obj.carrierId = 0
         return obj
 
+    # reset start operation
     def opReset(self, obj):
         print("[SERVICEORDERHANDLER] Request OpReset")
         return
 
+    # operation end. Sends next operation to resource to write on NFC tag
     def opEnd(self, obj):
         print("[SERVICEORDERHANDLER] Request OpEnd")
         # TODO update state update stuff
@@ -219,7 +242,9 @@ class Servicecalls(object):
                 status = order.status
                 for i in range(len(status)):
                     if status[i] == 0:
-                        # Write NFC tags, data for NFC tag can be manip
+                        # Write NFC tags, data for NFC tag can be manipulated
+                        print("[OPEND] Operation " + str(obj.opNo) + " on resource " +
+                              str(requestId) + " ended. Writing next operation on RFID")
                         obj.oNo = order.orderNo
                         obj.oPos = order.orderPos
                         obj.stepNo = workingsteps[i+1].stepNo
@@ -241,6 +266,7 @@ class Servicecalls(object):
                 break
         return obj
 
+    # get shunt for target resource
     def getShuntForTarget(self, obj):
         print("[SERVICEORDERHANDLER] Request GetShuntForTarget")
         requestID = obj.requestID
@@ -252,21 +278,91 @@ class Servicecalls(object):
             for i in range(len(status)):
                 if status[i] == 0:
                     if workingsteps[i].assignedToUnit != requestID:
+                        print("[GETSHUNTFORTARGET] Branch for resource " +
+                              str(requestID) + " is set to buffer out")
                         obj.serviceParam = [2]
                         break
                     else:
+                        print("[GETSHUNTFORTARGET] Branch for resource " +
+                              str(requestID) + " is set to straight forward")
                         obj.serviceParam = [1]
                         break
         return obj
 
+    # get all BufPos for defined BufNo and resource
     def getBufForBufNo(self, obj):
         print("[SERVICEORDERHANDLER] Request GetBufForBufNo")
-        return
+        # get input parameter
+        resourceId = obj.resourceId
+        bufNo = obj.bufNo
 
+        # get output parameter
+        plc = StatePLC.objects.all().filter(id=resourceId).first()
+        plcBuf = plc.buffer
+        obj.palletID = 0
+        # PLC is storage
+        if resourceId == 1:
+            pass
+        # PLC is robotino or branch
+        elif resourceId != 1:
+            if bufNo == 1:
+                if plcBuf.bufferOut:
+                    # TODO check TCP dump for message format
+                    # obj.oNo =
+                    # obj.oPos =
+                    obj.pNo = 25
+                else:
+                    obj.pNo = 0
+            elif bufNo == 2:
+                if plcBuf.bufferIn:
+                    # obj.oNo =
+                    # obj.oPos =
+                    obj.pNo = 25
+                else:
+                    obj.pNo = 0
+        print("[GETBUFFORBUFNO] Returned buffer to resource " + str(resourceId))
+        return obj
+
+    # get buffer of defined BufPos
     def getBufPos(self, obj):
         print("[SERVICEORDERHANDLER] Request GetBufPos")
-        return
+        # get input parameter
+        resourceId = obj.resourceId
+        bufNo = obj.bufNo
+        bufPos = obj. bufPos
 
+        # get output parameter
+        plc = StatePLC.objects.all().filter(id=resourceId).first()
+        plcBuf = plc.buffer
+        obj.palletID = 0
+        obj.boxId = 0
+        # PLC is storage
+        if resourceId == 1:
+            pass
+        # PLC is robotino or branch
+        elif resourceId != 1:
+            if bufPos == 1 and bufNo == 1:
+                if plcBuf.buffOut:
+                    obj.pNo = 25
+                    obj.oNo = plcBuf.bufOutONo
+                    obj.oPos = plcBuf.bufOutOPos
+                else:
+                    obj.pNo = 0
+                    obj.oNo = 0
+                    obj.oPos = 0
+            elif bufPos == 2 and bufNo == 1:
+                if plcBuf.buffIn:
+                    obj.pNo = 25
+                    obj.oNo = plcBuf.bufInONo
+                    obj.oPos = plcBuf.bufOutOPos
+                else:
+                    obj.pNo = 0
+                    obj.oNo = 0
+                    obj.oPos = 0
+        print("[GETBUFPOS] Returned buffer to resource " + str(resourceId))
+        return obj
+
+    # get buffer from the docked AGV
     def getBufDockedAgv(self, obj):
         print("[SERVICEORDERHANDLER] Request GetBufDockedAgv")
         requestId = obj.requestID
@@ -282,14 +378,17 @@ class Servicecalls(object):
             location=obj.resourceId)
         if stateWorkingPiece.count() == 1:
             # only set if a carrier is on the robotino
-            currentOrder = AssignedOrder.objects.all().first()
-            obj.oNo = currentOrder.orderNo
-            obj.oPos = currentOrder.orderPos
+            buffer = StatePLC.objects.all().filter(dockedAt=requestId).first().buffer
+            obj.oNo = buffer.bufOutONo
+            obj.oPos = buffer.bufOutOPos
         else:
             obj.oNo = 0
             obj.oPos = 0
+        print(
+            "[GETBUFDOCKEDAGV] Returned buffer of docked AGV to resource " + str(requestId))
         return obj
 
+    # write in buffer; Aux1Int = Qunatity of a stack buffer
     def setBufPos(self, obj):
         print("[SERVICEORDERHANDLER] Request SetBufPos")
         # get input parameter
@@ -297,6 +396,8 @@ class Servicecalls(object):
         bufNo = obj.bufNo
         bufPos = obj.bufPos
         partNo = obj.pNo
+        oNo = obj.oNo
+        oPos = obj.oPos
 
         # update workingpiece(location) and plc(buffer)
         stateWorkingPiece = StateWorkingPiece.objects.all().filter(
@@ -308,14 +409,26 @@ class Servicecalls(object):
         if resourceId != 1:
             if bufNo == 1:
                 if partNo != 0:
-                    statePlc.update(bufOut=True)
+                    buffer = statePlc.buffer
+                    buffer.update(bufferOut=True)
+                    buffer.update(bufOutONo=oNo)
+                    buffer.update(bufOutOPos=oPos)
                 elif partNo == 0:
-                    statePlc.update(bufOut=False)
+                    buffer = statePlc.buffer
+                    buffer.update(bufferOut=False)
+                    buffer.update(bufOutONo=0)
+                    buffer.update(bufOutOPos=0)
             elif bufNo == 2:
                 if partNo != 0:
-                    statePlc.update(bufIn=True)
+                    buffer = statePlc.buffer
+                    buffer.update(bufferIn=True)
+                    buffer.update(bufInONo=oNo)
+                    buffer.update(bufInOPos=oPos)
                 elif partNo == 0:
-                    statePlc.update(bufIn=False)
+                    buffer = statePlc.buffer
+                    buffer.update(bufferIn=False)
+                    buffer.update(bufferInONo=0)
+                    buffer.update(bufferInOPos=0)
         # PLC is storage
         elif resourceId == 1:
             if bufNo == 1:
@@ -333,8 +446,10 @@ class Servicecalls(object):
         obj.oPos = 0
         obj.palletID = 0
         obj.boxId = 0
+        print("[SETBUFPOS] Buffer for resource " + str(resourceId) + " set")
         return obj
 
+    # get a buffer where a AGV can get a defined Part
     def getToAGVBuf(self, obj):
         print("[SERVICEORDERHANDLER] Request GetToAGVBuf")
         return

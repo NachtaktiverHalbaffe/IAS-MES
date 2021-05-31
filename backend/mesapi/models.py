@@ -15,7 +15,25 @@ from colorfield.fields import ColorField
 import json
 
 
+class Buffer(models.Model):
+    # resourceId of buffer
+    resourceId = models.PositiveSmallIntegerField(primary_key=True)
+    # buffer in or buffer out according to bufNo (bufNo=1 : Out, bufNo =2 : In)
+    bufferIn = models.BooleanField(default=False)
+    bufferOut = models.BooleanField(default=False)
+    # buffer position o f buffer in
+    bufInONo = models.PositiveSmallIntegerField(default=0)
+    bufInOPos = models.PositiveSmallIntegerField(default=0)
+    # buffer position o f buffer out
+    bufOutONo = models.PositiveSmallIntegerField(default=0)
+    bufOutOPos = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return "Buffer of resourceId " + str(self.resourceId)
+
 # Model representing the state of an PLC
+
+
 class StatePLC(models.Model):
     # state string which describes the state
     state = models.CharField(max_length=30)
@@ -32,9 +50,7 @@ class StatePLC(models.Model):
     # ip adress of the PLC
     ipAdress = models.GenericIPAddressField()
     # buffer input
-    buffIn = models.BooleanField(default=False)
-    # buffer output
-    buffOut = models.BooleanField(default=False)
+    buffer = models.OneToOneField(Buffer, on_delete=models.SET_NULL, null=True)
     # if plc is robotino this is the id of the station where the robotino is docked
     dockedAt = models.PositiveSmallIntegerField(null=True)
 

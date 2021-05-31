@@ -13,7 +13,7 @@ from django.dispatch import receiver
 from django.db import transaction
 import requests
 
-from .models import AssignedOrder, Setting, StateWorkingPiece
+from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
 
 
 # Gets executed before a order is saved. It creates a array of
@@ -41,3 +41,19 @@ def setStorage(sender, instance, **kwargs):
         for piece in workingPieces:
             if piece.storageLocation != 0:
                 instance.updateStoragePosition(piece.storageLocation, False)
+
+
+# Creates a buffer if a StatePLC is created and hasnt a buffer yet
+@receiver(pre_save, sender=StatePLC)
+def createBuffer(sender, instance, **kwargs):
+    if instance.buffer == None:
+        buffer = Buffer()
+        buffer.resourceId = instance.id
+        buffer.bufferIn = False
+        buffer.bufferOut = False
+        buffer.bufInONo = 0
+        buffer.bufInOPos = 0
+        buffer.bufOutONo = 0
+        buffer.bufOutOPos = 0
+
+        instance.buffer = buffer
