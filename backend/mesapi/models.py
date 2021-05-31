@@ -71,9 +71,9 @@ class StateWorkingPiece(models.Model):
     # part number
     partNo = models.PositiveIntegerField(default=25)
     # id of the carrier where the (fictive) wokring piece is located
-    carrierId = models.PositiveSmallIntegerField(primary_key=True)
-    # ressourceID of the ressource. Shouldnt be mistaken with the ressource id of the PLC
-    ressourceId = models.PositiveSmallIntegerField()
+    carrierId = models.PositiveSmallIntegerField(null=True)
+    # id
+    id = models.BigAutoField(primary_key=True)
     # location in storage location=0 : isnt in storage
     storageLocation = models.PositiveSmallIntegerField(default=0)
     # color of the working piece
@@ -84,7 +84,7 @@ class StateWorkingPiece(models.Model):
     isPackaged = models.BooleanField()
 
     def __str__(self):
-        return str(self.partNo)
+        return str(self.id)
 # Model of a single task in a working plan. represents one step in a working plan
 
 
@@ -229,7 +229,7 @@ class Setting(models.Model):
     storage = models.CharField(max_length=100, null=True)
     # costumer
     costumer = models.ForeignKey(
-        Costumer, on_delete=models.SET_NULL, blank=True)
+        Costumer, on_delete=models.SET_NULL, null=True)
 
     def setStorage(self, storageArray):
         self.storage = json.dumps(storageArray)
@@ -245,10 +245,12 @@ class Setting(models.Model):
                 return i+1
 
     def updateStoragePosition(self, position, isEmpty):
+        storage = self.getStorage()
         if isEmpty:
-            self.getStorage[position-1] = 0
+            storage[position-1] = 0
         elif not isEmpty:
-            self.getStorage[position-1] = 1
+            storage[position-1] = 1
+        self.setStorage(storage)
 
     def __str__(self):
         return "Setting"

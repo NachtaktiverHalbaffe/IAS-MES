@@ -55,7 +55,7 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
             "location",
             "partNo",
             "carrierId",
-            "ressourceId",
+            "id",
             "storageLocation",
             "color",
             "isAssembled",
@@ -106,12 +106,6 @@ class ErrorSerializer(serializers.ModelSerializer):
         fields = ("level", "msg", "category", "id", "timestamp", "isSolved")
 
 
-class SettingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Setting
-        fields = ("isInBridgingMode", "ipAdressMES4", "storage", "costumer")
-
-
 class CostumerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Costumer
@@ -124,3 +118,9 @@ class CostumerSerializer(serializers.ModelSerializer):
             "eMail",
             "company",
         )
+
+
+class SettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Setting
+        fields = ("isInBridgingMode", "ipAdressMES4", "storage", "costumer",)

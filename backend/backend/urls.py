@@ -1,6 +1,4 @@
 import django
-from mesbackend.plcstatesocket import PLCStateSocket
-from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
 from django import urls
 from django.contrib import admin
 from django.urls import path, include

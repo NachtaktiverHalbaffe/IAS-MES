@@ -1,7 +1,8 @@
 """
 Filename: signals.py
 Version name: 0.1, 2021-05-19
-Short description: Signals that trigger callbackfunctions on certain triggers
+Short description: Signals that trigger callbackfunctions on certain triggers. Only handles signals which do buisness logic,
+callback functions for data managment pruposes are defined in the signals of mesapi
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -13,7 +14,7 @@ from django.db import transaction
 import requests
 
 from .safteymonitoring import SafteyMonitoring
-from backend.mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingPlan, WorkingStep, Setting
+from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingPlan, WorkingStep, Setting
 
 
 # Gets executed after a error is saved. It analyses the error and decides what the system has to do
@@ -33,17 +34,6 @@ def handleError(sender, instance, **kwargs):
     elif "Visualisation unit is not reachable." in instance.msg:
         # TODO Delete workingstep from working order
         return
-
-
-# Gets executed before a order is saved. It creates a array of
-# bits according to the number of workingsteps in the workingplan
-# and saves them in a array in the AssigendOrder object
-@receiver(pre_save, sender=AssignedOrder)
-def createStatusBits(sender, instance, **kwargs):
-    statusArray = []
-    for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
-        statusArray.append(0)
-    instance.setStatus(statusArray=statusArray)
 
 
 # Gets executed after a order is saved. It sends all visualisationunits their
@@ -106,15 +96,6 @@ def validateWorkingPlan(sender, instance, **kwargs):
                 errorCategory=safteyMonitoring.CATEGORY_INPUT,
                 msg="Workingplan not saved!"
             )
-
-
-@receiver(post_save, sender=Setting)
-def setStorage(sender, instance, **kwargs):
-    if instance.storage == None:
-        storageArray = []
-        for i in range(30):
-            storageArray.append(0)
-        Setting.setStorage(storageArray)
 
 
 # condition checking if all conditions are met so the workingplan can run correctly

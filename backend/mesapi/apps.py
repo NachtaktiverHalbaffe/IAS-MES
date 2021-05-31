@@ -7,6 +7,7 @@ class MesapiConfig(AppConfig):
     name = "mesapi"
 
     def ready(self):
+        import mesapi.signals
         # from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
         # from mesbackend.plcstatesocket import PLCStateSocket
 
