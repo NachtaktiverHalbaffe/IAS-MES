@@ -46,7 +46,7 @@ def sendVisualisationtasks(sender, instance, **kwargs):
         unit = step.assignedToUnit
         task = step.task
         stepNo = step.stepNo
-        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count == 1:
+        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
             ipAdress = StateVisualisationUnit.objects.all().filter(
                 boundToRessource=unit).ipAdress
             payload = {
@@ -54,7 +54,8 @@ def sendVisualisationtasks(sender, instance, **kwargs):
                 "assignedToUnit": unit,
                 "stepNo": stepNo
             }
-            request = requests.post(ipAdress, data=payload)
+            request = requests.put(
+                ipAdress + '/api/VisualisationTask', data=payload)
 
             if not request.ok:
                 # Error message
@@ -75,8 +76,29 @@ def sendVisualisationtasks(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=AssignedOrder)
 def abortOrder(sender, instance, **kwargs):
-    # TODO do everything to abort all tasks
-    pass
+    workingsteps = instance.assigendWorkingPlan.workingSteps.all()
+    for step in workingsteps:
+        unit = step.assignedToUnit
+        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
+            ipAdress = StateVisualisationUnit.objects.all().filter(
+                boundToRessource=unit).ipAdress
+            request = requests.delete(ipAdress + '/api/VisualisationTask')
+
+            if not request.ok:
+                # Error message
+                safteyMonitoring = SafteyMonitoring()
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                )
+        else:
+            safteyMonitoring = SafteyMonitoring()
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_ERROR,
+                errorCategory=safteyMonitoring.CATEGORY_DATA,
+                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
+            )
 
 
 # Gets executed after a workingplan is saved. It validates the workingplan on static parameters

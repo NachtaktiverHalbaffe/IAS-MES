@@ -8,7 +8,7 @@ is handled here. Given on the servicecalls some output parameters are set
 
 """
 
-from backend.mesapi.models import AssignedOrder, Buffer, Setting, StatePLC, WorkingPlan, WorkingStep, StateWorkingPiece
+from backend.mesapi.models import AssignedOrder, Buffer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
 
 
 class Servicecalls(object):
@@ -37,7 +37,7 @@ class Servicecalls(object):
                     obj.oPos = order.orderPos
                     obj.wpNo = workingPlan.workingPlanNo
                     obj.opNo = step.operationNo
-                    obj.cNo = order.costumerNo
+                    obj.cNo = order.costumer
                     obj.mainOPos = order.mainOrderPos
                     obj.errorStepNo = 0
                     obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -84,7 +84,7 @@ class Servicecalls(object):
                             obj.stopperId = 2
                             obj.serviceParams = [0, 1, 0, 90, 0, 25]
                             obj.bufPos = Setting.objects.all().first().getFirstFreePlace()
-                        obj.cNo = currentOrder.costumerNo
+                        obj.cNo = currentOrder.costumer
                         obj.mainOPos = currentOrder.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -128,7 +128,7 @@ class Servicecalls(object):
                             obj.stopperId = 2
                             obj.serviceParams = [0, 1, 0, 91, 0, 25]
                             obj.bufPos = order.assignedWorkingPiece.storageLocation
-                        obj.cNo = order.costumerNo
+                        obj.cNo = order.costumer
                         obj.mainOPos = order.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -232,8 +232,9 @@ class Servicecalls(object):
         requestId = obj.requestId
         oNo = obj.oNo
         oPos = obj.oPos
-        # TODO checking with visualisation unit
         currentOrder = AssignedOrder.objects.all()
+        stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
+            boundToRessource=requestId).first()
         hasFoundOrder = False
         for order in currentOrder:
             if oNo == order.orderNo and oPos == order.orderPos:
@@ -245,14 +246,27 @@ class Servicecalls(object):
                         # Write NFC tags, data for NFC tag can be manipulated
                         print("[OPEND] Operation " + str(obj.opNo) + " on resource " +
                               str(requestId) + " ended. Writing next operation on RFID")
+                        # If visualisationunit finished task then write next step of workingplan on rfid, only check if resource is branch
+                        if stateVisualisationUnit.state == "finished" or stateVisualisationUnit.state == "idle" and requestId > 1 and requestId < 7:
+                            obj.stepNo = workingsteps[i+1].stepNo
+                            obj.resourceId = workingsteps[i+1].assignedToUnit
+                            obj.opNo = workingsteps[i+1].operationNo
+                        # If visualisationunit hasnt finished, then write current task again to repeat operation on PLC , only check if resource is branch
+                        elif stateVisualisationUnit.state == "playing" or stateVisualisationUnit.state == "waiting" and requestId > 1 and requestId < 7:
+                            print(
+                                "[OPEND] Attached visualisationunit hasnt finished. Write same step again on RFID to repeat operation")
+                            obj.stepNo = workingsteps[i].stepNo
+                            obj.resourceId = workingsteps[i].assignedToUnit
+                            obj.opNo = workingsteps[i].operationNo
+                        else:
+                            obj.stepNo = workingsteps[i+1].stepNo
+                            obj.resourceId = workingsteps[i+1].assignedToUnit
+                            obj.opNo = workingsteps[i+1].operationNo
                         obj.oNo = order.orderNo
                         obj.oPos = order.orderPos
-                        obj.stepNo = workingsteps[i+1].stepNo
                         obj.stepNo = 0
-                        obj.resourceId = workingsteps[i+1].assignedToUnit
                         obj.wpNo = workingPlan.workingPlanNo
-                        obj.opNo = workingsteps[i+1].operationNo
-                        obj.cNo = order.costumerNo
+                        obj.cNo = order.costumer
                         obj.mainOPos = order.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -264,6 +278,9 @@ class Servicecalls(object):
             if hasFoundOrder:
                 # has found order, only first order is requested => exit
                 break
+            # all steps in workingplan are executed => delete order
+            if not 0 in status:
+                order.delete()
         return obj
 
     # get shunt for target resource
@@ -302,7 +319,7 @@ class Servicecalls(object):
         obj.palletID = 0
         # PLC is storage
         if resourceId == 1:
-            pass
+            storage = Setting.objects.all().first().getStorage()
         # PLC is robotino or branch
         elif resourceId != 1:
             if bufNo == 1:

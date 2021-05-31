@@ -31,9 +31,8 @@ class Buffer(models.Model):
     def __str__(self):
         return "Buffer of resourceId " + str(self.resourceId)
 
+
 # Model representing the state of an PLC
-
-
 class StatePLC(models.Model):
     # state string which describes the state
     state = models.CharField(max_length=30)
@@ -144,9 +143,23 @@ class WorkingPlan(models.Model):
     def __str__(self):
         return self.name
 
+
+# model representing a costumer
+class Costumer(models.Model):
+    # costumer number which identifies the costumer. needs to be unique
+    costumerNo = models.PositiveIntegerField(primary_key=True)
+    firstName = models.CharField(max_length=30)
+    lastName = models.CharField(max_length=100)
+    adress = models.CharField(max_length=300, null=True)
+    phone = models.PositiveIntegerField(null=True)
+    eMail = models.EmailField(null=True)
+    company = models.CharField(max_length=100, null=True)
+
+    def __str__(self):
+        return self.firstName + self.lastName
+
+
 # Model representing a Order which is assigned by the user
-
-
 class AssignedOrder(models.Model):
     # name of the working plan
     name = models.CharField(max_length=30)
@@ -166,8 +179,9 @@ class AssignedOrder(models.Model):
     orderPos = models.PositiveSmallIntegerField(default=1)
     # main order position (optional)
     mainOrderPos = models.PositiveSmallIntegerField(default=0)
-    # costumer number (optional)
-    costumerNo = models.PositiveIntegerField(default=1000)
+    # costumer(optional)
+    costumer = models.ForeignKey(
+        Costumer, blank=True, on_delete=models.SET_NULL, null=True)
     # Status
     status = models.CharField(max_length=30, null=True)
 
@@ -219,21 +233,6 @@ class Error(models.Model):
 
     def __str__(self):
         return self.level + self.category + self.msg
-
-
-# model representing a costumer
-class Costumer(models.Model):
-    # costumer number which identifies the costumer. needs to be unique
-    costumerNo = models.PositiveIntegerField(primary_key=True)
-    firstName = models.CharField(max_length=30)
-    lastName = models.CharField(max_length=100)
-    adress = models.CharField(max_length=300, null=True)
-    phone = models.PositiveIntegerField(null=True)
-    eMail = models.EmailField(null=True)
-    company = models.CharField(max_length=100, null=True)
-
-    def __str__(self):
-        return self.firstName + self.lastName
 
 
 class Setting(models.Model):

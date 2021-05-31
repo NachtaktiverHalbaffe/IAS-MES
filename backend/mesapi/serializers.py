@@ -88,7 +88,7 @@ class AssignedOrderSerializer(serializers.ModelSerializer):
             "orderNo",
             "orderPos",
             "mainOrderPos",
-            "costumerNo",
+            "costumer",
             "status"
         )
 

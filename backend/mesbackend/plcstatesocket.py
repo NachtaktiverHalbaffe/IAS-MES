@@ -43,8 +43,8 @@ class PLCStateSocket(object):
     # addr: ipv4 adress of the plc
 
     def cyclicCommunication(self, client, addr):
-
         django.setup()
+        startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -52,14 +52,15 @@ class PLCStateSocket(object):
                 self.CLIENT.send(msg)
             # decode message
             if msg:
-
+                startTime = time.time()
                 self.systemMonitoring.decodeCyclicMessage(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
-            #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
-                client.close()
-                print("[CONNECTION]: Connection " + str(addr) + " closed")
-                break
+                # Close connection if there was no message in last 10 seconds
+                if time.time() - startTime > 10:
+                    client.close()
+                    print("[CONNECTION]: Connection " + str(addr) + " closed")
+                    break
 
     # Waits for a connection from a plc. When a plc connects,
     # it starts a new thread for the cyclic communication
@@ -85,8 +86,10 @@ class PLCStateSocket(object):
         print("[CONNECTION] PLCStateSocket-Server started")
         # Start Tcp server on seperate Thread
         SERVER_THREADING = Thread(target=self.waitForConnection)
-        SERVER_THREADING.start()
-        # Join all threads together
-        SERVER_THREADING.join()
+        try:
+            SERVER_THREADING.start()
+            SERVER_THREADING.join()
+        except Exception as e:
+            pass
         # Close server if all connections crashed
         self.SERVER.close()

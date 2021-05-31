@@ -43,7 +43,7 @@ class PLCServiceOrderSocket(object):
     # addr: ipv4 adress of the plc
 
     def serviceCommunication(self, client, addr):
-
+        startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
             # if Socket is in bridging mode forward connection
@@ -55,6 +55,7 @@ class PLCServiceOrderSocket(object):
                 django.setup()
                 from .serviceorderhandler import ServiceOrderHandler
                 # create and send response
+                startTime = time.time()
                 response = ServiceOrderHandler().createResponse(
                     msg=str(msg.decode("utf8")), ipAdress=addr)
                 if response:
@@ -62,11 +63,12 @@ class PLCServiceOrderSocket(object):
                         client.send(response.encode("utf8"))
                     except Exception:
                         pass
-            #!!! In finaler Implementierung wieder entfernen und durch timer ersetzen
             elif not msg:
-                client.close()
-                print("[CONNECTION]: Connection " + str(addr) + " closed")
-                break
+                # Close connection if there was no message in last 10 seconds
+                if time.time() - startTime > 10:
+                    client.close()
+                    print("[CONNECTION]: Connection " + str(addr) + " closed")
+                    break
 
     # Waits for a connection from a plc. When a plc connects,
     # it starts a new thread for the service specific communication
@@ -93,8 +95,10 @@ class PLCServiceOrderSocket(object):
         print("[CONNECTION] PLCServiceOrderSocket-Server started")
         # Start Tcp server on seperate Thread
         SERVER_THREADING = Thread(target=self.waitForConnection)
-        SERVER_THREADING.start()
-        # Join all threads together
-        SERVER_THREADING.join()
+        try:
+            SERVER_THREADING.start()
+            SERVER_THREADING.join()
+        except Exception as e:
+            pass
         # Close server if all connections crashed
         self.SERVER.close()
