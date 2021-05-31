@@ -113,11 +113,18 @@ class WorkingStep(models.Model):
         ("store", "Store a workingpiece"),
         ("unstore", "Unstore a workingpiece"),
     ]
+    MODEL_CHOICES = [
+        ('IAS-Logo', "Model of the IAS-logo"),
+
+    ]
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, default="")
     # task which the visualisation unit should display
     task = models.CharField(
         max_length=15, choices=TASK_CHOICES, default="assemble")
+    # model name of 3D Model
+    model = models.CharField(
+        max_length=100, choices=MODEL_CHOICES, default='IAS-Logo')
     # ressourceID of assigned unit which should execute the task
     assignedToUnit = models.PositiveIntegerField()
     # if task is painting

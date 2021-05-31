@@ -106,6 +106,7 @@ class WorkingStepSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "task",
+            "model",
             "assignedToUnit",
             "color",
             "stepNo",
