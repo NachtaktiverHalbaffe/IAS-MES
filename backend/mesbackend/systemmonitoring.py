@@ -181,7 +181,7 @@ class SystemMonitoring(object):
             statePLC.update(mesMode=mesMode)
             statePLC.update(lastUpdate=lastUpdate)
         else:
-            statePLC = StatePLC(id=ressourceId, name='', buffNo=0, buffPos=0,
+            statePLC = StatePLC(id=ressourceId, name='',
                                 state=state, mode=mode, mesMode=mesMode, ipAdress=ipAdress[0], lastUpdate=lastUpdate)
             statePLC.save()
 
