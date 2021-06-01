@@ -43,7 +43,7 @@ class PLCStateSocket(object):
     # addr: ipv4 adress of the plc
 
     def cyclicCommunication(self, client, addr):
-        django.setup()
+        # django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
@@ -67,6 +67,7 @@ class PLCStateSocket(object):
 
     def waitForConnection(self):
         from .safteymonitoring import SafteyMonitoring
+
         while True:
             try:
                 client, addr = self.SERVER.accept()
@@ -81,7 +82,7 @@ class PLCStateSocket(object):
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server
 
     def runServer(self):
-
+        django.setup()
         self.SERVER.listen()
         print("[CONNECTION] PLCStateSocket-Server started")
         # Start Tcp server on seperate Thread

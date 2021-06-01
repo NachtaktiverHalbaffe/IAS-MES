@@ -44,7 +44,7 @@ def setStorage(sender, instance, **kwargs):
 
 
 # Creates a buffer if a StatePLC is created and hasnt a buffer yet
-@receiver(pre_save, sender=StatePLC)
+@receiver(post_save, sender=StatePLC)
 def createBuffer(sender, instance, **kwargs):
     if instance.buffer == None:
         buffer = Buffer()
@@ -55,5 +55,5 @@ def createBuffer(sender, instance, **kwargs):
         buffer.bufInOPos = 0
         buffer.bufOutONo = 0
         buffer.bufOutOPos = 0
-
+        buffer.save()
         instance.buffer = buffer

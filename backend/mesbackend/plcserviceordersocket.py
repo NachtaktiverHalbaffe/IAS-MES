@@ -43,6 +43,7 @@ class PLCServiceOrderSocket(object):
     # addr: ipv4 adress of the plc
 
     def serviceCommunication(self, client, addr):
+        #django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
@@ -52,7 +53,6 @@ class PLCServiceOrderSocket(object):
             # decode message
             if msg:
                 # make sure apps and models are loaded
-                django.setup()
                 from .serviceorderhandler import ServiceOrderHandler
                 # create and send response
                 startTime = time.time()
@@ -70,8 +70,8 @@ class PLCServiceOrderSocket(object):
                     print("[CONNECTION]: Connection " + str(addr) + " closed")
                     break
 
-    # Waits for a connection from a plc. When a plc connects,
-    # it starts a new thread for the service specific communication
+                # Waits for a connection from a plc. When a plc connects,
+                # it starts a new thread for the service specific communication
 
     def waitForConnection(self):
         from .safteymonitoring import SafteyMonitoring
@@ -90,7 +90,7 @@ class PLCServiceOrderSocket(object):
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server
 
     def runServer(self):
-
+        django.setup()
         self.SERVER.listen()
         print("[CONNECTION] PLCServiceOrderSocket-Server started")
         # Start Tcp server on seperate Thread

@@ -1,3 +1,6 @@
+from mesbackend.plcserviceordersocket import PLCServiceOrderSocket
+from mesbackend.plcstatesocket import PLCStateSocket
+from multiprocessing import Process
 import django
 from django import urls
 from django.contrib import admin
@@ -36,3 +39,13 @@ urlpatterns = [
     # admin panel as landing page
     path("", admin.site.urls),
 ]
+
+try:
+    serviceProcess = Process(target=PLCServiceOrderSocket().runServer)
+    stateProcess = Process(target=PLCStateSocket().runServer)
+    # serviceProcess.daemon = True
+    # stateProcess.daemon = True
+    serviceProcess.start()
+    stateProcess.start()
+except Exception:
+    pass
