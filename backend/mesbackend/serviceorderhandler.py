@@ -6,6 +6,7 @@ Short description: Module for handling the service request and creating response
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
+import math
 
 
 class ServiceOrderHandler(object):
@@ -55,9 +56,6 @@ class ServiceOrderHandler(object):
     def createResponse(self, msg, ipAdress):
         self.decodeMessage(msg)
         self.getOutputParams()
-
-        # TODO derive state
-
         return self.encodeMessage()
 
     def decodeMessage(self, msg):
@@ -138,19 +136,36 @@ class ServiceOrderHandler(object):
         elif self.mClass == 150 and self.mNo == 20:
             self = servicecalls.getBufDockedAgv(self)
             return
+        # MoveBuf
+        elif self.mClass == 151 and self.mNo == 5:
+            self = servicecalls.moveBuf(self)
+            return
         # SetBufPos
-        elif self.mclass == 151 and self.mNo == 10:
+        elif self.mClass == 151 and self.mNo == 10:
             self = servicecalls.setBufPos(self)
+            return
+        # DelBuf
+        elif self.mClass == 151 and self.mNo == 12:
+            self = servicecalls.delBuf(self)
+            return
+        # getUnknownParts (old)
+        elif self.mClass == 200 and self.mNo == 5:
+            self = servicecalls.getUnknownParts(self)
             return
         # GetToAGVBuf
         elif self.mClass == 200 and self.mNo == 21:
             self = servicecalls.getToAGVBuf(self)
+            return
+        # SetAgvPos
+        elif self.mClass == 201 and self.mNo == 1:
+            self = servicecalls.setAgvPos(self)
             return
 
     # encodes message for PlcServiceOrderSocket in a format so it can be send
     # @params: Takes all the neccessary attributes of the Object and parses them
     def encodeMessage(self):
         from .safteymonitoring import SafteyMonitoring
+        self._printAttr()
         if self.tcpIdent == 445:
             # String coding shortend
             return self._encodeStrFull()
@@ -421,9 +436,33 @@ class ServiceOrderHandler(object):
         for item in range(44):
             msg += "00"
 
-        # servicespecific parameter
-        for i in range(len(self.serviceParams)):
-            msg += self._parseToEndian(self.serviceParams[i], False)
+        # servicespecific parameter, could be to be parsed diffrently odepending on request
+        # encoding for getBufForBufNo
+        if self.mClass == 150 and self.mNo == 1:
+            msg += self._parseToEndian(self.serviceParams[0], False)
+            msg += self._parseToEndian(self.serviceParams[1], False)
+            msg += self._parseToEndian(self.serviceParams[2], True)
+            msg += self._parseToEndian(self.serviceParams[3], True)
+            msg += self._parseToEndian(self.serviceParams[4], False)
+        # getUnknownParts
+        elif self.mClass == 200 and self.mNo == 5:
+            for i in range(math.ceil(len(self.serviceParams)/35)):
+                for j in range(35):
+                    if j == 0:
+                        msg += self._parseToEndian(
+                            self.serviceParams[j + 35*i], True)
+                    else:
+                        if len(self.serviceParams) > (j+35*i):
+                            msg += format(self.serviceParams[j + 35*i], "02x")
+        elif self.mClass == 100 and self.mNo == 111:
+            for i in range(len(self.serviceParams)):
+                if i == 0 or i == 1:
+                    msg += self._parseToEndian(self.serviceParams[i], False)
+                else:
+                    msg += format(self.serviceParams[i], "02x")
+        else:
+            for i in range(len(self.serviceParams)):
+                msg += self._parseToEndian(self.serviceParams[i], False)
 
         return msg
 
@@ -514,3 +553,39 @@ class ServiceOrderHandler(object):
                 nmbrstr += bytes[i]
 
         return int(nmbrstr, 16)
+
+    def _printAttr(self):
+        print("tcpIdent: " + str(self.tcpIdent))
+        print("requestID: " + str(self.requestID))
+        print("mClass: " + str(self.mClass))
+        print("mNo: " + str(self.mNo))
+        print("errorState: " + str(self.errorState))
+        print("dataLength: " + str(self.dataLength))
+        print("resourceId: " + str(self.resourceId))
+        print("oNo: " + str(self.oNo))
+        print("oPos: " + str(self.oPos))
+        print("wpNo: " + str(self.wpNo))
+        print("opNo: " + str(self.opNo))
+        print("bufNo: " + str(self.bufNo))
+        print("bufPos: " + str(self.bufPos))
+        print("carrierId: " + str(self.carrierId))
+        print("palletID: " + str(self.palletID))
+        print("palletPos: " + str(self.palletPos))
+        print("pNo: " + str(self.pNo))
+        print("stopperId: " + str(self.stopperId))
+        print("errorStepNo: " + str(self.errorStepNo))
+        print("stepNo: " + str(self.stepNo))
+        print("maxRecords: " + str(self.maxRecords))
+        print("boxId: " + str(self.boxId))
+        print("boxPos: " + str(self.boxPos))
+        print("mainOPos: " + str(self.mainOPos))
+        print("beltNo: " + str(self.beltNo))
+        print("cNo: " + str(self.cNo))
+        print("boxPNo: " + str(self.boxPNo))
+        print("palletPNo: " + str(self.palletPNo))
+        print("aux1Int: " + str(self.aux1Int))
+        print("aux2Int: " + str(self.aux2Int))
+        print("aux1DInt: " + str(self.aux1DInt))
+        print("aux2DInt: " + str(self.aux2DInt))
+        print("mainPNo: " + str(self.mainPNo))
+        print("serviceParams: " + str(self.serviceParams))
