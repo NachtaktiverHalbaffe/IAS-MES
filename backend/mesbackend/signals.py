@@ -12,6 +12,7 @@ from django.db.models.signals import post_save, pre_save, post_delete, m2m_chang
 from django.dispatch import receiver
 from django.db import transaction
 import requests
+import logging
 
 from .safteymonitoring import SafteyMonitoring
 from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingPlan, WorkingStep, Setting
@@ -21,7 +22,18 @@ from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingP
 # to solve the error
 @receiver(post_save, sender=Error)
 def handleError(sender, instance, **kwargs):
-    print(instance.level + " " + instance.category + ": " + instance.msg)
+    # print error to console and save error to log
+    logging.basicConfig(filename="safteymonitoring.log",
+                        level=logging.WARNING, format='[%(asctime)s ]  %(message)s')
+    errorStr = instance.level + " " + instance.category + ": " + instance.msg
+    print(errorStr)
+    if instance.level == "[WARNING]":
+        logging.warning(errorStr)
+    elif instance.level == "[ERROR]":
+        logging.error(errorStr)
+    elif instance.level == "[CRITICAL]":
+        logging.critical(errorStr)
+
     if instance.isSolved:
         return
     # Error during validating workingplan

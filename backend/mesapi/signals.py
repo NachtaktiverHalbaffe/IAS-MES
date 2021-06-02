@@ -8,10 +8,11 @@ business logic. Signals with buisness logic are handled in the signals in mesbac
 
 """
 
-from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed
+from django.db.models.signals import post_save, pre_delete, pre_save, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
 import requests
+import logging
 
 from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
 
@@ -25,6 +26,18 @@ def createStatusBits(sender, instance, **kwargs):
     for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
         statusArray.append(0)
     instance.setStatus(statusArray=statusArray)
+    logging.basicConfig(filename="orders.log",
+                        level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+    logging.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
+                 str(instance.assigendWorkingPlan.workingPlanNo)
+                 )
+
+
+@receiver(pre_delete, sender=AssignedOrder)
+def logOrderDel(sender, instance, **kwargs):
+    logging.basicConfig(filename="orders.log",
+                        level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+    logging.info("[AssignedOrder] Deleted order " + str(instance.orderNo))
 
 
 # Sets all storage Bits to 0 for the first time when storage isnt initialise
@@ -44,7 +57,7 @@ def setStorage(sender, instance, **kwargs):
 
 
 # Creates a buffer if a StatePLC is created and hasnt a buffer yet
-@receiver(post_save, sender=StatePLC)
+@receiver(pre_save, sender=StatePLC)
 def createBuffer(sender, instance, **kwargs):
     if instance.buffer == None:
         buffer = Buffer()
@@ -56,4 +69,5 @@ def createBuffer(sender, instance, **kwargs):
         buffer.bufOutONo = 0
         buffer.bufOutOPos = 0
         buffer.save()
+        # StatePLC.object.all().filter(id=instance.id).first().buffer.update(buffer=buffer)
         instance.buffer = buffer
