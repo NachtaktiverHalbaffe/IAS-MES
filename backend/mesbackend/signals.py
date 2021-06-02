@@ -8,6 +8,7 @@ callback functions for data managment pruposes are defined in the signals of mes
 
 """
 
+from os import stat
 from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
@@ -44,7 +45,24 @@ def handleError(sender, instance, **kwargs):
         Error.objects.filter(id=instance.id).update(isSolved=True)
         return
     elif "Visualisation unit is not reachable." in instance.msg:
-        # TODO Delete workingstep from working order
+        params = instance.msg.split(":")
+        if len(params) > 1:
+            oNo = params[1]
+            oPos = params[2]
+            order = AssignedOrder.objects.filter(
+                orderNo=oNo).filter(orderPos=oPos)
+            status = order.getStatus()
+            steps = order.first().assigendWorkingPlan.workingSteps.all()
+            updatedSteps = []
+            for i in range(len(steps)):
+                if status[i] == 0:
+                    updatedSteps.append(steps[i])
+            isExecutable = _validateWorkingSteps(workingSteps=updatedSteps)
+            if not isExecutable:
+                # delete order because it isnt executable
+                order.delete()
+            else:
+                instance.update(isSolved=True)
         return
 
 
@@ -54,20 +72,25 @@ def handleError(sender, instance, **kwargs):
 def sendVisualisationtasks(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
 
-    for step in workingsteps:
+    for i in range(len(workingsteps)):
+        step = workingsteps[i]
         unit = step.assignedToUnit
+        workingPiece = instance.assignedWorkingPiece.id
         task = step.task
+        color = step.color
         stepNo = step.stepNo
+        status = instance.getStatus()
         if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
             ipAdress = StateVisualisationUnit.objects.all().filter(
                 boundToRessource=unit).ipAdress
             payload = {
                 "task": task,
-                "assignedToUnit": unit,
-                "stepNo": stepNo
+                "assignedWorkingPiece": workingPiece,
+                "stepNo": stepNo,
+                "paintColor": color
             }
             request = requests.put(
-                ipAdress + '/api/VisualisationTask', data=payload)
+                ipAdress + ':2000/api/VisualisationTask', data=payload)
 
             if not request.ok:
                 # Error message
@@ -75,27 +98,36 @@ def sendVisualisationtasks(sender, instance, **kwargs):
                 safteyMonitoring.decodeError(
                     errorLevel=safteyMonitoring.LEVEL_ERROR,
                     errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
+                        str(instance.orderNo) + ":" +
+                    str(instance.orderPos)
                 )
-        else:
+                status[i] = 1
+                instance.setStatus(status)
+        elif not unit == 1 and not unit >= 7:
             safteyMonitoring = SafteyMonitoring()
             safteyMonitoring.decodeError(
                 errorLevel=safteyMonitoring.LEVEL_ERROR,
                 errorCategory=safteyMonitoring.CATEGORY_DATA,
-                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
+                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES. Ordernumber and orderposition:" +
+                    str(instance.orderNo) + ":" +
+                str(instance.orderPos)
             )
+            status[i] = 1
+            instance.setStatus(status)
 
 
 @receiver(post_delete, sender=AssignedOrder)
 def abortOrder(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
-    for step in workingsteps:
+    status = instance.getStatus()
+    for i in range(len(workingsteps)):
+        step = workingsteps[i]
         unit = step.assignedToUnit
         if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
             ipAdress = StateVisualisationUnit.objects.all().filter(
                 boundToRessource=unit).ipAdress
             request = requests.delete(ipAdress + '/api/VisualisationTask')
-
             if not request.ok:
                 # Error message
                 safteyMonitoring = SafteyMonitoring()

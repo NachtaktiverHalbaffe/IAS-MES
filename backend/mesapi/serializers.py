@@ -73,6 +73,7 @@ class StateWorkingPieceSerializer(serializers.ModelSerializer):
             "color",
             "isAssembled",
             "isPackaged",
+            "model",
         )
 
 
@@ -106,7 +107,6 @@ class WorkingStepSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "task",
-            "model",
             "assignedToUnit",
             "color",
             "stepNo",

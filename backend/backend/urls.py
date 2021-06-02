@@ -45,7 +45,7 @@ try:
     stateProcess = Process(target=PLCStateSocket().runServer)
     # serviceProcess.daemon = True
     # stateProcess.daemon = True
-    serviceProcess.start()
-    stateProcess.start()
+    # serviceProcess.start()
+    # stateProcess.start()
 except Exception:
     pass

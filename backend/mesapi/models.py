@@ -79,6 +79,9 @@ class StateVisualisationUnit(models.Model):
 # model representing the state of a working piece. Usually the working piece is fictive and
 # is represented by an empty carrier in the real world
 class StateWorkingPiece(models.Model):
+    MODEL_CHOICES = [
+        ('IAS-Logo', "Model of the IAS-logo"),
+    ]
     # timestamp of last update. Will be auto generated
     lastUpdate = models.DateTimeField(auto_now_add=True)
     # ressourceID where the working piece is currently located
@@ -97,6 +100,9 @@ class StateWorkingPiece(models.Model):
     isAssembled = models.BooleanField()
     # working piece is packaged
     isPackaged = models.BooleanField()
+    # model name of 3D Model
+    model = models.CharField(
+        max_length=100, choices=MODEL_CHOICES, default='IAS-Logo')
 
     def __str__(self):
         return str(self.id)
@@ -113,9 +119,6 @@ class WorkingStep(models.Model):
         ("store", "Store a workingpiece"),
         ("unstore", "Unstore a workingpiece"),
     ]
-    MODEL_CHOICES = [
-        ('IAS-Logo', "Model of the IAS-logo"),
-    ]
     MANUAL = 510
     UNSTORE = 213
     STORE = 210
@@ -124,14 +127,12 @@ class WorkingStep(models.Model):
         (UNSTORE, "release a defined part on stopper 2"),
         (STORE, "store a part from stopper 1"),
     ]
+
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, default="")
     # task which the visualisation unit should display
     task = models.CharField(
         max_length=15, choices=TASK_CHOICES, default="assemble")
-    # model name of 3D Model
-    model = models.CharField(
-        max_length=100, choices=MODEL_CHOICES, default='IAS-Logo')
     # ressourceID of assigned unit which should execute the task
     assignedToUnit = models.PositiveIntegerField()
     # if task is painting
