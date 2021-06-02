@@ -36,6 +36,7 @@ class TestPLCServiceOrderSocket(object):
             while True:
                 response = client.recv(2048).decode(self.FORMAT)
                 if response:
+                    print(len(response)/2)
                     break
             client.close()
         except Exception as e:
@@ -47,6 +48,11 @@ test = TestPLCStateSocket()
 try:
     print("Send test message with big endian")
     test.sendTestMessage('00010285')
+    test.sendTestMessage('00020285')
+    test.sendTestMessage('00030285')
+    test.sendTestMessage('00040285')
+    test.sendTestMessage('00050285')
+    test.sendTestMessage('00060285')
     print("Test message send. Now sending test message with little endian")
     test.sendTestMessage('07000181')
 except Exception as e:

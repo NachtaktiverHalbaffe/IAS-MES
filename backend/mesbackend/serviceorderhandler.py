@@ -7,6 +7,7 @@ Short description: Module for handling the service request and creating response
 
 """
 import math
+import logging
 
 
 class ServiceOrderHandler(object):
@@ -54,6 +55,11 @@ class ServiceOrderHandler(object):
         self.ERROR_DECODINGSTRFULL = "Couldn't decode message. Tried to decode message in short format with method for full format"
 
     def createResponse(self, msg, ipAdress):
+        logging.basicConfig(filename="orders.log",
+                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+        logging.info(
+            "[SERVICEORDERHANDLER] Got service request. Creating Response")
+        print("[SERVICEORDERHANDLER] Got service request. Creating Response")
         self.decodeMessage(msg)
         self.getOutputParams()
         return self.encodeMessage()
@@ -114,7 +120,7 @@ class ServiceOrderHandler(object):
             return
         # OpReset
         elif self.mClass == 101 and self.mNo == 15:
-            self = servicecalls.opResetself(self)
+            self = servicecalls.opReset(self)
             return
         # OpEnd
         elif self.mClass == 101 and self.mNo == 20:
@@ -165,7 +171,7 @@ class ServiceOrderHandler(object):
     # @params: Takes all the neccessary attributes of the Object and parses them
     def encodeMessage(self):
         from .safteymonitoring import SafteyMonitoring
-        self._printAttr()
+        # self._printAttr()
         if self.tcpIdent == 445:
             # String coding shortend
             return self._encodeStrFull()

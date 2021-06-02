@@ -115,7 +115,14 @@ class WorkingStep(models.Model):
     ]
     MODEL_CHOICES = [
         ('IAS-Logo', "Model of the IAS-logo"),
-
+    ]
+    MANUAL = 510
+    UNSTORE = 213
+    STORE = 210
+    OP_CHOICES = [
+        (MANUAL, 'Manual work'),
+        (UNSTORE, "release a defined part on stopper 2"),
+        (STORE, "store a part from stopper 1"),
     ]
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, default="")
@@ -130,9 +137,12 @@ class WorkingStep(models.Model):
     # if task is painting
     color = ColorField(default="#000000")
     # step number inside the Workingplan
-    stepNo = models.PositiveSmallIntegerField(primary_key=True)
+    stepNo = models.PositiveSmallIntegerField()
     # operation number, see CP Factory documentation
-    operationNo = models.PositiveSmallIntegerField(default=510)
+    operationNo = models.PositiveSmallIntegerField(
+        default=510, choices=OP_CHOICES)
+    # id
+    id = models.BigAutoField(primary_key=True)
 
     def __str__(self):
         return self.name + " (Step Number: " + str(self.stepNo) + ")"

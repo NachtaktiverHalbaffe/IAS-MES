@@ -111,6 +111,7 @@ class WorkingStepSerializer(serializers.ModelSerializer):
             "color",
             "stepNo",
             "operationNo",
+            "id",
         )
 
 
