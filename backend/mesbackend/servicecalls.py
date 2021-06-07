@@ -46,7 +46,8 @@ class Servicecalls(object):
                 obj.oPos = order.orderPos
                 obj.wpNo = workingPlan.workingPlanNo
                 obj.opNo = step.operationNo
-                obj.cNo = order.costumer.costumerNo
+                if order.costumer != None:
+                    obj.cNo = order.costumer.costumerNo
                 obj.mainOPos = order.mainOrderPos
                 obj.errorStepNo = 0
                 obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -107,7 +108,8 @@ class Servicecalls(object):
                             obj.serviceParams = [0, 3, 0, 4,
                                                  0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
                             obj.dataLength = 28
-                        obj.cNo = currentOrder.costumer
+                        if currentOrder.costumer != None:
+                            obj.cNo = currentOrder.costumer
                         obj.mainOPos = currentOrder.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -156,7 +158,8 @@ class Servicecalls(object):
                             obj.stopperId = 2
                             obj.serviceParams = [0, 1, 0, 91, 0, 25]
                             obj.bufPos = order.assignedWorkingPiece.storageLocation
-                        obj.cNo = order.costumer.costumerNo
+                        if currentOrder.costumer != None:
+                            obj.cNo = order.costumer.costumerNo
                         obj.mainOPos = order.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier

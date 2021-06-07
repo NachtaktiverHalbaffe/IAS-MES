@@ -61,8 +61,13 @@ def handleError(sender, instance, **kwargs):
             if not isExecutable:
                 # delete order because it isnt executable
                 order.delete()
-            else:
-                instance.update(isSolved=True)
+                safteyMonitoring = SafteyMonitoring()
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_WARNING,
+                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                    msg="Due to update of the order because of an unreachable visualisationunit the order isnt executable anymore. Order got deleted"
+                )
+        Error.objects.filter(id=instance.id).update(isSolved=True)
         return
 
 
@@ -82,15 +87,15 @@ def sendVisualisationtasks(sender, instance, **kwargs):
         status = instance.getStatus()
         if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
             ipAdress = StateVisualisationUnit.objects.all().filter(
-                boundToRessource=unit).ipAdress
+                boundToRessource=unit).first().ipAdress
             payload = {
                 "task": task,
                 "assignedWorkingPiece": workingPiece,
                 "stepNo": stepNo,
                 "paintColor": color
             }
-            request = requests.put(
-                ipAdress + ':2000/api/VisualisationTask', data=payload)
+            request = requests.put("http://" +
+                                   ipAdress + ':2000/api/VisualisationTask', data=payload)
 
             if not request.ok:
                 # Error message
@@ -127,7 +132,8 @@ def abortOrder(sender, instance, **kwargs):
         if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
             ipAdress = StateVisualisationUnit.objects.all().filter(
                 boundToRessource=unit).ipAdress
-            request = requests.delete(ipAdress + '/api/VisualisationTask')
+            request = requests.delete(
+                "http://" + ipAdress + '/api/VisualisationTask')
             if not request.ok:
                 # Error message
                 safteyMonitoring = SafteyMonitoring()

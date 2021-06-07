@@ -53,6 +53,7 @@ class ServiceOrderHandler(object):
         self.ERROR_ENCODING = "Couldn't encode message. Tcpident must me wrong"
         self.ERROR_DECODING = "Couldn't decode message. No tcpident found in message"
         self.ERROR_DECODINGSTRFULL = "Couldn't decode message. Tried to decode message in short format with method for full format"
+        self.ERROR_OUTPUT = "Could't find servicecall for corresponding MClass and MNo. Check if servicecall is implemented."
 
     def createResponse(self, msg, ipAdress):
         logging.basicConfig(filename="orders.log",
@@ -90,9 +91,10 @@ class ServiceOrderHandler(object):
     # Sets the attributes of the object corresponding to the needed Output params depending on the servicecall.
     # The businesslogic is done in serviceclass.py. There for each servicecall a response is calculated an the output
     # parameter set.
-
     def getOutputParams(self):
         from .servicecalls import Servicecalls
+        from .safteymonitoring import SafteyMonitoring
+
         servicecalls = Servicecalls()
         # GetFirstOpForRsc
         if self.mClass == 100 and self.mNo == 4:
@@ -166,6 +168,12 @@ class ServiceOrderHandler(object):
         elif self.mClass == 201 and self.mNo == 1:
             self = servicecalls.setAgvPos(self)
             return
+        else:
+            SafteyMonitoring().decodeError(
+                errorLevel=SafteyMonitoring().LEVEL_ERROR,
+                errorCategory=SafteyMonitoring().CATEGORY_INPUT,
+                msg=self.ERROR_OUTPUT,
+            )
 
     # encodes message for PlcServiceOrderSocket in a format so it can be send
     # @params: Takes all the neccessary attributes of the Object and parses them
@@ -399,7 +407,46 @@ class ServiceOrderHandler(object):
         return msg
 
     def _decodeStrShort(self):
-        pass
+        bytes = self.msg.split("<CR>")
+
+        self.requestID = bytes[1]
+        self.mClass = bytes[2]
+        self.mNo = bytes[3]
+        self.errorState = bytes[4]
+        self.dataLength = bytes[5]
+
+        # standard parameter
+        self.resourceId = bytes[6]
+        self.oNo = bytes[7]
+        self.oPos = bytes[8]
+        self.wpNo = bytes[9]
+        self.opNo = bytes[10]
+        self.bufNo = bytes[11]
+        self.bufPos = bytes[12]
+        self.carrierId = bytes[13]
+        self.palletID = bytes[14]
+        self.palletPos = bytes[15]
+        self.pNo = bytes[16]
+        self.stopperId = bytes[17]
+        self.errorStepNo = bytes[18]
+        self.stepNo = bytes[19]
+        self.maxRecords = bytes[20]
+        self.boxId = bytes[21]
+        self.boxPos = bytes[22]
+        self.mainOPos = bytes[23]
+        self.beltNo = bytes[24]
+        self.cNo = bytes[25]
+        self.boxPNo = bytes[26]
+        self.palletPNo = bytes[27]
+        self.aux1Int = bytes[28]
+        self.aux2Int = bytes[29]
+        self.aux1DInt = bytes[30]
+        self.aux2DInt = bytes[31]
+        self.mainPNo = bytes[32]
+
+        if len(bytes) >= 33:
+            for i in range(33, len(bytes)):
+                self.serviceParams.append(bytes[i])
 
     def _encodeBin(self):
         # Header
@@ -527,7 +574,6 @@ class ServiceOrderHandler(object):
     # @params:
     # number: number to parse
     # isInt32: if number is int32 (true) or int16(false)
-
     def _parseToEndian(self, number, isInt32):
         if isInt32:
             hex = format(number, "08x")

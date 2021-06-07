@@ -41,9 +41,8 @@ class PLCServiceOrderSocket(object):
     # @params:
     # client: socket of the plc
     # addr: ipv4 adress of the plc
-
     def serviceCommunication(self, client, addr):
-        #django.setup()
+        # django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
@@ -65,14 +64,12 @@ class PLCServiceOrderSocket(object):
                         pass
             elif not msg:
                 # Close connection if there was no message in last 10 seconds
-                if time.time() - startTime > 10:
-                    client.close()
-                    print("[CONNECTION]: Connection " + str(addr) + " closed")
-                    break
+                client.close()
+                print("[CONNECTION]: Connection " + str(addr) + " closed")
+                break
 
-                # Waits for a connection from a plc. When a plc connects,
-                # it starts a new thread for the service specific communication
-
+    # Waits for a connection from a plc. When a plc connects,
+    # it starts a new thread for the service specific communication
     def waitForConnection(self):
         from .safteymonitoring import SafteyMonitoring
         safteyMonitoring = SafteyMonitoring()

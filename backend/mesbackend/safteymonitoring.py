@@ -27,9 +27,9 @@ class SafteyMonitoring(object):
     # errorCategory: Category of the error. Either Connection issues, Invalid input,
     #                Operational issue, Integrity & Consistency issue ord Unkown
     # msg: message of the error
-
     def decodeError(self, errorLevel, errorCategory, msg):
         from mesapi.models import Error
+
         level = errorLevel
         category = errorCategory
         msg = msg

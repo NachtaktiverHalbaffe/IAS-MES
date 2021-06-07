@@ -107,30 +107,9 @@ class SystemMonitoring(object):
                     msg=self.ERROR_MSG_L2 + str(ressourceId),
                 )
 
-    # updates or create state of an workingpiece if ServiceOrderHandler determined from a message from a
-    # PLC that the state had changed. ServiceOrderHandler can only determine if location or part number has changed
-    def decodeStateWorkingPiece(self, location, carrierId):
-
-        stateWorkingPiece = apps.get_model('mesapi', 'StateWorkingPiece').objects.filter(
-            carrierId=carrierId)
-        if stateWorkingPiece.filter(id=location).exists:
-            stateWorkingPiece.update(location=location)
-
-        else:
-            SafteyMonitoring().decodeError(
-                errorLevel=SafteyMonitoring().LEVEL_WARNING,
-                errorCategory=SafteyMonitoring().CATEGORY_DATA,
-                msg=self.ERROR_MSG_DATA1 +
-                str(location) + self.ERROR_MSG_DATA2,
-            )
-            return
-
-    # ! Helper Methods
-
     # Updates state of plc. Wether if a state of an plc already exists or not it gets updated or a new one created.
     # For every PLC there should only exist one state object. Some attributes are being validated too
     # @params: attributes to save which where decoded from the message
-
     def _updateState(
         self,
         ressourceId,
@@ -152,7 +131,7 @@ class SystemMonitoring(object):
         elif busy == 0 and reset == 0:
             state = "idle"
         elif busy == 0 and reset == 1:
-            state = "direct"
+            state = "reset"
         else:
             SafteyMonitoring().decodeError(
                 errorLevel=SafteyMonitoring().LEVEL_WARNING,
@@ -190,7 +169,6 @@ class SystemMonitoring(object):
     # @params:
     # ressourceIDStr: String with ressourceId
     # spsType: type for sps (1= Codesys, 2 = Siemens)
-
     def _getRessourceID(self, ressourceIDStr, spsType):
         if spsType == 2:
             # sps is big endian
