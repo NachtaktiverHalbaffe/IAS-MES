@@ -122,10 +122,12 @@ class WorkingStep(models.Model):
     MANUAL = 510
     UNSTORE = 213
     STORE = 210
+    DELAY = 1110
     OP_CHOICES = [
         (MANUAL, 'Manual work'),
         (UNSTORE, "release a defined part on stopper 2"),
         (STORE, "store a part from stopper 1"),
+        (DELAY, "delay"),
     ]
 
     name = models.CharField(max_length=30)

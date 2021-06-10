@@ -8,6 +8,7 @@ is handled here. Given on the servicecalls some output parameters are set
 
 """
 
+from os import stat
 from mesapi.models import AssignedOrder, Buffer, Costumer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
 import logging
 
@@ -63,9 +64,42 @@ class Servicecalls(object):
                         obj.cNo = order.costumer.costumerNo
                     obj.mainOPos = order.mainOrderPos
                     obj.errorStepNo = 0
-                    obj.pNo = 25  # 25= pallet, 31 = carrier
-                    obj.serviceParams = [0, 0]
-                    obj.dataLength = 4
+                    if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
+                        # set output params
+                        obj.dataLength = 12
+                        bufPos = Setting.objects.all().first().getFirstFreePlace()
+                        workingPiece = StateWorkingPiece.objects.filter(
+                            id=currentOrder.assignedWorkingPiece.id)
+                        partNo = workingPiece.first().partNo
+                        if workingsteps[i].operationNo == 210:
+                            # store from stopper 1
+                            obj.stopperId = 1
+                            # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
+                            obj.serviceParams = [
+                                0, 90, 0, bufPos, 0, partNo]
+                        else:
+                            # store from stopper 2
+                            obj.stopperId = 2
+                            obj.serviceParams = [
+                                0, 91, 0, bufPos, 0, partNo]
+                        # update mes data
+                        workingPiece.update(storageLocation=obj.bufPos)
+                        workingPiece.update(carrierId=0)
+                        Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
+                    # operation is manual work
+                    elif workingsteps[i].operationNo == 510:
+                        obj.stopperId = 0
+                        obj.serviceParams = [0, 3, 0, 4,
+                                             0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
+                        obj.dataLength = 28
+                    # operation is delay
+                    elif workingsteps[i].operationNo == 1110:
+                        obj.stopperId = 0
+                        delayTime = 5
+                        obj.dataLength = 2
+                        # serviceparam[seconds], seconds = seconds which the carrier will wait,
+                        # param consists of two bytes, so param is padded with leading zero (big endian)
+                        obj.serviceParams = [0, delayTime]
                 else:
                     obj.resourceId = 0
                     obj.stopperId = 0
@@ -107,10 +141,20 @@ class Servicecalls(object):
                             "[GETOPFORONOOPOS] Found active order for ordernumber " + str(oNo)+" for resource " + str(requestId))
                         print("[GETOPFORONOOPOS] Found active order for ordernumber " +
                               str(oNo)+" for resource " + str(requestId))
+                        # set general output parameter
                         obj.stepNo = workingsteps[i].stepNo
                         obj.resourceId = workingsteps[i].assignedToUnit
                         obj.wpNo = workingPlan.workingPlanNo
                         obj.opNo = workingsteps[i].operationNo
+                        if currentOrder.costumer != None:
+                            obj.cNo = currentOrder.costumer.costumerNo
+                        else:
+                            obj.cNo = 0
+                        obj.mainOPos = currentOrder.mainOrderPos
+                        obj.errorStepNo = 0
+                        obj.pNo = 25  # 25= pallet, 31 = carrier
+                        obj.carrierId = currentOrder.assignedWorkingPiece.carrierId
+                        # set output params specific to operation
                         # operation is store a part
                         if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
                             # set output params
@@ -140,20 +184,19 @@ class Servicecalls(object):
                             obj.serviceParams = [0, 3, 0, 4,
                                                  0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
                             obj.dataLength = 28
-                        if currentOrder.costumer != None:
-                            obj.cNo = currentOrder.costumer.costumerNo
-                        else:
-                            obj.cNo = 0
-                        obj.mainOPos = currentOrder.mainOrderPos
-                        obj.errorStepNo = 0
-                        obj.pNo = 25  # 25= pallet, 31 = carrier
-                        obj.carrierId = currentOrder.assignedWorkingPiece.carrierId
-                        break
+                        # operation is delay
+                        elif workingsteps[i].operationNo == 1110:
+                            obj.stopperId = 0
+                            delayTime = 5
+                            obj.dataLength = 2
+                            # serviceparam[seconds], seconds = seconds which the carrier will wait,
+                            # param consists of two bytes, so param is padded with leading zero (big endian)
+                            obj.serviceParams = [0, delayTime]
+                        return obj
                     else:
                         obj.oNo = 0
                         obj.oPos = 0
                         obj.stopperId = 0
-                        break
 
         return obj
 
@@ -310,9 +353,31 @@ class Servicecalls(object):
 
     # reset start operation
     def opReset(self, obj):
-        self.logger.info("[SERVICEORDERHANDLER] Request OpReset")
-        print("[SERVICEORDERHANDLER] Request OpReset")
-        return
+        # input parameter
+        oNo = obj.oNo
+        oPos = obj.oPos
+        requestId = obj.requestID
+        order = AssignedOrder.objects.filter(
+            orderNo=oNo).filter(orderPos=oPos).first()
+        workingsteps = order.assigendWorkingPlan.workingSteps.all().filter(
+            assignedToUnit=requestId)
+        status = order.getStatus()
+        for i in range(len(status)):
+            if workingsteps[i].assignedToUnit == requestId:
+                # update status of task to unfinished if it is marked as finished
+                if status[i] == 1:
+                    status[i] = 0
+                    order.setStatus(status)
+                    order.save()
+                    self.logger.info(
+                        "[OPRESET] Reset operation  on resource " + str(requestId))
+                    print("[OPSTART] Reset operation on resource " +
+                          str(requestId))
+
+        # set output parameter
+        obj.oNo = 0
+        obj.oPos = 0
+        return obj
 
     # operation end. Sends next operation to resource to write on NFC tag
     def opEnd(self, obj):
@@ -556,7 +621,7 @@ class Servicecalls(object):
             buffer = plc.first().buffer
             obj.oNo = buffer.bufOutONo
             obj.oPos = buffer.bufOutOPos
-            obj.pNo = 25
+            obj.pNo = stateWorkingPiece.partNo
             self.logger.info(
                 "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
             print(
@@ -593,7 +658,6 @@ class Servicecalls(object):
             # get buffer
             oldbuffer = Buffer.objects.filter(resourceId=oldId)
             targetbuffer = Buffer.objects.filter(resourceId=newId)
-            # update target buffer
             if newBufNo == 1:
                 targetbuffer.update(bufferOut=True)
                 targetbuffer.update(bufOutONo=oldbuffer.first().bufOutONo)
@@ -603,14 +667,16 @@ class Servicecalls(object):
                 targetbuffer.update(bufInONo=oldbuffer.first().bufInONo)
                 targetbuffer.update(bufInOPos=oldbuffer.first().bufInOPos)
         # update origin buffer
-            if oldBufNo == 1:
-                oldbuffer.update(bufferOut=False)
-                oldbuffer.update(bufOutONo=0)
-                oldbuffer.update(bufOutOPos=0)
-            elif oldBufNo == 2:
-                oldbuffer.update(bufferIn=False)
-                oldbuffer.update(bufInONo=0)
-                oldbuffer.update(bufInOPos=0)
+            # update source buffer (only if old buffer isnt robotino)
+            if oldId < 7:
+                if oldBufNo == 1:
+                    oldbuffer.update(bufferOut=False)
+                    oldbuffer.update(bufOutONo=0)
+                    oldbuffer.update(bufOutOPos=0)
+                elif oldBufNo == 2:
+                    oldbuffer.update(bufferIn=False)
+                    oldbuffer.update(bufInONo=0)
+                    oldbuffer.update(bufInOPos=0)
         self.logger.info("[MOVEBUF] Moved buffer from resource " +
                          str(oldId) + " to resource " + str(newId))
         print("[MOVEBUF] Moved buffer from resource " +
@@ -757,16 +823,12 @@ class Servicecalls(object):
                     if i == len(status)-1:
                         targetId = 2
                         startId = workingSteps[i-1].assignedToUnit
-                    # step is on storage which hasnt a dock for robotino
-                    if i == len(status):
-                        targetId = 2
-                        startId = 2
-                    elif i > 1:
+                    elif i >= 2:
                         targetId = workingSteps[i].assignedToUnit
                         startId = workingSteps[i-1].assignedToUnit
                     else:
-                        targetId = workingSteps[2].assignedToUnit
-                        startId = workingSteps[1].assignedToUnit
+                        targetId = workingSteps[i].assignedToUnit
+                        startId = 0
                     self.logger.info("[GETTOAGVBUF] Found start " + str(startId) +
                                      " and target " + str(targetId)+" for Robotinos")
                     print("[GETTOAGVBUF] Found start " + str(startId) +
