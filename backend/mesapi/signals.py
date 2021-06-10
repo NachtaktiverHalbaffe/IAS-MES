@@ -22,15 +22,16 @@ from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
 # and saves them in a array in the AssigendOrder object
 @receiver(pre_save, sender=AssignedOrder)
 def createStatusBits(sender, instance, **kwargs):
-    statusArray = []
-    for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
-        statusArray.append(0)
-    instance.setStatus(statusArray=statusArray)
-    logging.basicConfig(filename="orders.log",
-                        level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
-    logging.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
-                 str(instance.assigendWorkingPlan.workingPlanNo)
-                 )
+    if instance.status == None:
+        statusArray = []
+        for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
+            statusArray.append(0)
+        instance.setStatus(statusArray=statusArray)
+        logging.basicConfig(filename="orders.log",
+                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+        logging.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
+                    str(instance.assigendWorkingPlan.workingPlanNo)
+                    )
 
 
 @receiver(pre_delete, sender=AssignedOrder)

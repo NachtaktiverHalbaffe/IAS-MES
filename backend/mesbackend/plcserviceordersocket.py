@@ -9,8 +9,10 @@ Short description: Module for tcp communication with PLC regarding servicereques
 
 
 import socket
+import binascii
 from threading import Thread
 import time
+import logging
 import django
 
 
@@ -20,7 +22,8 @@ class PLCServiceOrderSocket(object):
         from django.apps import apps
         # socket params
         hostname = socket.gethostname()
-        self.HOST = socket.gethostbyname(hostname)
+        #self.HOST = socket.gethostbyname(hostname)
+        self.HOST = "129.69.102.129"
         self.PORT = 2000
         self.ADDR = (self.HOST, self.PORT)
         self.BUFFSIZE = 512
@@ -34,6 +37,8 @@ class PLCServiceOrderSocket(object):
         self.isBridging = settings.isInBridgingMode
         self.ipAdressMES4 = settings.ipAdressMES4
         self.CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logging.basicConfig(filename="safteymonitoring.log",
+                        level=logging.WARNING, format='[%(asctime)s ]  %(message)s')
         if self.isBridging:
             self.CLIENT.connect((self.ipAdressMES4, self.PORT))
 
@@ -55,18 +60,22 @@ class PLCServiceOrderSocket(object):
                 from .serviceorderhandler import ServiceOrderHandler
                 # create and send response
                 startTime = time.time()
+                msg = binascii.hexlify(msg).decode()
                 response = ServiceOrderHandler().createResponse(
-                    msg=str(msg.decode("utf8")), ipAdress=addr)
+                    msg=str(msg), ipAdress=addr)
                 if response:
                     try:
-                        client.send(response.encode("utf8"))
-                    except Exception:
-                        pass
+                        #client.connect(addr)
+                        data = bytes.fromhex(response)
+                        client.send(data)
+                    except Exception as e:
+                        logging.error(str(e))
             elif not msg:
                 # Close connection if there was no message in last 10 seconds
-                client.close()
-                print("[CONNECTION]: Connection " + str(addr) + " closed")
-                break
+                if time.time() - startTime > 10:
+                    client.close()
+                    print("[CONNECTION]: Connection " + str(addr) + " closed")
+                    break
 
     # Waits for a connection from a plc. When a plc connects,
     # it starts a new thread for the service specific communication

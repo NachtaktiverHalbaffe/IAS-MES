@@ -56,11 +56,6 @@ class ServiceOrderHandler(object):
         self.ERROR_OUTPUT = "Could't find servicecall for corresponding MClass and MNo. Check if servicecall is implemented."
 
     def createResponse(self, msg, ipAdress):
-        logging.basicConfig(filename="orders.log",
-                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
-        logging.info(
-            "[SERVICEORDERHANDLER] Got service request. Creating Response")
-        print("[SERVICEORDERHANDLER] Got service request. Creating Response")
         self.decodeMessage(msg)
         self.getOutputParams()
         return self.encodeMessage()

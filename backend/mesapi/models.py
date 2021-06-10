@@ -272,8 +272,8 @@ class Setting(models.Model):
 
     # search for the first free place in storage and sets it as occupied afterwards
     def getFirstFreePlace(self):
-        storage = self.getStorage
-        for i in len(storage):
+        storage = self.getStorage()
+        for i in range(len(storage)):
             if storage[i] == 0:
                 return i+1
 

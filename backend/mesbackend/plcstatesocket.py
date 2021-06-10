@@ -8,6 +8,7 @@ Short description: Module for cyclic tcp communications with the plc
 """
 import django
 import socket
+import binascii
 from threading import Thread
 import time
 
@@ -20,7 +21,8 @@ class PLCStateSocket(object):
         from .systemmonitoring import SystemMonitoring
         self.systemMonitoring = SystemMonitoring()
         hostname = socket.gethostname()
-        self.HOST = socket.gethostbyname(hostname)
+        #self.HOST = socket.gethostbyname(hostname)
+        self.HOST = "129.69.102.129"
         self.PORT = 2001
         self.ADDR = (self.HOST, self.PORT)
         self.BUFFSIZE = 512
@@ -53,11 +55,12 @@ class PLCStateSocket(object):
             # decode message
             if msg:
                 startTime = time.time()
+                msg=binascii.hexlify(msg).decode()
                 self.systemMonitoring.decodeCyclicMessage(
-                    msg=str(msg.decode("utf8")), ipAdress=addr)
+                   msg=str(msg), ipAdress=addr)
             elif not msg:
                 # Close connection if there was no message in last 10 seconds
-                if time.time() - startTime > 10:
+                if time.time() - startTime > 5:
                     client.close()
                     print("[CONNECTION]: Connection " + str(addr) + " closed")
                     break
