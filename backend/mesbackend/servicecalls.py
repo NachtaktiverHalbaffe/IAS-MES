@@ -746,17 +746,17 @@ class Servicecalls(object):
                 statePlc = statePlc.first()
                 buffer = Buffer.objects.filter(resourceId=statePlc.id)
                 if bufNo == 1:
-                    if oNo != 0:
+                    if partNo != 0:
                         buffer.update(bufOutONo=oNo)
                         buffer.update(bufOutOPos=oPos)
-                    elif oNo == 0:
+                    elif partNo == 0:
                         buffer.update(bufOutONo=0)
                         buffer.update(bufOutOPos=0)
                 elif bufNo == 2:
-                    if oNo != 0:
+                    if partNo != 0:
                         buffer.update(bufInONo=oNo)
                         buffer.update(bufInOPos=oPos)
-                    elif oNo == 0:
+                    elif partNo == 0:
                         buffer.update(bufInONo=0)
                         buffer.update(bufInOPos=0)
             # PLC is storage
