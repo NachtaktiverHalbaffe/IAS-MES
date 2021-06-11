@@ -18,13 +18,10 @@ import json
 class Buffer(models.Model):
     # resourceId of buffer
     resourceId = models.PositiveSmallIntegerField(primary_key=True)
-    # buffer in or buffer out according to bufNo (bufNo=1 : Out, bufNo =2 : In)
-    bufferIn = models.BooleanField(default=False)
-    bufferOut = models.BooleanField(default=False)
-    # buffer position o f buffer in
+    # buffer position of buffer in
     bufInONo = models.PositiveSmallIntegerField(default=0)
     bufInOPos = models.PositiveSmallIntegerField(default=0)
-    # buffer position o f buffer out
+    # buffer position of buffer out
     bufOutONo = models.PositiveSmallIntegerField(default=0)
     bufOutOPos = models.PositiveSmallIntegerField(default=0)
 

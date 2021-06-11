@@ -570,7 +570,7 @@ class Servicecalls(object):
             oNo = 0
             pNo = 0
             if bufNo == 1:
-                if plcBuf.bufferOut:
+                if plcBuf.bufOutONo != 0:
                     bufPos = 1
                     oNo = plcBuf.bufOutONo
                     oPos = plcBuf.bufOutOPos
@@ -578,12 +578,14 @@ class Servicecalls(object):
                 else:
                     obj.pNo = 0
             elif bufNo == 2:
-                if plcBuf.bufferIn:
+                if plcBuf.bufInONo != 0:
                     bufPos = 1
-                    oNo = plcBuf.bufOutONo
-                    oPos = plcBuf.bufOutOPos
+                    oNo = plcBuf.bufInONo
+                    oPos = plcBuf.bufInOPos
                     pNo = 25
                     pNo = 25
+                else:
+                    obj.pNo = 0
 
         self.logger.info(
             "[GETBUFFORBUFNO] Returned buffer to resource " + str(resourceId))
@@ -622,25 +624,20 @@ class Servicecalls(object):
             # PLC is robotino or branch
             elif resourceId != 1:
                 if bufNo == 1 and bufPos == 1:
-                    if plcBuf.bufferOut:
+                    if plcBuf.bufOutONo != 0:
                         obj.pNo = 25
-                        obj.boxPNo = 25
-                        obj.oNo = plcBuf.bufOutONo
-                        obj.oPos = plcBuf.bufOutOPos
                     else:
                         obj.pNo = 0
-                        obj.oNo = 0
-                        obj.oPos = 0
+                    obj.oNo = plcBuf.bufOutONo
+                    obj.oPos = plcBuf.bufOutOPos
+
                 elif bufNo == 2 and bufPos == 1:
-                    if plcBuf.bufferIn:
+                    if plcBuf.bufInONo != 0:
                         obj.pNo = 25
-                        obj.boxPNo = 25
-                        obj.oNo = plcBuf.bufInONo
-                        obj.oPos = plcBuf.bufOutOPos
                     else:
                         obj.pNo = 0
-                        obj.oNo = 0
-                        obj.oPos = 0
+                    obj.oNo = plcBuf.bufInONo
+                    obj.oPos = plcBuf.bufOutOPos
         else:
             obj.pNo = 0
             obj.oNo = 0
@@ -660,10 +657,9 @@ class Servicecalls(object):
             if resource.id >= 7:
                 plc = resource
                 buffer = plc.buffer
-                if buffer.bufferOut:
+                if buffer.bufOutONo != 0:
                     break
         # bufNo and bufPos are always 1 on robotino
-        self.logger.info("RessourceId: " + str(obj.resourceId))
         obj.bufNo = 1
         obj.bufPos = 1
         # check if a workingpiece is on the robotino
@@ -701,22 +697,18 @@ class Servicecalls(object):
             oldbuffer = Buffer.objects.filter(resourceId=oldId)
             targetbuffer = Buffer.objects.filter(resourceId=newId)
             if newBufNo == 1:
-                targetbuffer.update(bufferOut=True)
                 targetbuffer.update(bufOutONo=oldbuffer.first().bufOutONo)
                 targetbuffer.update(bufOutOPos=oldbuffer.first().bufOutOPos)
             elif newBufNo == 2:
-                targetbuffer.update(bufferIn=True)
                 targetbuffer.update(bufInONo=oldbuffer.first().bufInONo)
                 targetbuffer.update(bufInOPos=oldbuffer.first().bufInOPos)
         # update origin buffer
             # update source buffer (only if old buffer isnt robotino)
             if oldId < 7:
                 if oldBufNo == 1:
-                    oldbuffer.update(bufferOut=False)
                     oldbuffer.update(bufOutONo=0)
                     oldbuffer.update(bufOutOPos=0)
                 elif oldBufNo == 2:
-                    oldbuffer.update(bufferIn=False)
                     oldbuffer.update(bufInONo=0)
                     oldbuffer.update(bufInOPos=0)
         self.logger.info("[MOVEBUF] Moved buffer from resource " +
@@ -755,20 +747,16 @@ class Servicecalls(object):
                 buffer = Buffer.objects.filter(resourceId=statePlc.id)
                 if bufNo == 1:
                     if oNo != 0:
-                        buffer.update(bufferOut=True)
                         buffer.update(bufOutONo=oNo)
                         buffer.update(bufOutOPos=oPos)
                     elif oNo == 0:
-                        buffer.update(bufferOut=False)
                         buffer.update(bufOutONo=0)
                         buffer.update(bufOutOPos=0)
                 elif bufNo == 2:
                     if oNo != 0:
-                        buffer.update(bufferIn=True)
                         buffer.update(bufInONo=oNo)
                         buffer.update(bufInOPos=oPos)
                     elif oNo == 0:
-                        buffer.update(bufferIn=False)
                         buffer.update(bufInONo=0)
                         buffer.update(bufInOPos=0)
             # PLC is storage
@@ -810,14 +798,12 @@ class Servicecalls(object):
                 self.logger.info(
                     "[DELBUF] Delete bufferOut of resource " + str(resourceId))
                 print("[DELBUF] Delete bufferOut of resource " + str(resourceId))
-                buffer.update(bufferOut=False)
                 buffer.update(bufOutONo=0)
                 buffer.update(bufOutOPos=0)
             elif bufNo == 2:
                 self.logger.info(
                     "[DELBUF] Delete bufferIn of resource " + str(resourceId))
                 print("[DELBUF] Delete bufferIn of resource " + str(resourceId))
-                buffer.update(bufferIn=False)
                 buffer.update(bufInONo=0)
                 buffer.update(bufInOPos=0)
 
