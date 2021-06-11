@@ -53,9 +53,9 @@ try:
     fmServiceProcess = Process(target=fleetmanagerservicesocket.runServer)
     fmStateProcess = Process(target=fleetmanagerstatesocket.runServer)
     # start processes
-    serviceProcess.start()
-    stateProcess.start()
-    fmServiceProcess.start()
-    fmStateProcess.start()
+    # serviceProcess.start()
+    # stateProcess.start()
+    # fmServiceProcess.start()
+    # fmStateProcess.start()
 except Exception:
     pass

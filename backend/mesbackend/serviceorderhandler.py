@@ -177,7 +177,7 @@ class ServiceOrderHandler(object):
     # @params: Takes all the neccessary attributes of the Object and parses them
     def encodeMessage(self):
         from .safteymonitoring import SafteyMonitoring
-        self._printAttr()
+        # self._printAttr()
         if self.tcpIdent == 445:
             # String coding shortend
             return self._encodeStrFull()
