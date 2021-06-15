@@ -27,10 +27,10 @@ class Servicecalls(object):
 
     def getFirstOpForRsc(self, obj):
         resourceId = obj.resourceId
-        self.logger.info(
-            "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
-        print(
-            "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
+        # self.logger.info(
+        #     "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
+        # print(
+        #     "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
 
         # Load current orders and  and determine if the ressource has a working step in it
         currentOrder = AssignedOrder.objects.all()
@@ -122,8 +122,10 @@ class Servicecalls(object):
         stopperId = obj.stopperId
         oNo = obj.oNo
         oPos = obj.oPos
-        # self.logger.info("[GETOPFORONOOPOS] " + str(oNo))
-        # print("[GETOPFORONOOPOS]  "  + str(oNo))
+        self.logger.info(
+            "[SERVICEORDERHANDLER] Request GetOpForONoOPos for resource " + str(requestId) + " and ONo " + str(oNo) + " and OPos " + str(oPos))
+        print(
+            "[SERVICEORDERHANDLER] Request GetOpForONoOPos for resource " + str(requestId) + " and ONo " + str(oNo) + " and OPos " + str(oPos))
         obj.stopperId = 0
         # Load current orders and search if theres a order according to orderNo and Opos
         currentOrder = AssignedOrder.objects.all().filter(
@@ -372,7 +374,6 @@ class Servicecalls(object):
         currentOrder = AssignedOrder.objects.all().filter(
             orderNo=oNo).filter(orderPos=oPos)
         if currentOrder.count() == 1:
-            # TODO send state of workingpiece to visualisation unit
             self.logger.info(
                 "[OPSTART] Operation  started on resource " + str(requestId))
             print("[OPSTART] Operation started on resource " + str(requestId))
@@ -398,22 +399,24 @@ class Servicecalls(object):
         oNo = obj.oNo
         oPos = obj.oPos
         requestId = obj.requestID
-        # order = AssignedOrder.objects.filter(
-        #     orderNo=oNo).filter(orderPos=oPos).first()
-        # workingsteps = order.assigendWorkingPlan.workingSteps.all().filter(
-        #     assignedToUnit=requestId)
-        # status = order.getStatus()
-        # for i in range(len(status)):
-        #     if workingsteps[i].assignedToUnit == requestId:
-        #         # update status of task to unfinished if it is marked as finished
-        #         if status[i] == 1:
-        #             status[i] = 0
-        #             order.setStatus(status)
-        #             order.save()
-        #             self.logger.info(
-        #                 "[OPRESET] Reset operation  on resource " + str(requestId))
-        #             print("[OPSTART] Reset operation on resource " +
-        #                   str(requestId))
+        order = AssignedOrder.objects.filter(
+            orderNo=oNo).filter(orderPos=oPos)
+        if order.count() == 1:
+            order = order.first()
+            workingsteps = order.assigendWorkingPlan.workingSteps.all().filter(
+                assignedToUnit=requestId)
+            status = order.getStatus()
+            for i in range(len(status)):
+                if workingsteps[i].assignedToUnit == requestId:
+                    # update status of task to unfinished if it is marked as finished
+                    if status[i] == 1:
+                        status[i] = 0
+                        order.setStatus(status)
+                        order.save()
+                        self.logger.info(
+                            "[OPRESET] Reset operation  on resource " + str(requestId))
+                        print("[OPSTART] Reset operation on resource " +
+                              str(requestId))
 
         # set output parameter
         obj.oNo = 0
@@ -671,7 +674,6 @@ class Servicecalls(object):
             "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
         print(
             "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
-
         return obj
 
     # move a buffer from source to target (for buffer and FIFO)
@@ -771,7 +773,7 @@ class Servicecalls(object):
                         setting.updateStoragePosition(bufPos, True)
                         setting.save()
 
-        # system return all parameter as 0
+        # return all output parameter as 0
         obj.resourceId = 0
         obj.bufNo = 0
         obj.bufPos = 0

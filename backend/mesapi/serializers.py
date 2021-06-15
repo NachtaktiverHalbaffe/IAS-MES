@@ -22,8 +22,6 @@ class BufferSerializer(serializers.ModelSerializer):
         # The kind of fields is looked up in the background by the framework
         fields = (
             "resourceId",
-            "bufferIn",
-            "bufferOut",
             "bufInONo",
             "bufInOPos",
             "bufOutONo",
