@@ -6,8 +6,8 @@ Short description: Functions which handles the errors itself
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
-from backend.mesapi.models import WorkingPlan, WorkingStep, StateVisualisationUnit
-from mesapi.models import AssignedOrder, Error
+
+from mesapi.models import AssignedOrder, Error, StateVisualisationUnit
 from .signals import _validateWorkingSteps
 from .safteymonitoring import SafteyMonitoring
 

@@ -449,7 +449,7 @@ class Servicecalls(object):
             status = order.getStatus()
             for i in range(len(status)):
                 # find first unfinished step in list
-                if status[i] == 0:
+                if status[i] == 0 and workingsteps[i].assignedToUnit == requestId:
                     # set output parameters
                     # Write NFC tags, data for NFC tag can be manipulated
                     self.logger.info("[OPEND] Operation on resource " +
