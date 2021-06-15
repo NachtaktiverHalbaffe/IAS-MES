@@ -18,18 +18,30 @@ class Servicecalls(object):
         from .systemmonitoring import SystemMonitoring
         self.systemmonitoring = SystemMonitoring()
         # setup logging
-        logging.basicConfig(filename="orders.log",
-                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+        log_formatter = logging.Formatter(
+            '[%(asctime)s ] %(name)s : %(message)s')
+        # handler for logging to file
+        file_handler = logging.FileHandler("orders.log")
+        file_handler.setFormatter(log_formatter)
+        file_handler.setLevel(logging.INFO)
+        # handler for logging to console
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(log_formatter)
+        stream_handler.setLevel(logging.INFO)
+        # setup logger
         self.logger = logging.getLogger("servicecalls")
         self.logger.setLevel(logging.INFO)
+        # add logger handler to logger
+        self.logger.handlers = []
+        self.logger.addHandler(stream_handler)
+        self.logger.addHandler(file_handler)
 
     # get first unfinished operation for resource
 
     def getFirstOpForRsc(self, obj):
         resourceId = obj.resourceId
+        stopperId = obj.stopperId
         # self.logger.info(
-        #     "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
-        # print(
         #     "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
 
         # Load current orders and  and determine if the ressource has a working step in it
@@ -38,82 +50,85 @@ class Servicecalls(object):
             workingPlan = order.assigendWorkingPlan
             workingsteps = workingPlan.workingSteps.all().filter(assignedToUnit=resourceId)
             status = order.getStatus()
-            stepPos = 0
             if workingsteps.count() != 0:
-                step = workingsteps.first()
-                stepsToCheck = workingPlan.workingSteps.all()
-                # search position in workingsteps
-                for i in range(len(status)):
-                    if stepsToCheck[i].id == step.id:
-                        stepPos = i
-                # only start operation if it isnt already finished
-                if status[stepPos] == 0:
-                    self.logger.info(
-                        "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
-                    print(
-                        "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
-                    # set output parameter
-                    obj.stepNo = step.stepNo
-                    obj.oNo = order.orderNo
-                    obj.oPos = order.orderPos
-                    obj.wpNo = workingPlan.workingPlanNo
-                    obj.opNo = step.operationNo
-                    obj.stopperId = 0
-                    if order.costumer != None:
-                        obj.cNo = order.costumer.costumerNo
-                    obj.mainOPos = order.mainOrderPos
-                    obj.errorStepNo = 0
-                    if step.operationNo == 210 or step.operationNo == 211:
-                        # set output params
-                        obj.dataLength = 12
-                        bufPos = Setting.objects.all().first().getFirstFreePlace()
-                        workingPiece = StateWorkingPiece.objects.filter(
-                            id=currentOrder.assignedWorkingPiece.id)
-                        partNo = workingPiece.first().partNo
-                        if step.operationNo == 210:
-                            # store from stopper 1
-                            obj.stopperId = 1
-                            # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
-                            obj.serviceParams = [
-                                0, 90, 0, bufPos, 0, partNo]
-                        else:
-                            # store from stopper 2
-                            obj.stopperId = 2
-                            obj.serviceParams = [
-                                0, 91, 0, bufPos, 0, partNo]
-                        # update mes data
-                        workingPiece.update(storageLocation=obj.bufPos)
-                        workingPiece.update(carrierId=0)
-                        Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
-                    # operation is manual work
-                    elif step.operationNo == 510:
-                        obj.stopperId = 0
-                        obj.serviceParams = [0, 3, 0, 4,
-                                             0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
-                        obj.dataLength = 28
-                    # operation is delay
-                    elif step.operationNo == 1110:
-                        obj.stopperId = 0
-                        delayTime = 5
-                        obj.dataLength = 2
-                        # serviceparam[seconds], seconds = seconds which the carrier will wait,
-                        # param consists of two bytes, so param is padded with leading zero (big endian)
-                        obj.serviceParams = [0, delayTime]
-                else:
-                    obj.resourceId = 0
-                    obj.stopperId = 0
-                    obj.serviceParams = [0, 0]
-                    obj.dataLength = 4
-                # update mes data
-                workingPiece = order.assignedWorkingPiece
-                workingPiece.location = resourceId
-                workingPiece.save()
-                return obj
-            else:
+                for step in workingsteps:
+                    stepsToCheck = workingPlan.workingSteps.all()
+                    # search position in workingsteps
+                    for i in range(len(status)):
+                        # only start operation if it isnt already finished
+                        print(step.id)
+                        print(stepsToCheck[i].id)
+                        if status[i] == 0:
+                            if stepsToCheck[i].id == step.id:
+                                print(i)
+                                self.logger.info(
+                                    "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
+                                # set output parameter
+                                obj.resourceId = resourceId
+                                obj.stepNo = step.stepNo
+                                obj.oNo = order.orderNo
+                                obj.oPos = order.orderPos
+                                obj.wpNo = workingPlan.workingPlanNo
+                                obj.opNo = step.operationNo
+                                if order.costumer != None:
+                                    obj.cNo = order.costumer.costumerNo
+                                obj.mainOPos = order.mainOrderPos
+                                obj.errorStepNo = 0
+                                workingPiece = StateWorkingPiece.objects.filter(
+                                    id=order.assignedWorkingPiece.id)
+                                obj.pNo = workingPiece.first().partNo
+                                if step.operationNo == 210 or step.operationNo == 211:
+                                    # set output params
+                                    obj.dataLength = 12
+                                    bufPos = Setting.objects.all().first().getFirstFreePlace()
+                                    if stopperId == 1:
+                                        # store from stopper 1
+                                        obj.stopperId = 1
+                                        obj.opNo = 210
+                                        # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
+                                        obj.serviceParams = [
+                                            0, 90, 0, bufPos, 0, obj.pNo]
+                                    elif stopperId == 2:
+                                        # store from stopper 2
+                                        obj.stopperId = 2
+                                        obj.opNo = 211
+                                        obj.serviceParams = [
+                                            0, 91, 0, bufPos, 0, obj.pNo]
+                                    # update mes data
+                                    workingPiece.update(
+                                        storageLocation=obj.bufPos)
+                                    workingPiece.update(carrierId=0)
+                                    Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
+                                # operation is manual work
+                                elif step.operationNo == 510:
+                                    obj.stopperId = 0
+                                    obj.serviceParams = [0, 3, 0, 4,
+                                                         0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
+                                    obj.dataLength = 28
+                                # operation is delay
+                                elif step.operationNo == 1110:
+                                    obj.stopperId = 0
+                                    delayTime = 5
+                                    obj.dataLength = 2
+                                    # serviceparam[seconds], seconds = seconds which the carrier will wait,
+                                    # param consists of two bytes, so param is padded with leading zero (big endian)
+                                    obj.serviceParams = [0, delayTime]
+                                # update mes data
+                                workingPiece = order.assignedWorkingPiece
+                                workingPiece.location = resourceId
+                                workingPiece.save()
+                                return obj
+                            else:
+                                print("salD")
+                                obj.stopperId = 0
+                                obj.resourceId = 0
+                                obj.serviceParams = [0, 0]
+                                obj.dataLength = 4
+                                break
                 obj.resourceId = 0
                 obj.serviceParams = [0, 0]
                 obj.dataLength = 4
-
+                obj.stopperId = 0
         return obj
 
     # get next operation for ONo and OPos
@@ -123,8 +138,6 @@ class Servicecalls(object):
         oNo = obj.oNo
         oPos = obj.oPos
         self.logger.info(
-            "[SERVICEORDERHANDLER] Request GetOpForONoOPos for resource " + str(requestId) + " and ONo " + str(oNo) + " and OPos " + str(oPos))
-        print(
             "[SERVICEORDERHANDLER] Request GetOpForONoOPos for resource " + str(requestId) + " and ONo " + str(oNo) + " and OPos " + str(oPos))
         obj.stopperId = 0
         # Load current orders and search if theres a order according to orderNo and Opos
@@ -142,8 +155,6 @@ class Servicecalls(object):
                     if workingsteps[i].assignedToUnit == requestId:
                         self.logger.info(
                             "[GETOPFORONOOPOS] Found active order for ordernumber " + str(oNo)+" for resource " + str(requestId))
-                        print("[GETOPFORONOOPOS] Found active order for ordernumber " +
-                              str(oNo)+" for resource " + str(requestId))
                         # set general output parameter
                         obj.oNo = oNo
                         obj.oPos = oPos
@@ -227,7 +238,6 @@ class Servicecalls(object):
                     if workingsteps[i].assignedToUnit == resourceId:
                         self.logger.info(
                             "[GETOPFORASRS] Found active order for ASRS")
-                        print("[GETOPFORASRS] Found active order for ASRS")
                         # set general output parameter
                         obj.oNo = order.orderNo
                         obj.oPos = order.orderPos
@@ -351,7 +361,6 @@ class Servicecalls(object):
         for order in currentOrder:
             if order.orderNo == oNo and order.orderPos == oPos:
                 self.logger.info("[SETPAR] Found order to set parameter")
-                print("[SETPAR] Found order to set parameter")
                 break
         obj.stepNo = 0
         obj.resourceId = 0
@@ -376,7 +385,6 @@ class Servicecalls(object):
         if currentOrder.count() == 1:
             self.logger.info(
                 "[OPSTART] Operation  started on resource " + str(requestId))
-            print("[OPSTART] Operation started on resource " + str(requestId))
             # set output parameter
             obj.stepNo = 0
             obj.resourceId = 0
@@ -415,8 +423,6 @@ class Servicecalls(object):
                         order.save()
                         self.logger.info(
                             "[OPRESET] Reset operation  on resource " + str(requestId))
-                        print("[OPSTART] Reset operation on resource " +
-                              str(requestId))
 
         # set output parameter
         obj.oNo = 0
@@ -432,8 +438,6 @@ class Servicecalls(object):
         carrierId = obj.carrierId
         self.logger.info("[OPEND] Requested OpEnd for oNo: " +
                          str(oNo) + " and oPos " + str(oPos))
-        print("[OPEND] Requested OpEnd for oNo: " +
-              str(oNo) + " and oPos " + str(oPos))
         # Find corresponding order
         # request send valid oNo and oPos so it can be searched
         currentOrder = AssignedOrder.objects.all().filter(
@@ -448,10 +452,8 @@ class Servicecalls(object):
                 if status[i] == 0:
                     # set output parameters
                     # Write NFC tags, data for NFC tag can be manipulated
-                    self.logger.info("[OPEND] Operation " + str(obj.opNo) + " on resource " +
+                    self.logger.info("[OPEND] Operation on resource " +
                                      str(requestId) + " ended. Writing next operation on RFID")
-                    print("[OPEND] Operation " + str(obj.opNo) + " on resource " +
-                          str(requestId) + " ended. Writing next operation on RFID")
                     stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
                         boundToRessource=requestId)
                     # visualisationunit finished task then write next step of workingplan on rfid,
@@ -468,8 +470,6 @@ class Servicecalls(object):
                         # only check if resource is branch
                         elif stateVisualisationUnit.state == "playing" or stateVisualisationUnit.state == "waiting" and requestId > 1 and requestId < 7:
                             self.logger.info(
-                                "[OPEND] Attached visualisationunit hasnt finished. Write same step again on RFID to repeat operation")
-                            print(
                                 "[OPEND] Attached visualisationunit hasnt finished. Write same step again on RFID to repeat operation")
                             obj.stepNo = workingsteps[i].stepNo
                             obj.resourceId = workingsteps[i].assignedToUnit
@@ -525,8 +525,6 @@ class Servicecalls(object):
                     if workingsteps[i].assignedToUnit == 1 and requestID == 2:
                         self.logger.info("[GETSHUNTFORTARGET] Branch for resource " +
                                          str(requestID) + " is set to straight forward")
-                        print("[GETSHUNTFORTARGET] Branch for resource " +
-                              str(requestID) + " is set to straight forward")
 
                         obj.serviceParams = [1]
                         break
@@ -534,24 +532,18 @@ class Servicecalls(object):
                     elif (workingsteps[i].assignedToUnit == 3 and requestID == 4) or (workingsteps[i].assignedToUnit == 4 and requestID == 3):
                         self.logger.info("[GETSHUNTFORTARGET] Branch for resource " +
                                          str(requestID) + " is set to straight forward")
-                        print("[GETSHUNTFORTARGET] Branch for resource " +
-                              str(requestID) + " is set to straight forward")
                         obj.serviceParams = [1]
                         break
                     # workingpiece has to leave resource
                     elif workingsteps[i].assignedToUnit != requestID:
                         self.logger.info("[GETSHUNTFORTARGET] Branch for resource " +
                                          str(requestID) + " is set to buffer out")
-                        print("[GETSHUNTFORTARGET] Branch for resource " +
-                              str(requestID) + " is set to buffer out")
                         obj.serviceParams = [2]
                         break
                     # workingpiece has to stay on the resource
                     else:
                         self.logger.info("[GETSHUNTFORTARGET] Branch for resource " +
                                          str(requestID) + " is set to straight forward")
-                        print("[GETSHUNTFORTARGET] Branch for resource " +
-                              str(requestID) + " is set to straight forward")
                         obj.serviceParams = [1]
                         break
         return obj
@@ -592,7 +584,6 @@ class Servicecalls(object):
 
         self.logger.info(
             "[GETBUFFORBUFNO] Returned buffer to resource " + str(resourceId))
-        print("[GETBUFFORBUFNO] Returned buffer to resource " + str(resourceId))
         serviceParams = [bufPos, oPos, oNo, pNo, 0]
         obj.serviceParams = serviceParams
         return obj
@@ -649,7 +640,6 @@ class Servicecalls(object):
             obj.boxId = 0
         self.logger.info(
             "[GETBUFPOS] Returned buffer of resource " + str(resourceId))
-        print("[GETBUFPOS] Returned buffer of resource " + str(resourceId))
         return obj
 
     # get buffer from the docked AGV
@@ -672,14 +662,11 @@ class Servicecalls(object):
         obj.pNo = 25
         self.logger.info(
             "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
-        print(
-            "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
         return obj
 
     # move a buffer from source to target (for buffer and FIFO)
     def moveBuf(self, obj):
         self.logger.info("[SERVICEORDERHANDLER] Request MoveBuf")
-        print("[SERVICEORDERHANDLER] Request MoveBuf")
         # input parameter
         inputParameter = obj.serviceParams
 
@@ -715,8 +702,6 @@ class Servicecalls(object):
                     oldbuffer.update(bufInOPos=0)
         self.logger.info("[MOVEBUF] Moved buffer from resource " +
                          str(oldId) + " to resource " + str(newId))
-        print("[MOVEBUF] Moved buffer from resource " +
-              str(oldId) + " to resource " + str(newId))
 
         # update location of workingpiece
         StateWorkingPiece.objects.filter(location=oldId).update(location=newId)
@@ -731,7 +716,6 @@ class Servicecalls(object):
         resourceId = obj.resourceId
         self.logger.info(
             "[SERVICEORDERHANDLER] Request SetBufPos for resource " + str(resourceId))
-        print("[SERVICEORDERHANDLER] Request SetBufPos for resource " + str(resourceId))
         # get input parameter
 
         bufNo = obj.bufNo
@@ -784,7 +768,6 @@ class Servicecalls(object):
         obj.boxId = 0
         self.logger.info("[SETBUFPOS] Buffer for resource " +
                          str(resourceId) + " set")
-        print("[SETBUFPOS] Buffer for resource " + str(resourceId) + " set")
         return obj
 
     # delete all positions of a defined buffer
@@ -799,13 +782,11 @@ class Servicecalls(object):
             if bufNo == 1:
                 self.logger.info(
                     "[DELBUF] Delete bufferOut of resource " + str(resourceId))
-                print("[DELBUF] Delete bufferOut of resource " + str(resourceId))
                 buffer.update(bufOutONo=0)
                 buffer.update(bufOutOPos=0)
             elif bufNo == 2:
                 self.logger.info(
                     "[DELBUF] Delete bufferIn of resource " + str(resourceId))
-                print("[DELBUF] Delete bufferIn of resource " + str(resourceId))
                 buffer.update(bufInONo=0)
                 buffer.update(bufInOPos=0)
 
@@ -867,8 +848,6 @@ class Servicecalls(object):
                         startId = 0
                     self.logger.info("[GETTOAGVBUF] Found start " + str(startId) +
                                      " and target " + str(targetId)+" for Robotinos")
-                    print("[GETTOAGVBUF] Found start " + str(startId) +
-                          " and target " + str(targetId)+" for Robotinos")
                     break
             startBufNo = 1  # bufOut of branch
             startBufPos = 1  # always 1 for branch
@@ -910,8 +889,6 @@ class Servicecalls(object):
                 robotino.update(dockedAt=dockedAt)
                 self.logger.info("[SETAGVPOS] Robotino with id " + str(robotinoId) +
                                  " docked at resource " + str(dockedAt))
-                print("[SETAGVPOS] Robotino with id " + str(robotinoId) +
-                      " docked at resource " + str(dockedAt))
         # set output parameter
         obj.aux1Int = 0
         obj.resourceId = 0
