@@ -16,10 +16,28 @@ import logging
 
 from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
 
-
+# setup logging
+log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
+# handler for logging to file
+file_handler = logging.FileHandler("orders.log.log")
+file_handler.setFormatter(log_formatter)
+file_handler.setLevel(logging.INFO)
+# handler for logging to console
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(log_formatter)
+stream_handler.setLevel(logging.INFO)
+# setup logger itself
+logger = logging.getLogger("orders")
+logger.setLevel(logging.INFO)
+# add logger handler to logger
+logger.handlers = []
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
 # Gets executed before a order is saved. It creates a array of
 # bits according to the number of workingsteps in the workingplan
 # and saves them in a array in the AssigendOrder object
+
+
 @receiver(pre_save, sender=AssignedOrder)
 def createStatusBits(sender, instance, **kwargs):
     if instance.status == None:
@@ -27,9 +45,7 @@ def createStatusBits(sender, instance, **kwargs):
         for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
             statusArray.append(0)
         instance.setStatus(statusArray=statusArray)
-        logging.basicConfig(filename="orders.log",
-                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
-        logging.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
+        logger.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
                     str(instance.assigendWorkingPlan.workingPlanNo)
                     )
 
@@ -70,5 +86,3 @@ def createBuffer(sender, instance, **kwargs):
         buffer.bufOutONo = 0
         buffer.bufOutOPos = 0
         buffer.save()
-        # StatePLC.object.all().filter(id=instance.id).first().buffer.update(buffer=buffer)
-        instance.buffer = buffer

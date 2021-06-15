@@ -8,7 +8,6 @@ callback functions for data managment pruposes are defined in the signals of mes
 
 """
 
-from os import stat
 from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
@@ -23,7 +22,7 @@ from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingP
 # to solve the error
 @receiver(post_save, sender=Error)
 def handleError(sender, instance, **kwargs):
-    # print error to console and save error to log
+    from .handleerrors import vsNotReachable, vsAbortedProcessVisualisation
 
     # setup logging
     log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
@@ -65,26 +64,12 @@ def handleError(sender, instance, **kwargs):
         if len(params) > 1:
             oNo = params[1]
             oPos = params[2]
-            order = AssignedOrder.objects.filter(
-                orderNo=oNo).filter(orderPos=oPos)
-            status = order.getStatus()
-            steps = order.first().assigendWorkingPlan.workingSteps.all()
-            updatedSteps = []
-            for i in range(len(steps)):
-                if status[i] == 0:
-                    updatedSteps.append(steps[i])
-            isExecutable = _validateWorkingSteps(workingSteps=updatedSteps)
-            if not isExecutable:
-                # delete order because it isnt executable
-                order.delete()
-                safteyMonitoring = SafteyMonitoring()
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_WARNING,
-                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
-                    msg="Due to update of the order because of an unreachable visualisationunit the order isnt executable anymore. Order got deleted"
-                )
-        Error.objects.filter(id=instance.id).update(isSolved=True)
+        vsNotReachable(id=instance.id, oNo=oNo, oPos=oPos)
         return
+    elif "Aborting processVisualisation" in instance.msg:
+        params = instance.msg.split(":")
+        vsAbortedProcessVisualisation(
+            id=instance.id, boundToResource=params[1])
 
 
 # Gets executed after a order is saved. It sends all visualisationunits their
@@ -148,9 +133,12 @@ def sendVisualisationtasks(sender, instance, **kwargs):
             )
             status[i] = 1
             instance.setStatus(status)
-    # instance.save()
+    AssignedOrder.objects.filter(orderNo=instance.orderNo).filter(
+        orderPos=instance.orderPos).update(status=status)
 
 
+# send delete requests to all visualisationunits when a order is deleted
+# (usually on end of order or if order is aborted)
 @receiver(post_delete, sender=AssignedOrder)
 def deleteOrder(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
