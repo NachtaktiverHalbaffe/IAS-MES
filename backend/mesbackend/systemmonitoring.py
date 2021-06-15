@@ -131,6 +131,8 @@ class SystemMonitoring(object):
         elif busy == 0 and reset == 0:
             state = "idle"
         elif busy == 0 and reset == 1:
+            state = "ready"
+        elif busy == 1 and reset == 1:
             state = "reset"
         else:
             SafteyMonitoring().decodeError(
@@ -145,6 +147,8 @@ class SystemMonitoring(object):
             mode = "auto"
         elif autoMode == 0 and manualMode == 1:
             mode = "default"
+        elif autoMode == 0 and manualMode == 0:
+            mode = "startup"
         else:
             SafteyMonitoring().decodeError(
                 errorLevel=SafteyMonitoring().LEVEL_WARNING,
