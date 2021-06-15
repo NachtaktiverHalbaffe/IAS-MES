@@ -24,16 +24,32 @@ from mesapi.models import Error, AssignedOrder, StateVisualisationUnit, WorkingP
 @receiver(post_save, sender=Error)
 def handleError(sender, instance, **kwargs):
     # print error to console and save error to log
-    logging.basicConfig(filename="safteymonitoring.log",
-                        level=logging.WARNING, format='[%(asctime)s ]  %(message)s')
+
+    # setup logging
+    log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
+    # handler for logging to file
+    file_handler = logging.FileHandler("safteymonitoring.log")
+    file_handler.setFormatter(log_formatter)
+    file_handler.setLevel(logging.INFO)
+    # handler for logging to console
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(log_formatter)
+    stream_handler.setLevel(logging.INFO)
+    # setup logger itself
+    logger = logging.getLogger("safteymonitoring")
+    logger.setLevel(logging.INFO)
+    # add logger handler to logger
+    logger.handlers = []
+    logger.addHandler(stream_handler)
+    logger.addHandler(file_handler)
+
     errorStr = instance.level + " " + instance.category + ": " + instance.msg
-    print(errorStr)
     if instance.level == "[WARNING]":
-        logging.warning(errorStr)
+        logger.warning(errorStr)
     elif instance.level == "[ERROR]":
-        logging.error(errorStr)
+        logger.error(errorStr)
     elif instance.level == "[CRITICAL]":
-        logging.critical(errorStr)
+        logger.critical(errorStr)
 
     if instance.isSolved:
         return
@@ -73,7 +89,7 @@ def handleError(sender, instance, **kwargs):
 
 # Gets executed after a order is saved. It sends all visualisationunits their
 # tasks
-#@receiver(post_save, sender=AssignedOrder)
+@receiver(post_save, sender=AssignedOrder)
 def sendVisualisationtasks(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
 
@@ -85,30 +101,42 @@ def sendVisualisationtasks(sender, instance, **kwargs):
         color = step.color
         stepNo = step.stepNo
         status = instance.getStatus()
-        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
-            ipAdress = StateVisualisationUnit.objects.all().filter(
-                boundToRessource=unit).first().ipAdress
+        stateVisualisationUnit = StateVisualisationUnit.objects.filter(
+            boundToRessource=unit)
+        if stateVisualisationUnit.count() == 1:
+            ipAdress = stateVisualisationUnit.first().ipAdress
             payload = {
                 "task": task,
                 "assignedWorkingPiece": workingPiece,
                 "stepNo": stepNo,
                 "paintColor": color
             }
-            request = requests.put("http://" +
-                                   ipAdress + ':2000/api/VisualisationTask', data=payload)
+            try:
+                request = requests.put("http://" +
+                                       ipAdress + ':2000/api/VisualisationTask', data=payload)
 
-            if not request.ok:
-                # Error message
+                if not request.ok:
+                    # Error message
+                    safteyMonitoring = SafteyMonitoring()
+                    safteyMonitoring.decodeError(
+                        errorLevel=safteyMonitoring.LEVEL_ERROR,
+                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                        msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
+                            str(instance.orderNo) + ":" +
+                        str(instance.orderPos)
+                    )
+                    status[i] = 1
+                    instance.setStatus(status)
+            except Exception as e:
                 safteyMonitoring = SafteyMonitoring()
                 safteyMonitoring.decodeError(
                     errorLevel=safteyMonitoring.LEVEL_ERROR,
                     errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
-                        str(instance.orderNo) + ":" +
-                    str(instance.orderPos)
+                    msg=str(e)
                 )
                 status[i] = 1
                 instance.setStatus(status)
+        # only send error if unit is a branch which has a unit mounted to it
         elif not unit == 1 and not unit >= 7:
             safteyMonitoring = SafteyMonitoring()
             safteyMonitoring.decodeError(
@@ -120,27 +148,37 @@ def sendVisualisationtasks(sender, instance, **kwargs):
             )
             status[i] = 1
             instance.setStatus(status)
+    # instance.save()
 
 
 @receiver(post_delete, sender=AssignedOrder)
-def abortOrder(sender, instance, **kwargs):
+def deleteOrder(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
     status = instance.getStatus()
     for i in range(len(workingsteps)):
         step = workingsteps[i]
         unit = step.assignedToUnit
-        if StateVisualisationUnit.objects.all().filter(boundToRessource=unit).count() == 1:
-            ipAdress = StateVisualisationUnit.objects.all().filter(
-                boundToRessource=unit).ipAdress
-            request = requests.delete(
-                "http://" + ipAdress + '/api/VisualisationTask')
-            if not request.ok:
+        stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
+            boundToRessource=unit)
+        if stateVisualisationUnit.count() == 1:
+            ipAdress = stateVisualisationUnit.first().ipAdress
+            try:
+                request = requests.delete(
+                    "http://" + ipAdress + '/api/VisualisationTask')
                 # Error message
+                if not request.ok:
+                    safteyMonitoring = SafteyMonitoring()
+                    safteyMonitoring.decodeError(
+                        errorLevel=safteyMonitoring.LEVEL_ERROR,
+                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                        msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                    )
+            except Exception as e:
                 safteyMonitoring = SafteyMonitoring()
                 safteyMonitoring.decodeError(
                     errorLevel=safteyMonitoring.LEVEL_ERROR,
                     errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                    msg=str(e)
                 )
         else:
             safteyMonitoring = SafteyMonitoring()
