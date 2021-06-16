@@ -36,12 +36,13 @@ class Servicecalls(object):
         self.logger.addHandler(file_handler)
 
     # get first unfinished operation for resource
-
     def getFirstOpForRsc(self, obj):
         resourceId = obj.resourceId
         stopperId = obj.stopperId
-        # self.logger.info(
-        #     "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
+        # avoid spam in logs because resources 1+2 requests often
+        if resourceId > 2:
+            self.logger.info(
+                "[SERVICEORDERHANDLER] Request GetFirstOpForRsc for resource " + str(resourceId))
 
         # Load current orders and  and determine if the ressource has a working step in it
         currentOrder = AssignedOrder.objects.all()
@@ -59,7 +60,6 @@ class Servicecalls(object):
                         print(stepsToCheck[i].id)
                         if status[i] == 0:
                             if stepsToCheck[i].id == step.id:
-                                print(i)
                                 self.logger.info(
                                     "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
                                 # set output parameter
@@ -118,7 +118,6 @@ class Servicecalls(object):
                                 workingPiece.save()
                                 return obj
                             else:
-                                print("salD")
                                 obj.stopperId = 0
                                 obj.resourceId = 0
                                 obj.serviceParams = [0, 0]

@@ -89,8 +89,6 @@ class ServiceOrderHandler(object):
     def getOutputParams(self):
         from .servicecalls import Servicecalls
         from .safteymonitoring import SafteyMonitoring
-        logging.basicConfig(filename="orders.log",
-                            level=logging.INFO, format='[%(asctime)s ] %(message)s')
         servicecalls = Servicecalls()
         # GetFirstOpForRsc
         if self.mClass == 100 and self.mNo == 4:
@@ -165,12 +163,11 @@ class ServiceOrderHandler(object):
             self = servicecalls.setAgvPos(self)
             return
         else:
-            logging.info("[SERVICEORDERHANDLER]: No servicecallhandler for MClass: " +
-                         str(self.mClass) + " and MNo: " + str(self.mNo) + " found.")
             SafteyMonitoring().decodeError(
                 errorLevel=SafteyMonitoring().LEVEL_ERROR,
                 errorCategory=SafteyMonitoring().CATEGORY_INPUT,
-                msg=self.ERROR_OUTPUT,
+                msg="No servicecallhandler for MClass: " +
+                str(self.mClass) + " and MNo: " + str(self.mNo) + " found.",
             )
 
     # encodes message for PlcServiceOrderSocket in a format so it can be send
