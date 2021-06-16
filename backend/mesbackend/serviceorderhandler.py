@@ -90,7 +90,7 @@ class ServiceOrderHandler(object):
         from .servicecalls import Servicecalls
         from .safteymonitoring import SafteyMonitoring
         logging.basicConfig(filename="orders.log",
-                            level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
+                            level=logging.INFO, format='[%(asctime)s ] %(message)s')
         servicecalls = Servicecalls()
         # GetFirstOpForRsc
         if self.mClass == 100 and self.mNo == 4:

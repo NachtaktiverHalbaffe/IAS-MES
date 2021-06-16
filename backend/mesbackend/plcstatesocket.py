@@ -55,9 +55,9 @@ class PLCStateSocket(object):
             # decode message
             if msg:
                 startTime = time.time()
-                msg=binascii.hexlify(msg).decode()
+                msg = binascii.hexlify(msg).decode()
                 self.systemMonitoring.decodeCyclicMessage(
-                   msg=str(msg), ipAdress=addr)
+                    msg=str(msg), ipAdress=addr)
             elif not msg:
                 # Close connection if there was no message in last 10 seconds
                 if time.time() - startTime > 5:

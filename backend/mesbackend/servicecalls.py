@@ -18,8 +18,7 @@ class Servicecalls(object):
         from .systemmonitoring import SystemMonitoring
         self.systemmonitoring = SystemMonitoring()
         # setup logging
-        log_formatter = logging.Formatter(
-            '[%(asctime)s ] %(name)s : %(message)s')
+        log_formatter = logging.Formatter('[%(asctime)s ] %(message)s')
         # handler for logging to file
         file_handler = logging.FileHandler("orders.log")
         file_handler.setFormatter(log_formatter)

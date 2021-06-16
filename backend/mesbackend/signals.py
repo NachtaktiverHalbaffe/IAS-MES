@@ -25,7 +25,7 @@ def handleError(sender, instance, **kwargs):
     from .handleerrors import vsNotReachable, vsAbortedProcessVisualisation
 
     # setup logging
-    log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
+    log_formatter = logging.Formatter('[%(asctime)s ] %(message)s')
     # handler for logging to file
     file_handler = logging.FileHandler("safteymonitoring.log")
     file_handler.setFormatter(log_formatter)
