@@ -37,6 +37,7 @@ class Servicecalls(object):
 
     # get first unfinished operation for resource
     def getFirstOpForRsc(self, obj):
+        # input params
         resourceId = obj.resourceId
         stopperId = obj.stopperId
         # avoid spam in logs because resources 1+2 requests often
@@ -62,7 +63,7 @@ class Servicecalls(object):
                             if stepsToCheck[i].id == step.id:
                                 self.logger.info(
                                     "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
-                                # set output parameter
+                                # set general output parameter
                                 obj.resourceId = resourceId
                                 obj.stepNo = step.stepNo
                                 obj.oNo = order.orderNo
@@ -76,8 +77,8 @@ class Servicecalls(object):
                                 workingPiece = StateWorkingPiece.objects.filter(
                                     id=order.assignedWorkingPiece.id)
                                 obj.pNo = workingPiece.first().partNo
+                                # set output params specific to operation
                                 if step.operationNo == 210 or step.operationNo == 211:
-                                    # set output params
                                     obj.dataLength = 12
                                     bufPos = Setting.objects.all().first().getFirstFreePlace()
                                     if stopperId == 1:
@@ -110,7 +111,7 @@ class Servicecalls(object):
                                     delayTime = 5
                                     obj.dataLength = 2
                                     # serviceparam[seconds], seconds = seconds which the carrier will wait,
-                                    # param consists of two bytes, so param is padded with leading zero (big endian)
+                                    # param consists of two bytes, so param is padded with leading zero
                                     obj.serviceParams = [0, delayTime]
                                 # update mes data
                                 workingPiece = order.assignedWorkingPiece
@@ -131,6 +132,7 @@ class Servicecalls(object):
 
     # get next operation for ONo and OPos
     def getOpForONoOPos(self, obj):
+        # input params
         requestId = obj.requestID
         stopperId = obj.stopperId
         oNo = obj.oNo
@@ -222,9 +224,11 @@ class Servicecalls(object):
 
     # get operation that is for this Stopper and the PNo is available
     def getOpForASRS(self, obj):
+        # input params
         resourceId = obj.resourceId
         stopperId = obj.stopperId
         currentOrder = AssignedOrder.objects.all()
+
         for order in currentOrder:
             workingPlan = order.assigendWorkingPlan
             workingsteps = workingPlan.workingSteps.all()
@@ -258,7 +262,7 @@ class Servicecalls(object):
                         obj.bufPos = order.assignedWorkingPiece.storageLocation
                         workingPiece = order.assignedWorkingPiece
                         partNo = workingPiece.partNo
-                        # set output parameter
+                        # set output parameter specific to operation
                         # operation is store a part
                         if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
                             # set output params
@@ -317,14 +321,16 @@ class Servicecalls(object):
                     obj.stopperId = 0
         return obj
 
-    # get the free string for the actual order field defined as parameter will be replaced
+    # get the free string for the actual order which represents a url which is displayed on HMI
     def getFreeString(self, obj):
+        # input params
         requestId = obj.requestID
         oNo = obj.oNo
         oPos = obj.oPos
         order = AssignedOrder.objects.all().filter(
             orderNo=oNo).filter(orderPos=oPos)
         freeString = ""
+        # get params for string
         if order.count() == 1:
             order = order.first()
             step = order.assigendWorkingPlan.workingSteps.filter(
@@ -341,7 +347,7 @@ class Servicecalls(object):
         serviceParams.append(len(freeString))
         for i in range(2, serviceParams[1]):
             serviceParams.append(ord(freeString[i]))
-
+        # pad serviceparams to full length with 0
         while len(serviceParams) != serviceParams[0]+2:
             serviceParams.append(0)
 
@@ -351,6 +357,7 @@ class Servicecalls(object):
 
     # set parameters on runtime
     def setPar(self, obj):
+        # input params
         requestId = obj.requestID
         oNo = obj.oNo
         oPos = obj.oPos
@@ -374,6 +381,7 @@ class Servicecalls(object):
 
     # operation start
     def opStart(self, obj):
+        # input params
         requestId = obj.requestID
         oNo = obj.oNo
         oPos = obj.oPos
@@ -449,14 +457,14 @@ class Servicecalls(object):
                 # find first unfinished step in list
                 if status[i] == 0 and workingsteps[i].assignedToUnit == requestId:
                     # set output parameters
-                    # Write NFC tags, data for NFC tag can be manipulated
+                    # Write NFC tags, data for NFC tag can be manipulated here
                     self.logger.info("[OPEND] Operation on resource " +
                                      str(requestId) + " ended. Writing next operation on RFID")
                     stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
                         boundToRessource=requestId)
-                    # visualisationunit finished task then write next step of workingplan on rfid,
-                    # only check if resource is branch
+                    # visualisationunit finished task => write next step of workingplan on rfid,
                     if stateVisualisationUnit.count() != 0:
+                        # only check if resource is branch
                         stateVisualisationUnit = stateVisualisationUnit.first()
                         if stateVisualisationUnit.state == "finished" or stateVisualisationUnit.state == "idle" and requestId > 1 and requestId < 7:
                             if i+1 < len(status):
@@ -464,8 +472,7 @@ class Servicecalls(object):
                                 obj.resourceId = workingsteps[i +
                                                               1].assignedToUnit
                                 obj.opNo = workingsteps[i+1].operationNo
-                        # visualisationunit hasnt finished, then write current task again to repeat operation on PLC,
-                        # only check if resource is branch
+                        # visualisationunit hasnt finished => write current task again to repeat operation on PLC
                         elif stateVisualisationUnit.state == "playing" or stateVisualisationUnit.state == "waiting" and requestId > 1 and requestId < 7:
                             self.logger.info(
                                 "[OPEND] Attached visualisationunit hasnt finished. Write same step again on RFID to repeat operation")
