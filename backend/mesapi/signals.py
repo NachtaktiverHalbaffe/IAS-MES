@@ -19,7 +19,7 @@ from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
 # setup logging
 log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
 # handler for logging to file
-file_handler = logging.FileHandler("orders.log.log")
+file_handler = logging.FileHandler("orders.log")
 file_handler.setFormatter(log_formatter)
 file_handler.setLevel(logging.INFO)
 # handler for logging to console
