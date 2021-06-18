@@ -683,13 +683,17 @@ class Servicecalls(object):
     # get buffer from the docked AGV
     def getBufDockedAgv(self, obj):
         requestId = obj.requestID
-        plcs = StatePLC.objects.all()
-        for resource in plcs:
-            if resource.id >= 7:
-                plc = resource
-                buffer = plc.buffer
-        # bufNo and bufPos are always 1 on robotino
+        robotino = StatePLC.objects.filter(dockedAt=requestId)
+        if robotino.count() == 1:
+            buffer = robotino.buffer
+        else:
+            plcs = StatePLC.objects.all()
+            for resource in plcs:
+                if resource.id >= 7:
+                    plc = resource
+                    buffer = plc.buffer
 
+        # set output params
         obj.oNo = buffer.bufOutONo
         obj.oPos = buffer.bufOutOPos
         if obj.oNo != 0:
@@ -700,7 +704,23 @@ class Servicecalls(object):
             obj.bufNo = 0
             obj.bufPos = 0
             obj.pNo = 0
-        #obj.pNo = stateWorkingPiece.partNo
+
+        # update buffer
+        buffResource = Buffer.objects.filter(resourceId=requestId)
+        if buffResource.count() == 1:
+            if obj.oNo != 0:
+                # if resource gets buffer from robotino, then move buffer from robotino to resource bufferIn.
+                # If resource gives buffer to robotino, then the bufferupdate is
+                # done by moveBuffer()
+                buffResource.update(bufInONo=obj.oNo)
+                buffResource.update(bufInOPos=obj.oPos)
+        if obj.oNo != 0:
+            # if resource gets buffer from robotino, then delete buffer.
+            # If resource gives buffer to robotino, then the bufferupdate is
+            # done by moveBuffer()
+            buffer.bufOutONo = 0
+            buffer.bufOutOPos = 0
+            buffer.save()
 
         self.logger.info(
             "[GETBUFDOCKEDAGV] Returned buffer of docked robotino " + str(obj.resourceId) + " to resource " + str(requestId))
@@ -872,14 +892,15 @@ class Servicecalls(object):
         # get ids of resource where the robotino gets the part and the id
         # to where the robotino delivewrs the part
         currentOrder = AssignedOrder.objects.all()
-        answerParameterlist = []
+        serviceParams = []
+        currentRecords = 0
         if currentOrder.count() != 0:
             currentOrder = currentOrder.first()
             status = currentOrder.getStatus()
             startId = 0
             targetId = 0
             for i in range(len(status)):
-                # find first unfinished step. first unfinished
+                # find first unfinished step => first unfinished
                 # step is target and the step before is start
                 if status[i] == 0:
                     workingSteps = currentOrder.assigendWorkingPlan.workingSteps.all()
@@ -896,9 +917,14 @@ class Servicecalls(object):
                     self.logger.info("[GETTOAGVBUF] Found start " + str(startId) +
                                      " and target " + str(targetId)+" for Robotinos")
                     break
-            # check if start is branch 4 => direct robotin to branch 3
-            if startId == 4:
-                startId = 3
+
+            # change startId/targetId if they are resource 3/4, because there robotino docks at 4 every time
+            if startId == 3:
+                startId = 4
+            if targetId == 3:
+                targetId = 4
+
+            # set params for servicespecific output parameter
             startBufNo = 1  # bufOut of branch
             startBufPos = 1  # always 1 for branch
             startBeltNo = 1  # always 1 for branch
@@ -916,18 +942,33 @@ class Servicecalls(object):
                 targetBufPos,
                 targetBeltNo
             ]
-            # pad parameterlist to required length with 0
-            for i in range(160-len(answerParameterlist)):
-                answerParameterlist.append(0)
+            # only add transport task to output params if length of records doesnt
+            # exceed specified maxRecords from Fleetmanager
+            if currentRecords < maxRecords:
+                serviceParams.extend(answerParameterlist)
+                currentRecords += 1
+        # pad parameterlist to required length with 0
+        for i in range(8 * maxRecords - len(serviceParams)):
+            answerParameterlist.append(0)
 
         # set output parameter
         obj.maxRecords = 0
-        if len(answerParameterlist) == 0:
+        # only set output parameter if bufferIn from target is empty and
+        # if bufferOut from start isnt empty
+        bufOutStart = Buffer.objects.filter(resourceId=startId)
+        bufInTarget = Buffer.objects.filter(resourceId=targetId)
+        if bufInTarget.bufInONo == 0 and bufOutStart.bufOutONo != 0:
+            if len(serviceParams) == 0:
+                obj.dataLength = 0
+                obj.serviceParams = []
+            else:
+                # datalength = maxRecords * 8 entries per record
+                # and 2 byte per item in entry
+                obj.dataLength = maxRecords * 8 * 2
+                obj.serviceParams = serviceParams
+        else:
             obj.dataLength = 0
             obj.serviceParams = []
-        else:
-            obj.dataLength = 320
-            obj.serviceParams = answerParameterlist
         return obj
 
     # write the actuall AGV Position Aux1Int = AgvId
