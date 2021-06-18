@@ -504,10 +504,7 @@ class ServiceOrderHandler(object):
                             msg += format(self.serviceParams[j + 35*i], "02x")
         elif self.mClass == 100 and self.mNo == 111:
             for i in range(len(self.serviceParams)):
-                if i == 0 or i == 1:
-                    msg += self._parseToEndian(self.serviceParams[i], False)
-                else:
-                    msg += format(self.serviceParams[i], "02x")
+                msg += format(self.serviceParams[i], "02x")
         else:
             for i in range(len(self.serviceParams)):
                 msg += self._parseToEndian(self.serviceParams[i], False)

@@ -74,7 +74,7 @@ def handleError(sender, instance, **kwargs):
 
 # Gets executed after a order is saved. It sends all visualisationunits their
 # tasks
-@receiver(post_save, sender=AssignedOrder)
+#@receiver(post_save, sender=AssignedOrder)
 def sendVisualisationtasks(sender, instance, **kwargs):
     workingsteps = instance.assigendWorkingPlan.workingSteps.all()
 
