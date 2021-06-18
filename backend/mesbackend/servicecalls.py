@@ -213,16 +213,12 @@ class Servicecalls(object):
                             # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
                             obj.serviceParams = [
                                 0, bufPos, 0, 90, 0, partNo]
-                            print(obj.opNo)
-                            print(obj.serviceParams)
                         elif stopperId == 2:
                             obj.opNo = 213
                             obj.stopperId = 2
                             obj.serviceParams = [
                                 0, 91, 0, bufPos, 0, partNo]
                             self.logger.info(str(obj.serviceParams))
-                            print(obj.opNo)
-                            print(obj.serviceParams)
                         # update mes data
                         setting = Setting.objects.all().first()
                         setting.updateStoragePosition(
@@ -291,32 +287,29 @@ class Servicecalls(object):
                         # set output parameter specific to operation
                         # operation is store a part
                         if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
-                            # set output params
-                            obj.dataLength = 12
-                            bufPos = Setting.objects.all().first().getFirstFreePlace()
-                            obj.bufPos = bufPos
-                            workingPiece = StateWorkingPiece.objects.filter(
-                                id=order.assignedWorkingPiece.id)
-                            partNo = workingPiece.first().partNo
                             if stopperId == 1:
                                 obj.opNo = 210
                                 # store from stopper 1
                                 obj.stopperId = 1
                                 # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
                                 obj.serviceParams = [
-                                    0, 90, 0, bufPos, 0, partNo]
+                                    0, 90, 0, obj.bufPos, 0, partNo]
                             elif stopperId == 2:
                                 # store from stopper 2
                                 obj.opNo = 211
                                 obj.stopperId = 2
                                 obj.serviceParams = [
-                                    0, 91, 0, bufPos, 0, partNo]
+                                    0, 91, 0, obj.bufPos, 0, partNo]
                             # update mes data
-                            workingPiece.update(storageLocation=obj.bufPos)
-                            workingPiece.update(carrierId=0)
-                            Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
+                            workingPiece.storageLocation = obj.bufPos
+                            workingPiece.carrierId = 0
+                            workingPiece.save()
+                            setting = Setting.objects.all().first()
+                            setting.updateStoragePosition(obj.bufPos, False)
+                            setting.save()
                         # operation is unstore a part
                         if obj.opNo == 212 or obj.opNo == 213:
+                            obj.dataLength = 12
                             if stopperId == 1:
                                 obj.opNo = 212
                                 obj.stopperId = 1
@@ -329,12 +322,13 @@ class Servicecalls(object):
                                 obj.serviceParams = [
                                     0, obj.bufPos, 0, 91, 0, partNo]
                                 self.logger.info(str(obj.serviceParams))
-                                print(obj.serviceParams)
                             # update mes data
                             setting = Setting.objects.all().first()
                             setting.updateStoragePosition(
                                 workingPiece.storageLocation, True)
                             setting.save()
+                            workingPiece.storageLocation = 0
+                            workingPiece.save()
                             return obj
                     else:
                         obj.stopperId = 0
@@ -417,15 +411,6 @@ class Servicecalls(object):
             # set output parameter
             obj.oNo = 0
             obj.oPos = 0
-            # obj.stepNo = 0
-            # obj.resourceId = 0
-            # obj.wpNo = 0
-            # obj.opNo = 0
-            # obj.cNo = 0
-            # obj.mainOPos = 0
-            # obj.errorStepNo = 0
-            # obj.pNo = 0
-            # obj.carrierId = 0
             # update mes data
             workingpiece = currentOrder.first().assignedWorkingPiece
             workingpiece.location = requestId
@@ -787,7 +772,7 @@ class Servicecalls(object):
         if oNo != 0 and partNo == 0:
             partNo = 25
         # update buffer of plc
-        statePlc = StatePLC.objects.all().filter(id=obj.resourceId)
+        statePlc = StatePLC.objects.all().filter(id=resourceId)
         if statePlc.count() == 1:
             # PLC isnt storage
             if resourceId != 1:
@@ -810,16 +795,11 @@ class Servicecalls(object):
             # PLC is storage
             elif resourceId == 1:
                 if bufNo == 1:
+                    setting = Setting.objects.all().first()
                     if partNo != 0:
-                        setting = Setting.objects.all().first()
                         setting.updateStoragePosition(bufPos, False)
-                        workingPiece = AssignedOrder.objects.filter(orderNo=oNo).filter(
-                            orderPos=oPos).first().assignedWorkingPiece
-                        workingPiece.storageLocation = bufPos
-                        workingPiece.save()
                         setting.save()
                     elif partNo == 0:
-                        setting = Setting.objects.all().first()
                         setting.updateStoragePosition(bufPos, True)
                         setting.save()
 
