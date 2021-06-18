@@ -12,26 +12,29 @@ import Typography from '@material-ui/core/Typography';
 import { TextField } from '@material-ui/core';
 
 
-export default function StatePLCCard(props){
+export default function StateVSCard(props){
     
-    let name = "";
-    let mode ="";
+    let boundToRessource = "";
     let state = "";
-    let image ="";
-    let resourceId = "";
+    let ipadress ="";
+    let baseLevelHeight = "";
+    let task = "";
+    let img = "";
 
     const [open, setOpen] = React.useState(false);
 
-    if(props.name){
-        name =props.name;
-    } if(props.image){
-        image= props.image;
+    if(props.boundToRessource){
+        boundToRessource =props.boundToRessource;
+    } if(props.ipadress){
+        ipadress= props.ipadress;
     } if(props.state){
         state= props.state;
-    } if(props.mode){
-        mode= props.mode;
-    } if(props.resourceId){
-        resourceId= props.resourceId;
+    } if(props.task){
+        task= props.task;
+    } if(props.baseLevelHeight){
+        baseLevelHeight= props.baseLevelHeight;
+    } if(props.img){
+        img= props.img;
     } 
 
   const handleClickOpen = () => {
@@ -48,7 +51,7 @@ export default function StatePLCCard(props){
     <Box width= {1}>
       <Paper elevation={3}>
         <CardActionArea onClick={handleClickOpen}>
-        <Grid container direction="row" alignItems="center"  justify="flex-start" width ="1000px">
+        <Grid container direction="row" alignItems="center"  justify="flex-start" width ={1}>
           <Grid item >
             <div>
               &nbsp;
@@ -58,7 +61,7 @@ export default function StatePLCCard(props){
           </Grid>
           <Grid item>
               <img 
-                src={image} 
+                src={img} 
                 alt="Image of resource"
                 width= "100px"
                 height="100px"
@@ -76,50 +79,33 @@ export default function StatePLCCard(props){
           <Grid item>
             <CardContent>
             <Typography gutterBottom variant="h5" component="h2">
-              {name}
+              {"Visualisation Unit " +boundToRessource}
             </Typography>
             <Typography variant="body1" color="textSecondary" component='div'>
               <Box fontWeight='fontWeightBold' display='inline'>State: </Box> {state}
             </Typography>
             <Typography variant="body1" color="textSecondary" component='div'>
-              <Box fontWeight='fontWeightBold' display='inline'>ResourceId: </Box> {resourceId}
+              <Box fontWeight='fontWeightBold' display='inline'>IP-Adress: </Box> {ipadress}
             </Typography>
             <Typography variant="body1" color="textSecondary" component='div'>
-              <Box fontWeight='fontWeightBold' display='inline'>Mode: </Box> {mode}
+              <Box fontWeight='fontWeightBold' display='inline'>Task: </Box> {task}
+            </Typography>
+            <Typography variant="body1" color="textSecondary" component='div'>
+              <Box fontWeight='fontWeightBold' display='inline'>Baselevel Height: </Box> {baseLevelHeight.toString()}
             </Typography>
             </CardContent>
           </Grid>
         </Grid>
         </CardActionArea>
-         <EditStatePLCDialog open={open} onClose={handleClose} />
+         <EditStateVSDialog open={open} onClose={handleClose} />
       </Paper>
     </Box>
   );
 }
 
-function EditStatePLCDialog(props) {
+function EditStateVSDialog(props) {
   const { onClose, value,open } = props;
 
-  let name = "";
-  let mode ="";
-  let state = "";
-  let image ="";
-  let resourceId = "";
-  let task = "";
-
-    if(props.name){
-        name =props.name;
-    } if(props.image){
-        image= props.image;
-    } if(props.state){
-        state= props.state;
-    } if(props.mode){
-        mode= props.mode;
-    } if(props.resourceId){
-        resourceId= props.resourceId;
-    } if(props.task){
-        task= props.task;
-    } 
 
   const handleClose = () => {
      onClose(value);
@@ -131,7 +117,7 @@ function EditStatePLCDialog(props) {
 
   return (
     <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
-      <DialogTitle id="simple-dialog-title">Edit State of Resource</DialogTitle>
+      <DialogTitle id="simple-dialog-title">Edit state of visualisation unit</DialogTitle>
     </Dialog>
   );
 }

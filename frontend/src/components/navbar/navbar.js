@@ -21,7 +21,7 @@ export default function Navbar () {
     }
         return(
             <>
-                    <Toolbar>
+                    <Toolbar width={1}>
                         <IconButton>
                             <img src={logo} width='42' alt="Logo"/>
                         </IconButton>  
@@ -35,7 +35,7 @@ export default function Navbar () {
                             <Tab label="Edit workingplan" />
                         </Tabs>
                     </Toolbar>
-                <TabPanel value={selectedTab} index={0}>
+                <TabPanel value={selectedTab} index={0} >
                   <SystemMonitoring/>
                 </TabPanel>
                 <TabPanel value={selectedTab} index={1}>

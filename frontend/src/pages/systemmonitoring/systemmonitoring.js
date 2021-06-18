@@ -1,19 +1,45 @@
 import React from 'react';
+import { Box } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
+import { Typography } from '@material-ui/core';
 
-import StatePLCCard from '../../components/stateplccard/stateplccard';
-
-import branch from '../../assets/branch.png'
+import ListStates from '../../components/stateplccard/liststates';
+import ListVSStates from '../../components/statevisualisationunit/listvsstates';
 
 export default function SystemMonitoring(){
 
     return(
-        <div>
-            <Grid container spacing={1} direction="column">
-                <Grid item  >
-                  <StatePLCCard name="Branch 2" mode="auto" image= {branch} state="idle" resourceId= "2" />
+
+            <Grid container  
+                direction="column"
+                justify="flex-start"
+                alignItems="stretch">
+                <Grid item >
+                    <Typography gutterBottom variant="h5" component="h2">
+                        States of the resources
+                    </Typography>
                 </Grid>
-            </Grid>
-        </div>
+                <Grid item>
+                    <ListStates/>   
+                </Grid>
+                <Grid item >
+                    <div>
+                    &nbsp;
+                    &nbsp;
+                    &nbsp;
+                    &nbsp;
+                    &nbsp;
+                    </div>
+                </Grid>
+                <Grid item >
+                    <Typography gutterBottom variant="h5" component="h2">
+                        States of the visualisation units
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <ListVSStates/>
+                </Grid>
+            </Grid> 
+  
     );
 };

@@ -40,15 +40,17 @@ INSTALLED_APPS = [
     # Rest Package for Django
     "rest_framework",
     "colorfield",
+    'corsheaders',
     # apps
     "mesbackend",
     "mesapi",
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -138,3 +140,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 #       'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
 #   ]
 # }
+
+CORS_ORIGIN_ALLOW_ALL = True
