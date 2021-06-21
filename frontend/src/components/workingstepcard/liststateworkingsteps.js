@@ -44,7 +44,6 @@ export default function ListStateWorkingSteps() {
     }, pollingTime * 1000);
     return () => clearInterval(interval);
   });
-
   function createListItem(currentOrders, wp, wssteps, costumer) {
     let items = [];
     for (let i = 0; i < currentOrders.length; i++) {
