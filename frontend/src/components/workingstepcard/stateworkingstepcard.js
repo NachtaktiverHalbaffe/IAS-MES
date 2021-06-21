@@ -1,6 +1,6 @@
 /*
 Filename: stateworkingstepcard.js
-Version name: 0.1, 2021-05-14
+Version name: 0.1, 2021-06-18
 Short description: Card component for a specific working step
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -27,36 +27,44 @@ export default function StateWorkingStepCard(props) {
   let task = "";
   let img = "";
   let stepNo = 0;
+  let data = new Map();
 
   const [open, setOpen] = React.useState(false);
 
   if (props.assignedToUnit) {
     assignedToUnit = props.assignedToUnit;
+    data["assignedToUnit"] = assignedToUnit;
   }
   if (props.description) {
     description = props.description;
+    data["description"] = description;
   }
   if (props.state) {
     state = props.state;
+    data["state"] = state;
   }
   if (props.task) {
     task = props.task;
+    data["task"] = task;
   }
   if (props.stepNo) {
     stepNo = props.stepNo;
+    data["stepNo"] = stepNo;
   }
   if (props.img) {
     img = props.img;
+    data["img"] = img;
   }
   if (props.name) {
     name = props.name;
+    data["name"] = name;
   }
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (value) => {
+  const handleClose = (data) => {
     setOpen(false);
   };
 
@@ -146,21 +154,21 @@ export default function StateWorkingStepCard(props) {
             </Grid>
           </Grid>
         </CardActionArea>
-        <EditStateWorkingStepDialog open={open} onClose={handleClose} />
+        <EditStateWorkingStepDialog
+          open={open}
+          onClose={handleClose}
+          data={data}
+        />
       </Paper>
     </Box>
   );
 }
 
 function EditStateWorkingStepDialog(props) {
-  const { onClose, value, open } = props;
+  const { onClose, value, open, data } = props;
 
   const handleClose = () => {
-    onClose(value);
-  };
-
-  const handleListItemClick = (value) => {
-    onClose(value);
+    onClose(data);
   };
 
   return (

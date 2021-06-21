@@ -1,3 +1,12 @@
+/*
+Filename: systemmonitoring.js
+Version name: 0.1, 2021-06-18
+Short description: Page with all components to show system state
+
+(C) 2003-2021 IAS, Universitaet Stuttgart
+
+*/
+
 import React from "react";
 import { Box } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";

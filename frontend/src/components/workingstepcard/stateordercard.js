@@ -1,6 +1,6 @@
 /*
 Filename: stateordercard.js
-Version name: 0.1, 2021-05-14
+Version name: 0.1, 2021-06-21
 Short description: Card component for a specific working step
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -26,31 +26,37 @@ export default function StateOrderCard(props) {
   let assignedAt = "";
 
   const [open, setOpen] = React.useState(false);
-
+  let data = new Map();
   if (props.description) {
     description = props.description;
+    data["description"] = description;
   }
   if (props.name) {
     name = props.name;
+    data["name"] = name;
   }
   if (props.orderNo) {
     orderNo = props.orderNo;
+    data["orderNo"] = orderNo;
   }
   if (props.orderPos) {
     orderPos = props.orderPos;
+    data["orderPos"] = orderPos;
   }
   if (props.costumer) {
     costumer = props.costumer;
+    data["costumer"] = costumer;
   }
   if (props.assignedAt) {
     assignedAt = props.assignedAt;
+    data["assignetAt"] = assignedAt;
   }
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (value) => {
+  const handleClose = (data) => {
     setOpen(false);
   };
 
@@ -127,21 +133,17 @@ export default function StateOrderCard(props) {
             </Grid>
           </Grid>
         </CardActionArea>
-        <EditStateOrderDialog open={open} onClose={handleClose} />
+        <EditStateOrderDialog open={open} onClose={handleClose} data={data} />
       </Paper>
     </Box>
   );
 }
 
 function EditStateOrderDialog(props) {
-  const { onClose, value, open } = props;
+  const { onClose, value, open, data } = props;
 
   const handleClose = () => {
-    onClose(value);
-  };
-
-  const handleListItemClick = (value) => {
-    onClose(value);
+    onClose(data);
   };
 
   return (
