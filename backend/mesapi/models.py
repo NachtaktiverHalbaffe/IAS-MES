@@ -144,12 +144,14 @@ class WorkingStep(models.Model):
     # id
     id = models.BigAutoField(primary_key=True)
 
+    class Meta:
+        ordering = ['stepNo']
+
     def __str__(self):
         return self.name + " (Step Number: " + str(self.stepNo) + ")"
+    
 
 # Model of a working plan. Working order define the production process of an order
-
-
 class WorkingPlan(models.Model):
     name = models.CharField(max_length=30)
     description = models.CharField(max_length=200, default="")
