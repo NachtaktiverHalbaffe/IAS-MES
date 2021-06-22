@@ -143,3 +143,17 @@ class CostumerView(ListCreateAPIView):
 class SingleCostumerView(RetrieveUpdateDestroyAPIView):
     serializer_class = CostumerSerializer
     queryset = Costumer.objects.all()
+
+class SingleCostumerByNameView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CostumerSerializer
+    lookup_url_kwarg = 'name'
+
+    def get_queryset(self):
+        queryset= Costumer.objects.all()
+        name = self.kwargs.get(self.lookup_url_kwarg)
+        firstName = name.split(" ")[0]
+        lastName = name.split(" ")[1]
+        print(firstName)
+        print(lastName)
+        costumer = queryset.filter(firstName=firstName).filter(lastName=lastName)
+        return costumer
