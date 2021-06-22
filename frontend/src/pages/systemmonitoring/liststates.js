@@ -5,16 +5,13 @@ import ListItem from "@material-ui/core/ListItem";
 import { GridList } from "@material-ui/core";
 import axios from "axios";
 
-import StatePLCCard from "./stateplccard";
+import { IP_BACKEND } from "../../const";
+import StatePLCCard from "../../components/stateplccard/stateplccard";
 import branch from "../../assets/branch.png";
 import storage from "../../assets/storage.png";
 import robotino from "../../assets/robotino.png";
 
 export default function ListStates() {
-  //const IP_BACKEND = "127.0.0.1";
-  const IP_BACKEND = "192.168.178.30";
-  //const IP_BACKEND ="129.69.102.129";
-
   // React hooks
   const [state, setState] = useState([]);
   useEffect(() => {

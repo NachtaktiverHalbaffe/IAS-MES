@@ -12,9 +12,9 @@ import { Box } from "@material-ui/core";
 import Grid from "@material-ui/core/Grid";
 import { Typography } from "@material-ui/core";
 
-import ListStates from "../../components/stateplccard/liststates";
-import ListVSStates from "../../components/statevisualisationunit/listvsstates";
-import ListStateWorkingSteps from "../../components/workingstepcard/liststateworkingsteps";
+import ListStates from "./liststates";
+import ListVSStates from "./listvsstates";
+import ListStateWorkingSteps from "./liststateworkingsteps";
 
 export default function SystemMonitoring() {
   return (

@@ -8,14 +8,24 @@ Short description: Card component for a specific working step
 */
 
 import React from "react";
-import Box from "@material-ui/core/Box";
-import { Grid, Paper } from "@material-ui/core";
-import CardActionArea from "@material-ui/core/CardActionArea";
-import CardContent from "@material-ui/core/CardContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Dialog from "@material-ui/core/Dialog";
-import Typography from "@material-ui/core/Typography";
-import { TextField } from "@material-ui/core";
+import axios from "axios";
+import {
+  Box,
+  Grid,
+  Paper,
+  CardActionArea,
+  CardContent,
+  DialogTitle,
+  ListItem,
+  Button,
+  Dialog,
+  Typography,
+  TextField,
+} from "@material-ui/core";
+
+import EditTextBox from "../edittextbox/edittextbox";
+import ErrorSnackbar from "../errorsnackbar/errorsnackbar";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
 
 export default function StateOrderCard(props) {
   let name = "";
@@ -26,6 +36,25 @@ export default function StateOrderCard(props) {
   let assignedAt = "";
 
   const [open, setOpen] = React.useState(false);
+  // statemanagment for snackbar
+  const [errorState, setErrorState] = React.useState({
+    snackbarOpen: false,
+    msg: "",
+    level: "",
+  });
+  const { level, msg, snackbarOpen } = errorState;
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (snackbarOpen) {
+        setErrorState({
+          snackbarOpen: false,
+          msg: "",
+          level: "",
+        });
+      }
+    }, AUTO_HIDE_DURATION);
+  });
+
   let data = new Map();
   if (props.description) {
     description = props.description;
@@ -58,6 +87,63 @@ export default function StateOrderCard(props) {
 
   const handleClose = (data) => {
     setOpen(false);
+  };
+
+  const onSave = (updatedData) => {
+    //validate data
+    if (isNaN(updatedData["orderNo"]) || updatedData["orderNo"] < 1) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Invalid ordernumber. Must be a positive number and not 0",
+        level: "warning",
+      });
+      return false;
+    }
+    if (isNaN(updatedData["orderPos"]) || updatedData["orderpos"] < 1) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Invalid order position. Must be a positive number and not 0",
+        level: "warning",
+      });
+      return false;
+    }
+    if (updatedData["name"].length > 30) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Name too long. Max length: 30",
+        level: "warning",
+      });
+      return false;
+    }
+    if (updatedData["description"].length > 200) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Description too long. Max length: 200",
+        level: "warning",
+      });
+      return false;
+    }
+
+    //update data in Mes
+    axios.patch(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/AssignedOrder/" +
+        updatedData["orderNo"].toString(),
+      {
+        description: updatedData["description"],
+        orderNo: updatedData["orderNo"],
+        orderPos: updatedData["orderPos"],
+        name: updatedData["name"],
+      }
+    );
+
+    setErrorState({
+      snackbarOpen: true,
+      msg: "Sucessfully updated workingstep",
+      level: "success",
+    });
+    return true;
   };
 
   return (
@@ -133,17 +219,36 @@ export default function StateOrderCard(props) {
             </Grid>
           </Grid>
         </CardActionArea>
-        <EditStateOrderDialog open={open} onClose={handleClose} data={data} />
+        <EditStateOrderDialog
+          open={open}
+          onClose={handleClose}
+          data={data}
+          onSave={onSave}
+        />
       </Paper>
+      <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
     </Box>
   );
 }
 
 function EditStateOrderDialog(props) {
-  const { onClose, value, open, data } = props;
+  const { onClose, onSave, open, data } = props;
+  const [state, setState] = React.useState(data);
 
   const handleClose = () => {
-    onClose(data);
+    onClose();
+  };
+
+  const handleSave = () => {
+    if (onSave(state)) {
+      handleClose();
+    }
+  };
+
+  const onEdit = (key, value) => {
+    let newState = state;
+    newState[key] = value;
+    setState(newState);
   };
 
   return (
@@ -153,6 +258,52 @@ function EditStateOrderDialog(props) {
       open={open}
     >
       <DialogTitle id="simple-dialog-title">Edit order</DialogTitle>
+      <EditTextBox
+        label="Name"
+        mapKey="name"
+        initialValue={data["name"]}
+        helperText="Name of the order"
+        onEdit={onEdit}
+      />
+      <EditTextBox
+        label="Description"
+        mapKey="description"
+        initialValue={data["description"]}
+        helperText="Description of the order (optional)"
+        onEdit={onEdit}
+      />
+      <EditTextBox
+        label="Order number"
+        mapKey="orderNo"
+        initialValue={data["orderNo"]}
+        helperText="Order number of the order"
+        onEdit={onEdit}
+      />
+      <EditTextBox
+        label="Order position"
+        mapKey="orderPos"
+        initialValue={data["orderPos"]}
+        helperText="Position of an order within the order itself if an order contains multiple orders"
+        onEdit={onEdit}
+      />
+      <EditTextBox
+        label="Costumer"
+        mapKey="costumer"
+        initialValue={data["costumer"]}
+        helperText="Name of the costumer who assigned the order(optional). Only change if new costumer is already created as an costumer"
+        onEdit={onEdit}
+      />
+      <ListItem justify="flex-end">
+        <Button
+          justify="flex-end"
+          variant="outlined"
+          color="primary"
+          href="#outlined-buttons"
+          onClick={handleSave}
+        >
+          Save
+        </Button>
+      </ListItem>
     </Dialog>
   );
 }

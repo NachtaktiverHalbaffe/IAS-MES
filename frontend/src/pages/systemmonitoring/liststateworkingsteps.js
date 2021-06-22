@@ -7,15 +7,16 @@ Short description: Component to display current orders. gets data from mes and c
 
 */
 
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@material-ui/core/Box";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import axios from "axios";
 
 //own costum components
-import StateWorkingStepCard from "./stateworkingstepcard";
-import StateOrderCard from "./stateordercard";
+import { IP_BACKEND } from "../../const";
+import StateWorkingStepCard from "../../components/workingstepcard/stateworkingstepcard";
+import StateOrderCard from "../../components/workingstepcard/stateordercard";
 //images
 import store from "../../assets/storage.png";
 import assemble from "../../assets/assemble.png";
@@ -25,10 +26,6 @@ import unpackage from "../../assets/unpackage.png";
 import generic from "../../assets/generic.png";
 
 export default function ListStateWorkingSteps() {
-  //const IP_BACKEND = "127.0.0.1";
-  const IP_BACKEND = "192.168.178.30";
-  //const IP_BACKEND ="129.69.102.129";
-
   // React hooks
   const [order, setOrder] = useState([]);
   const [workingPlan, setWorkingPlan] = useState([]);
@@ -62,7 +59,7 @@ export default function ListStateWorkingSteps() {
       );
 
       // create cards of workingsteps
-      if (wssteps.length != 0) {
+      if (wssteps.length !== 0) {
         let steps = wssteps[i];
         steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
         for (let j = 0; j < steps.length; j++) {
@@ -100,6 +97,8 @@ export default function ListStateWorkingSteps() {
                 state={state}
                 task={steps[j].task}
                 stepNo={steps[j].stepNo}
+                color={steps[j].color}
+                id={steps[j].id}
               />
             </ListItem>
           );
@@ -182,11 +181,11 @@ export default function ListStateWorkingSteps() {
 // compares if two states of Workingplans are equal. Returns true if equal and vise versa
 function mCompareWorkingPlans(oldPlan, newPlan) {
   // check lengths
-  if (oldPlan.length != newPlan.length) {
+  if (oldPlan.length !== newPlan.length) {
     return false;
   }
   for (let i = 0; i < oldPlan.length; i++) {
-    if (oldPlan[i].length != newPlan[i].length) {
+    if (oldPlan[i].length !== newPlan[i].length) {
       return false;
     } else if (
       oldPlan[i].workingSteps.length === newPlan[i].workingSteps.length
@@ -196,7 +195,7 @@ function mCompareWorkingPlans(oldPlan, newPlan) {
       let newP = newPlan[i].workingSteps;
       newP.sort((a, b) => (a > b ? 1 : -1));
       for (let j = 0; j < old.length; j++) {
-        if (old[j] != newP[j]) {
+        if (old[j] !== newP[j]) {
           return false;
         }
       }
@@ -208,12 +207,12 @@ function mCompareWorkingPlans(oldPlan, newPlan) {
 // compares if two states of Workingsteps are equal. Returns true if equal and vise versa
 function mCompareWorkingSteps(oldSteps, newSteps) {
   // check lengths
-  if (oldSteps.length != newSteps.length) {
+  if (oldSteps.length !== newSteps.length) {
     return false;
   }
   // check workingsteps
   for (let i = 0; i < oldSteps.length; i++) {
-    if (oldSteps[i].length != newSteps[i].length) {
+    if (oldSteps[i].length !== newSteps[i].length) {
       return false;
     } else if (oldSteps[i].length === newSteps[i].length) {
       let old = oldSteps[i];
@@ -221,19 +220,19 @@ function mCompareWorkingSteps(oldSteps, newSteps) {
       let newP = newSteps[i];
       newP.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
       for (let j = 0; j < old.length; j++) {
-        if (old[j].task != newP[j].task) {
+        if (old[j].task !== newP[j].task) {
           return false;
         }
-        if (old[j].color != newP[j].color) {
+        if (old[j].color !== newP[j].color) {
           return false;
         }
-        if (old[j].assignedToUnit != newP[j].assignedToUnit) {
+        if (old[j].assignedToUnit !== newP[j].assignedToUnit) {
           return false;
         }
-        if (old[j].name != newP[j].name) {
+        if (old[j].name !== newP[j].name) {
           return false;
         }
-        if (old[j].description != newP[j].description) {
+        if (old[j].description !== newP[j].description) {
           return false;
         }
       }

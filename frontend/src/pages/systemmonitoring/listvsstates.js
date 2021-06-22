@@ -5,14 +5,11 @@ import ListItem from "@material-ui/core/ListItem";
 import { GridList } from "@material-ui/core";
 import axios from "axios";
 
-import StateVSCard from "./statevscard";
+import { IP_BACKEND } from "../../const";
+import StateVSCard from "../../components/statevisualisationunit/statevscard";
 import visualisationUnit from "../../assets/visualisationunit.png";
 
 export default function ListVSStates() {
-  //const IP_BACKEND = "127.0.0.1";
-  const IP_BACKEND = "192.168.178.30";
-  //const IP_BACKEND ="129.69.102.129";
-
   // React hooks
   const [state, setState] = useState([]);
   useEffect(() => {
