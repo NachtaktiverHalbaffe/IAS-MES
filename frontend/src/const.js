@@ -1,5 +1,5 @@
-// export const IP_BACKEND = "127.0.0.1";
-export const IP_BACKEND = "192.168.178.30";
+export const IP_BACKEND = "127.0.0.1";
+//export const IP_BACKEND = "192.168.178.30";
 // export const IP_BACKEND ="129.69.102.129";
 export const DEFINED_TASKS = [
   "unstore",

@@ -57,21 +57,6 @@ def logOrderDel(sender, instance, **kwargs):
     logging.info("[AssignedOrder] Deleted order " + str(instance.orderNo))
 
 
-# Sets all storage Bits to 0 for the first time when storage isnt initialise
-@receiver(pre_save, sender=Setting)
-def setStorage(sender, instance, **kwargs):
-    if instance.storage == None:
-        # initialise storage array
-        storageArray = []
-        for i in range(30):
-            storageArray.append(0)
-        instance.setStorage(storageArray)
-        # set storage bits according to workingpieces
-        workingPieces = StateWorkingPiece.objects.all()
-        for piece in workingPieces:
-            if piece.storageLocation != 0:
-                instance.updateStoragePosition(piece.storageLocation, False)
-
 
 # Creates a buffer if a StatePLC is created and hasnt a buffer yet
 @receiver(pre_save, sender=StatePLC)
@@ -79,10 +64,9 @@ def createBuffer(sender, instance, **kwargs):
     if instance.buffer == None:
         buffer = Buffer()
         buffer.resourceId = instance.id
-        buffer.bufferIn = False
-        buffer.bufferOut = False
         buffer.bufInONo = 0
         buffer.bufInOPos = 0
         buffer.bufOutONo = 0
         buffer.bufOutOPos = 0
         buffer.save()
+        instance.buffer = buffer

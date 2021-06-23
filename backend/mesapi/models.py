@@ -119,12 +119,10 @@ class WorkingStep(models.Model):
     MANUAL = 510
     UNSTORE = 213
     STORE = 210
-    DELAY = 1110
     OP_CHOICES = [
         (MANUAL, 'Manual work'),
         (UNSTORE, "release a defined part on stopper 2"),
         (STORE, "store a part from stopper 1"),
-        (DELAY, "delay"),
     ]
 
     name = models.CharField(max_length=30)
@@ -180,6 +178,7 @@ class Costumer(models.Model):
 
 # Model representing a Order which is assigned by the user
 class AssignedOrder(models.Model):
+    id = models.BigAutoField(primary_key= True)
     # name of the working plan
     name = models.CharField(max_length=30)
     # short description of working plan (optional)
@@ -193,7 +192,7 @@ class AssignedOrder(models.Model):
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
     # order number
-    orderNo = models.PositiveIntegerField(primary_key=True)
+    orderNo = models.PositiveIntegerField()
     # order psoition (optional)
     orderPos = models.PositiveSmallIntegerField(default=1)
     # main order position (optional)
@@ -203,6 +202,9 @@ class AssignedOrder(models.Model):
         Costumer, blank=True, on_delete=models.SET_NULL, null=True)
     # Status
     status = models.CharField(max_length=30, null=True)
+
+    class Meta:
+        unique_together = ('orderNo', 'orderPos',)
 
     # getter and setter for status cause it needs to be converted to string and vise versa
     def setStatus(self, statusArray):
@@ -259,32 +261,6 @@ class Setting(models.Model):
     isInBridgingMode = models.BooleanField()
     # ip adress of mes4
     ipAdressMES4 = models.GenericIPAddressField()
-    # array for storage, if a element is 1 then place in storage is occupied
-    storage = models.CharField(max_length=100, null=True)
-    # costumer
-    costumer = models.ForeignKey(
-        Costumer, on_delete=models.SET_NULL, null=True)
-
-    def setStorage(self, storageArray):
-        self.storage = json.dumps(storageArray)
-
-    def getStorage(self):
-        return json.loads(self.storage)
-
-    # search for the first free place in storage and sets it as occupied afterwards
-    def getFirstFreePlace(self):
-        storage = self.getStorage()
-        for i in range(len(storage)):
-            if storage[i] == 0:
-                return i+1
-
-    def updateStoragePosition(self, position, isEmpty):
-        storage = self.getStorage()
-        if isEmpty:
-            storage[position-1] = 0
-        elif not isEmpty:
-            storage[position-1] = 1
-        self.setStorage(storage)
 
     def __str__(self):
         return "Setting"

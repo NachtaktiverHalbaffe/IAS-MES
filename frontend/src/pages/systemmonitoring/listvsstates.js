@@ -57,7 +57,7 @@ export default function ListVSStates() {
 
   return (
     <Box width={1}>
-      <GridList cellHeight={200} cols={2} spacing={20}>
+      <GridList cellHeight={200} cols={3} spacing={20}>
         {createListItem(state)}
       </GridList>
     </Box>

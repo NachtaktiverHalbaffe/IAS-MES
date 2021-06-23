@@ -19,7 +19,7 @@ import ListStateWorkingSteps from "./liststateworkingsteps";
 export default function SystemMonitoring() {
   return (
     <Grid container direction="row" justify="space-around" alignItems="stretch">
-      <Grid item xs={6}>
+      <Grid item xs={8}>
         <Grid
           container
           direction="column"
@@ -56,7 +56,7 @@ export default function SystemMonitoring() {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item xs={5} alignItems="center">
+      <Grid item xs={3} alignItems="center">
         <Grid
           item
           xs

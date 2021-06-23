@@ -63,7 +63,7 @@ export default function ListStates() {
   }
 
   return (
-    <GridList cellHeight={170} cols={2} spacing={20}>
+    <GridList cellHeight={170} cols={3} spacing={20}>
       {createListItem(state)}
     </GridList>
   );

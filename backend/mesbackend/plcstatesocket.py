@@ -86,6 +86,7 @@ class PLCStateSocket(object):
 
     def runServer(self):
         django.setup()
+        # delete all robotinos
         self.SERVER.listen()
         print("[CONNECTION] PLCStateSocket-Server started")
         # Start Tcp server on seperate Thread
