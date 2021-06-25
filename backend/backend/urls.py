@@ -44,19 +44,8 @@ urlpatterns = [
 try:
     serviceProcess = Process(target=PLCServiceOrderSocket().runServer)
     stateProcess = Process(target=PLCStateSocket().runServer)
-    # serviceProcess.daemon = True
-    # stateProcess.daemon = True
-    # setup sockets on localhost for fleetmanager
-    fleetmanagerservicesocket = PLCServiceOrderSocket()
-    fleetmanagerservicesocket.HOST = "127.0.0.1"
-    fleetmanagerstatesocket = PLCStateSocket()
-    fleetmanagerstatesocket.HOST = "127.0.0.1"
-    fmServiceProcess = Process(target=fleetmanagerservicesocket.runServer)
-    fmStateProcess = Process(target=fleetmanagerstatesocket.runServer)
     # start processes
     # serviceProcess.start()
     # stateProcess.start()
-    # fmServiceProcess.start()
-    # fmStateProcess.start()
 except Exception:
     pass
