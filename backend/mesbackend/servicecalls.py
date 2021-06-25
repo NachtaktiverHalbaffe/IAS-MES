@@ -10,13 +10,15 @@ is handled here. Given on the servicecalls some output parameters are set
 
 from mesapi.models import AssignedOrder, Buffer, Costumer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
 import logging
+import requests
+from threading import Thread
 
 
 class Servicecalls(object):
 
     def __init__(self):
-        from .systemmonitoring import SystemMonitoring
-        self.systemmonitoring = SystemMonitoring()
+        from .safteymonitoring import SafteyMonitoring
+        self.safteymonitoring = SafteyMonitoring
         # setup logging
         log_formatter = logging.Formatter('[%(asctime)s ] %(message)s')
         # handler for logging to file
@@ -78,7 +80,11 @@ class Servicecalls(object):
                                 # set output params specific to operation
                                 if step.operationNo == 210 or step.operationNo == 211:
                                     obj.dataLength = 12
-                                    bufPos = Setting.objects.all().first().getFirstFreePlace()
+                                    bufPos = 0
+                                    for j in range(1,30):
+                                        # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
+                                        if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
+                                            bufPos = j
                                     if stopperId == 1:
                                         # store from stopper 1
                                         obj.stopperId = 1
@@ -96,7 +102,6 @@ class Servicecalls(object):
                                     workingPiece.update(
                                         storageLocation=obj.bufPos)
                                     workingPiece.update(carrierId=0)
-                                    Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
                                 # operation is manual work
                                 elif step.operationNo == 510:
                                     obj.stopperId = 0
@@ -179,7 +184,11 @@ class Servicecalls(object):
                     if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
                         # set output params
                         obj.dataLength = 12
-                        bufPos = Setting.objects.all().first().getFirstFreePlace()
+                        bufPos = 0
+                        for j in range(1,30):
+                            # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
+                            if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
+                                bufPos = j
                         workingPiece = StateWorkingPiece.objects.filter(
                             id=currentOrder.assignedWorkingPiece.id)
                         partNo = workingPiece.first().partNo
@@ -199,7 +208,6 @@ class Servicecalls(object):
                         # update mes data
                         workingPiece.update(storageLocation=bufPos)
                         workingPiece.update(carrierId=0)
-                        #Setting.objects.all().first().updateStoragePosition(obj.bufPos, False)
                     if obj.opNo == 212 or obj.opNo == 213:
                         workingPiece = StateWorkingPiece.objects.filter(
                             id=currentOrder.assignedWorkingPiece.id)
@@ -220,10 +228,8 @@ class Servicecalls(object):
                                 0, 91, 0, bufPos, 0, partNo]
                             self.logger.info(str(obj.serviceParams))
                         # update mes data
-                        setting = Setting.objects.all().first()
-                        setting.updateStoragePosition(
-                            workingPiece.first().storageLocation, True)
-                        setting.save()
+                        workingPiece.storageLocation = 0
+                        workingPiece.save()
                     # operation is manual work
                     elif workingsteps[i].operationNo == 510:
                         obj.serviceParams = [0, 1, 0, 1,
@@ -304,9 +310,6 @@ class Servicecalls(object):
                             workingPiece.storageLocation = obj.bufPos
                             workingPiece.carrierId = 0
                             workingPiece.save()
-                            setting = Setting.objects.all().first()
-                            setting.updateStoragePosition(obj.bufPos, False)
-                            setting.save()
                         # operation is unstore a part
                         if obj.opNo == 212 or obj.opNo == 213:
                             obj.dataLength = 12
@@ -323,10 +326,6 @@ class Servicecalls(object):
                                     0, obj.bufPos, 0, 91, 0, partNo]
                                 self.logger.info(str(obj.serviceParams))
                             # update mes data
-                            setting = Setting.objects.all().first()
-                            setting.updateStoragePosition(
-                                workingPiece.storageLocation, True)
-                            setting.save()
                             workingPiece.storageLocation = 0
                             workingPiece.save()
                             return obj
@@ -630,9 +629,8 @@ class Servicecalls(object):
                 if bufNo == 1:
                     obj.oNo = 0
                     obj.oPos = 0
-                    setting = Setting.objects.all().first()
-                    storage = setting.getStatus()
-                    if storage[bufPos] == 1:
+                    workingPiece = StateWorkingPiece.objects.filter(storageLocation = bufPos)
+                    if workingPiece.count() == 1:
                         obj.pNo = 25
                         obj.boxPNo = 25
                     else:
@@ -736,12 +734,14 @@ class Servicecalls(object):
             # get buffer
             oldbuffer = Buffer.objects.filter(resourceId=oldId)
             targetbuffer = Buffer.objects.filter(resourceId=newId)
+            oNo = oldbuffer.first().bufOutONo
+            oPos = oldbuffer.first().bufOutOPos
             if newBufNo == 1:
-                targetbuffer.update(bufOutONo=oldbuffer.first().bufOutONo)
-                targetbuffer.update(bufOutOPos=oldbuffer.first().bufOutOPos)
+                targetbuffer.update(bufOutONo= oNo)
+                targetbuffer.update(bufOutOPos= oPos)
             elif newBufNo == 2:
-                targetbuffer.update(bufInONo=oldbuffer.first().bufInONo)
-                targetbuffer.update(bufInOPos=oldbuffer.first().bufInOPos)
+                targetbuffer.update(bufInONo=oNo)
+                targetbuffer.update(bufInOPos=oPos)
         # update origin buffer
             # update source buffer (only if old buffer isnt robotino)
             if oldId < 7:
@@ -751,13 +751,13 @@ class Servicecalls(object):
                 elif oldBufNo == 2:
                     oldbuffer.update(bufInONo=0)
                     oldbuffer.update(bufInOPos=0)
-        self.logger.info("[MOVEBUF] Moved buffer from resource " +
-                         str(oldId) + " to resource " + str(newId))
-        
-        # TODO send visualisation task to unit
+
+                Thread(target =self._sendVisualisationTask, args=[oNo, oPos, newId]).start()
 
         # update location of workingpiece
         StateWorkingPiece.objects.filter(location=oldId).update(location=newId)
+        self.logger.info("[MOVEBUF] Moved buffer from resource " +
+                         str(oldId) + " to resource " + str(newId))
         # set output parameter
         obj.serviceParams = []
         obj.dataLength = 0
@@ -801,13 +801,10 @@ class Servicecalls(object):
             # PLC is storage
             elif resourceId == 1:
                 if bufNo == 1:
-                    setting = Setting.objects.all().first()
-                    if partNo != 0:
-                        setting.updateStoragePosition(bufPos, False)
-                        setting.save()
-                    elif partNo == 0:
-                        setting.updateStoragePosition(bufPos, True)
-                        setting.save()
+                    # updating storageposition of workingpiece is done
+                    # in getOpForONoOPos or getOpForASRS in the corresponding store/
+                    # unstore
+                    pass
 
         # return all output parameter as 0
         obj.resourceId = 0
@@ -973,3 +970,37 @@ class Servicecalls(object):
         obj.aux1Int = 0
         obj.resourceId = 0
         return obj
+
+    def _sendVisualisationTask(self, orderNo, orderPos, resourceId):
+        order = AssignedOrder.objects.filter(orderNo= orderNo).filter(orderPos=orderPos).first()
+        status = order.getStatus()
+        visualisationTasks = order.assigendWorkingPlan.workingSteps.filter(assignedToUnit=resourceId)
+        stepToCheck=order.assigendWorkingPlan.workingSteps.all()
+        for i in range(len(status)):
+            if status[i]== 0:
+                for task in visualisationTasks:
+                    if stepToCheck[i].id == task.id:
+                        # send task
+                        payload = {
+                            "task": task.task,
+                            "assignedWorkingPiece": order.assignedWorkingPiece,
+                            "stepNo": task.stepNo,
+                            "paintColor": task.color
+                        }
+                        try:
+                            request = requests.put("http://" +
+                                       StateVisualisationUnit.objects.filter().first(boundToRessource=resourceId).ipAdress+ ':2000/api/VisualisationTask', data=payload)
+
+                            if not request.ok:
+                                self.safteyMonitoring.decodeError(
+                                errorLevel=self.safteyMonitoring.LEVEL_ERROR,
+                                errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
+                                msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
+                                    str(orderNo) + ":" + str(orderPos))
+                    
+                        except Exception as e:
+                            self.safteyMonitoring.decodeError(
+                                errorLevel=self.safteyMonitoring.LEVEL_ERROR,
+                                errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
+                                msg=str(e)
+                            )

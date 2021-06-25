@@ -99,19 +99,6 @@ def sendVisualisationtasks(sender, instance, **kwargs):
             try:
                 request = requests.put("http://" +
                                        ipAdress + ':2000/api/VisualisationTask', data=payload)
-
-                if not request.ok:
-                    # Error message
-                    safteyMonitoring = SafteyMonitoring()
-                    safteyMonitoring.decodeError(
-                        errorLevel=safteyMonitoring.LEVEL_ERROR,
-                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                        msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
-                            str(instance.orderNo) + ":" +
-                        str(instance.orderPos)
-                    )
-                    status[i] = 1
-                    instance.setStatus(status)
             except Exception as e:
                 safteyMonitoring = SafteyMonitoring()
                 safteyMonitoring.decodeError(
@@ -119,8 +106,6 @@ def sendVisualisationtasks(sender, instance, **kwargs):
                     errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
                     msg=str(e)
                 )
-                status[i] = 1
-                instance.setStatus(status)
         # only send error if unit is a branch which has a unit mounted to it
         elif not unit == 1 and not unit >= 7:
             safteyMonitoring = SafteyMonitoring()
