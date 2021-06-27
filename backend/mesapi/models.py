@@ -155,7 +155,7 @@ class WorkingPlan(models.Model):
     description = models.CharField(max_length=200, default="")
     # number of the workingplan
     workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
-    workingSteps = models.ManyToManyField(WorkingStep)
+    workingSteps = models.ManyToManyField(WorkingStep,blank= True)
 
     def __str__(self):
         return self.name
@@ -178,7 +178,7 @@ class Costumer(models.Model):
 
 # Model representing a Order which is assigned by the user
 class AssignedOrder(models.Model):
-    id = models.BigAutoField(primary_key= True)
+    id = models.AutoField(primary_key= True)
     # name of the working plan
     name = models.CharField(max_length=30)
     # short description of working plan (optional)

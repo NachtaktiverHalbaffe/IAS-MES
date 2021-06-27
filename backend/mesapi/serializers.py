@@ -79,6 +79,7 @@ class AssignedOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignedOrder
         fields = (
+            "id",
             "name",
             "description",
             "assigendWorkingPlan",
@@ -136,4 +137,4 @@ class CostumerSerializer(serializers.ModelSerializer):
 class SettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
-        fields = ("isInBridgingMode", "ipAdressMES4", "storage", "costumer",)
+        fields = ("isInBridgingMode", "ipAdressMES4")
