@@ -42,12 +42,13 @@ logger.addHandler(file_handler)
 def createStatusBits(sender, instance, **kwargs):
     if instance.status == None:
         statusArray = []
-        for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
-            statusArray.append(0)
-        instance.setStatus(statusArray=statusArray)
-        logger.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
-                    str(instance.assigendWorkingPlan.workingPlanNo)
-                    )
+        if(instance.assigendWorkingPlan != None):
+            for step in range(len(instance.assigendWorkingPlan.workingSteps.all())):
+                statusArray.append(0)
+            instance.setStatus(statusArray=statusArray)
+            logger.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
+                        str(instance.assigendWorkingPlan.workingPlanNo)
+                        )
 
 
 @receiver(pre_delete, sender=AssignedOrder)

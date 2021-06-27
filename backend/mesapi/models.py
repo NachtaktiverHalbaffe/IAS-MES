@@ -180,21 +180,21 @@ class Costumer(models.Model):
 class AssignedOrder(models.Model):
     id = models.AutoField(primary_key= True)
     # name of the working plan
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, null=False)
     # short description of working plan (optional)
     description = models.CharField(max_length=200, default="")
     # Workingplan which should be executed
     assigendWorkingPlan = models.ForeignKey(
-        WorkingPlan, on_delete=models.CASCADE)
+        WorkingPlan, on_delete=models.CASCADE, null= True)
     # Assigned workingpiece
     assignedWorkingPiece = models.ForeignKey(
-        StateWorkingPiece, on_delete=models.CASCADE)
+        StateWorkingPiece, on_delete=models.CASCADE, null=True)
     # timestamp when it was assigned. Gets auto generated
     assignedAt = models.DateTimeField(auto_now_add=True)
     # order number
     orderNo = models.PositiveIntegerField()
     # order psoition (optional)
-    orderPos = models.PositiveSmallIntegerField(default=1)
+    orderPos = models.PositiveSmallIntegerField()
     # main order position (optional)
     mainOrderPos = models.PositiveSmallIntegerField(default=0)
     # costumer(optional)

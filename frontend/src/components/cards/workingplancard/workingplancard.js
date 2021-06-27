@@ -26,6 +26,8 @@ export default function StateWorkingPlanCard(props) {
   let name = "";
   let description = "";
   let workingPlanNo = 0;
+  let handleClickOpen = null;
+  let onClick = null;
 
   const [open, setOpen] = React.useState(false);
   // statemanagment for snackbar
@@ -60,11 +62,16 @@ export default function StateWorkingPlanCard(props) {
     workingPlanNo = props.workingPlanNo;
     data["workingPlanNo"] = workingPlanNo;
   }
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
+  if (!props.onClick) {
+    handleClickOpen = () => {
+      setOpen(true);
+    };
+  } else {
+    onClick = props.onClick;
+    handleClickOpen = () => {
+      onClick(data);
+    };
+  }
   const handleClose = (data) => {
     setOpen(false);
   };
@@ -76,13 +83,11 @@ export default function StateWorkingPlanCard(props) {
         name: updatedData["name"],
         description: updatedData["description"],
         workingPlanNo: parseInt(updatedData["workingPlanNo"]),
-        workingSteps: [],
       };
     } else {
       payload = {
         name: updatedData["name"],
         workingPlanNo: parseInt(updatedData["workingPlanNo"]),
-        workingSteps: [],
       };
     }
     axios.patch(

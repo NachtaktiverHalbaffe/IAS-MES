@@ -36,7 +36,9 @@ export default function ListStateWorkingSteps() {
 
     const interval = setInterval(async () => {
       getOrderFromMes();
-      getWorkingPlanFromMes();
+      if (order["assigendWorkingPlan"] !== null) {
+        getWorkingPlanFromMes();
+      }
       getWorkingStepsFromMes();
     }, pollingTime * 1000);
     return () => clearInterval(interval);
@@ -59,6 +61,7 @@ export default function ListStateWorkingSteps() {
       );
 
       // create cards of workingsteps
+      console.log(wssteps);
       if (wssteps.length !== 0) {
         let steps = wssteps[i];
         steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
@@ -118,24 +121,27 @@ export default function ListStateWorkingSteps() {
 
   async function getWorkingPlanFromMes() {
     let plans = [];
+
     for (let i = 0; i < order.length; i++) {
-      axios
-        .get(
-          "http://" +
-            IP_BACKEND +
-            ":8000/api/WorkingPlan/" +
-            order[i].assigendWorkingPlan.toString()
-        )
-        .then(async (res) => {
-          plans.push(res.data);
-          if (plans.length === order.length) {
-            let oldPlan = await workingPlan;
-            // only set workingplan if it has changed
-            if (!mCompareWorkingPlans(oldPlan, plans)) {
-              await setWorkingPlan(plans);
+      if (order[i]["assigendWorkingPlan"] !== null) {
+        axios
+          .get(
+            "http://" +
+              IP_BACKEND +
+              ":8000/api/WorkingPlan/" +
+              order[i].assigendWorkingPlan.toString()
+          )
+          .then(async (res) => {
+            plans.push(res.data);
+            if (plans.length === order.length) {
+              let oldPlan = await workingPlan;
+              // only set workingplan if it has changed
+              if (!mCompareWorkingPlans(oldPlan, plans)) {
+                await setWorkingPlan(plans);
+              }
             }
-          }
-        });
+          });
+      }
     }
   }
 

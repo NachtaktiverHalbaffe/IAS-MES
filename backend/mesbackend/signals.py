@@ -126,40 +126,41 @@ def sendVisualisationtasks(sender, instance, **kwargs):
 # (usually on end of order or if order is aborted)
 @receiver(post_delete, sender=AssignedOrder)
 def deleteOrder(sender, instance, **kwargs):
-    workingsteps = instance.assigendWorkingPlan.workingSteps.all()
-    status = instance.getStatus()
-    for i in range(len(workingsteps)):
-        step = workingsteps[i]
-        unit = step.assignedToUnit
-        stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
-            boundToRessource=unit)
-        if stateVisualisationUnit.count() == 1:
-            ipAdress = stateVisualisationUnit.first().ipAdress
-            try:
-                request = requests.delete(
-                    "http://" + ipAdress + '/api/VisualisationTask')
-                # Error message
-                if not request.ok:
+    if instance.assigendWorkingPlan != None:
+        workingsteps = instance.assigendWorkingPlan.workingSteps.all()
+        status = instance.getStatus()
+        for i in range(len(workingsteps)):
+            step = workingsteps[i]
+            unit = step.assignedToUnit
+            stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
+                boundToRessource=unit)
+            if stateVisualisationUnit.count() == 1:
+                ipAdress = stateVisualisationUnit.first().ipAdress
+                try:
+                    request = requests.delete(
+                        "http://" + ipAdress + '/api/VisualisationTask')
+                    # Error message
+                    if not request.ok:
+                        safteyMonitoring = SafteyMonitoring()
+                        safteyMonitoring.decodeError(
+                            errorLevel=safteyMonitoring.LEVEL_ERROR,
+                            errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                            msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                        )
+                except Exception as e:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                        msg="Visualisation unit is not reachable. Check connection of the unit to the MES"
+                        msg=str(e)
                     )
-            except Exception as e:
+            else:
                 safteyMonitoring = SafteyMonitoring()
                 safteyMonitoring.decodeError(
                     errorLevel=safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                    msg=str(e)
+                    errorCategory=safteyMonitoring.CATEGORY_DATA,
+                    msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
                 )
-        else:
-            safteyMonitoring = SafteyMonitoring()
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_ERROR,
-                errorCategory=safteyMonitoring.CATEGORY_DATA,
-                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
-            )
 
 
 # Gets executed after a workingplan is saved. It validates the workingplan on static parameters
@@ -354,10 +355,11 @@ def _checkStore(workingSteps, isValid, i):
 def _checkUnstore(workingSteps, isValid, i):
     for j in range(i):
         # workingpiece must be stored
-        if workingSteps[j].task == 'unstore':
-            isValid = False
-        elif workingSteps[j].task == 'store':
-            isValid = True
+        if(j != 0):
+            if workingSteps[j].task == 'unstore':
+                isValid = False
+            elif workingSteps[j].task == 'store':
+                isValid = True
     return isValid
 
 

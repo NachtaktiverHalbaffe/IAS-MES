@@ -17,6 +17,7 @@ import {
   Fab,
   List,
   ListItem,
+  Typography,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
@@ -84,7 +85,7 @@ export default function CreateWorkingPlan() {
 
   const [wsopen, setWSOpen] = React.useState(false);
   // states stuff for opening and closing dialogs
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(true);
   const [errorState, setErrorState] = React.useState({
     snackbarOpen: false,
     msg: "",
@@ -191,6 +192,8 @@ export default function CreateWorkingPlan() {
             });
           });
       });
+
+    return true;
   };
 
   const createPlan = (data) => {
@@ -279,7 +282,10 @@ export default function CreateWorkingPlan() {
   ];
 
   return (
-    <Box width={1}>
+    <Box>
+      <Typography gutterBottom variant="h5" component="h2">
+        Create workingplan (changes gets autosaved)
+      </Typography>
       <EditStateWorkingPlanDialog
         data={{
           name: "",
@@ -329,11 +335,13 @@ function createListItem(workingPlan, workingSteps) {
   let steps = workingSteps;
   if (workingPlan["workingPlanNo"] !== 0) {
     items.push(
-      <StateWorkingPlanCard
-        name={workingPlan["name"]}
-        description={workingPlan["description"]}
-        workingPlanNo={workingPlan["workingPlanNo"]}
-      />
+      <ListItem width={1}>
+        <StateWorkingPlanCard
+          name={workingPlan["name"]}
+          description={workingPlan["description"]}
+          workingPlanNo={workingPlan["workingPlanNo"]}
+        />
+      </ListItem>
     );
   }
 
