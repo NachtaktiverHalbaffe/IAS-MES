@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
-import Box from "@material-ui/core/Box";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import { GridList } from "@material-ui/core";
+import { GridList, ListItem } from "@material-ui/core";
 import axios from "axios";
 
 import { IP_BACKEND } from "../../const";

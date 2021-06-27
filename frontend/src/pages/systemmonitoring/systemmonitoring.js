@@ -8,9 +8,7 @@ Short description: Page with all components to show system state
 */
 
 import React from "react";
-import { Box } from "@material-ui/core";
-import Grid from "@material-ui/core/Grid";
-import { Typography } from "@material-ui/core";
+import { Grid, Typography } from "@material-ui/core";
 
 import ListStates from "./liststates";
 import ListVSStates from "./listvsstates";

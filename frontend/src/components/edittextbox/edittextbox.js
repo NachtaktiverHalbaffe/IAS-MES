@@ -7,7 +7,7 @@ Short description: Component for text input
 
 */
 
-import React, { useState } from "react";
+import React from "react";
 import { ListItem, TextField } from "@material-ui/core";
 
 export default function EditTextBox(props) {

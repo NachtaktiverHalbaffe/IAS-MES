@@ -13,13 +13,11 @@ import {
   Box,
   CardActionArea,
   CardContent,
-  ListItem,
   Paper,
   Grid,
   Typography,
 } from "@material-ui/core";
 
-import EditTextBox from "../edittextbox/edittextbox";
 import EditStateWorkingStepDialog from "../editworkingstepdialog/editworkingstepdialog";
 import ErrorSnackbar from "../errorsnackbar/errorsnackbar";
 import { IP_BACKEND, DEFINED_TASKS, AUTO_HIDE_DURATION } from "../../const";
