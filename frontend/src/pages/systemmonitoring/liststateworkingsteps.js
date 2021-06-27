@@ -15,8 +15,8 @@ import axios from "axios";
 
 //own costum components
 import { IP_BACKEND } from "../../const";
-import StateWorkingStepCard from "../../components/workingstepcard/stateworkingstepcard";
-import StateOrderCard from "../../components/workingstepcard/stateordercard";
+import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
+import StateOrderCard from "../../components/cards/workingstepcard/stateordercard";
 //images
 import store from "../../assets/storage.png";
 import assemble from "../../assets/assemble.png";

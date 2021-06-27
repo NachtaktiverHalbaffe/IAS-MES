@@ -22,14 +22,14 @@ import {
   Typography,
 } from "@material-ui/core";
 
-import EditTextBox from "../edittextbox/edittextbox";
-import ErrorSnackbar from "../errorsnackbar/errorsnackbar";
+import EditTextBox from "../../edittextbox/edittextbox";
+import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import {
   IP_BACKEND,
   AUTO_HIDE_DURATION,
   DEFINED_VS_TASKS,
   DEFINED_VS_STATES,
-} from "../../const";
+} from ".../../../src/const";
 
 export default function StateVSCard(props) {
   let boundToRessource = "";
@@ -102,8 +102,7 @@ export default function StateVSCard(props) {
     ) {
       setErrorState({
         snackbarOpen: true,
-        msg:
-          "Invalid resourceId of resource where unit is mounted to. Must be an integer between 2-6",
+        msg: "Invalid resourceId of resource where unit is mounted to. Must be an integer between 2-6",
         level: "warning",
       });
       return false;

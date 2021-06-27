@@ -1,41 +1,39 @@
 /*
-Filename: stateordercard.js
-Version name: 0.1, 2021-06-21
-Short description: Card component for a specific working step
+Filename: stateplccard.js
+Version name: 0.1, 2021-06-19
+Short description: Card component for a specific state of plc
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 */
-
-import React from "react";
 import axios from "axios";
+import React from "react";
+import Box from "@material-ui/core/Box";
 import {
-  Box,
   Grid,
   Paper,
-  CardActionArea,
-  CardContent,
-  DialogTitle,
   ListItem,
-  Button,
   Dialog,
+  DialogTitle,
+  CardContent,
+  CardActionArea,
+  Button,
   Typography,
 } from "@material-ui/core";
 
-import EditTextBox from "../edittextbox/edittextbox";
-import ErrorSnackbar from "../errorsnackbar/errorsnackbar";
-import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
+import EditTextBox from "../../edittextbox/edittextbox";
+import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from ".../../../src/const";
 
-export default function StateOrderCard(props) {
+export default function StatePLCCard(props) {
   let name = "";
-  let description = "";
-  let orderNo = 0;
-  let orderPos = 0;
-  let costumer = "";
-  let assignedAt = "";
+  let mode = "";
+  let state = "";
+  let image = "";
+  let resourceId = "";
+  let data = new Map();
 
   const [open, setOpen] = React.useState(false);
-  // statemanagment for snackbar
   const [errorState, setErrorState] = React.useState({
     snackbarOpen: false,
     msg: "",
@@ -54,54 +52,41 @@ export default function StateOrderCard(props) {
     }, AUTO_HIDE_DURATION);
   });
 
-  let data = new Map();
-  if (props.description) {
-    description = props.description;
-    data["description"] = description;
-  }
   if (props.name) {
     name = props.name;
     data["name"] = name;
   }
-  if (props.orderNo) {
-    orderNo = props.orderNo;
-    data["orderNo"] = orderNo;
+  if (props.image) {
+    image = props.image;
+    data["image"] = image;
   }
-  if (props.orderPos) {
-    orderPos = props.orderPos;
-    data["orderPos"] = orderPos;
+  if (props.state) {
+    state = props.state;
+    data["state"] = state;
   }
-  if (props.costumer) {
-    costumer = props.costumer;
-    data["costumer"] = costumer;
+  if (props.mode) {
+    mode = props.mode;
+    data["mode"] = mode;
   }
-  if (props.assignedAt) {
-    assignedAt = props.assignedAt;
-    data["assignetAt"] = assignedAt;
+  if (props.resourceId) {
+    resourceId = props.resourceId;
+    data["resourceId"] = resourceId;
   }
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (data) => {
+  const handleClose = () => {
     setOpen(false);
   };
 
   const onSave = (updatedData) => {
-    //validate data
-    if (isNaN(updatedData["orderNo"]) || updatedData["orderNo"] < 1) {
+    //validate input data
+    if (updatedData["state"] !== "idle" && updatedData["state"] !== "busy") {
       setErrorState({
         snackbarOpen: true,
-        msg: "Invalid ordernumber. Must be a positive number and not 0",
-        level: "warning",
-      });
-      return false;
-    }
-    if (isNaN(updatedData["orderPos"]) || updatedData["orderpos"] < 1) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Invalid order position. Must be a positive number and not 0",
+        msg: "Invalid state. Possible states: busy and idle",
         level: "warning",
       });
       return false;
@@ -114,10 +99,15 @@ export default function StateOrderCard(props) {
       });
       return false;
     }
-    if (updatedData["description"].length > 200) {
+    // validate other data against error
+    if (
+      updatedData["resourceId"] < 1 ||
+      isNaN(updatedData["resourceId"]) ||
+      updatedData["resourceId"] > 10
+    ) {
       setErrorState({
         snackbarOpen: true,
-        msg: "Description too long. Max length: 200",
+        msg: "Internal error: Invalid resourceId.",
         level: "warning",
       });
       return false;
@@ -127,19 +117,16 @@ export default function StateOrderCard(props) {
     axios.patch(
       "http://" +
         IP_BACKEND +
-        ":8000/api/AssignedOrder/" +
-        updatedData["orderNo"].toString(),
+        ":8000/api/StatePLC/" +
+        updatedData["resourceId"].toString(),
       {
-        description: updatedData["description"],
-        orderNo: updatedData["orderNo"],
-        orderPos: updatedData["orderPos"],
+        state: updatedData["state"],
         name: updatedData["name"],
       }
     );
-
     setErrorState({
       snackbarOpen: true,
-      msg: "Sucessfully updated workingstep",
+      msg: "Successfully updated state of resource",
       level: "success",
     });
     return true;
@@ -154,8 +141,21 @@ export default function StateOrderCard(props) {
             direction="row"
             alignItems="center"
             justify="flex-start"
-            width={1}
+            width="1000px"
           >
+            <Grid item>
+              <div>&nbsp; &nbsp; &nbsp;</div>
+            </Grid>
+            <Grid item>
+              <img
+                src={image}
+                alt="Image of resource"
+                width="100px"
+                height="100px"
+                alignItems="center"
+                margin="10px"
+              />
+            </Grid>
             <Grid item>
               <div>&nbsp; &nbsp; &nbsp;</div>
             </Grid>
@@ -170,9 +170,9 @@ export default function StateOrderCard(props) {
                   component="div"
                 >
                   <Box fontWeight="fontWeightBold" display="inline">
-                    Description:{" "}
+                    State:{" "}
                   </Box>{" "}
-                  {description}
+                  {state}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -180,9 +180,9 @@ export default function StateOrderCard(props) {
                   component="div"
                 >
                   <Box fontWeight="fontWeightBold" display="inline">
-                    Order number:{" "}
+                    ResourceId:{" "}
                   </Box>{" "}
-                  {orderNo}
+                  {resourceId}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -190,39 +190,19 @@ export default function StateOrderCard(props) {
                   component="div"
                 >
                   <Box fontWeight="fontWeightBold" display="inline">
-                    Order position:{" "}
+                    Mode:{" "}
                   </Box>{" "}
-                  {orderPos}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    Costumer:{" "}
-                  </Box>{" "}
-                  {costumer}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    Assigned at:{" "}
-                  </Box>{" "}
-                  {assignedAt}
+                  {mode}
                 </Typography>
               </CardContent>
             </Grid>
           </Grid>
         </CardActionArea>
-        <EditStateOrderDialog
+        <EditStatePLCDialog
           open={open}
           onClose={handleClose}
-          data={data}
           onSave={onSave}
+          data={data}
         />
       </Paper>
       <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
@@ -230,7 +210,7 @@ export default function StateOrderCard(props) {
   );
 }
 
-function EditStateOrderDialog(props) {
+function EditStatePLCDialog(props) {
   const { onClose, onSave, open, data } = props;
   const [state, setState] = React.useState(data);
 
@@ -255,41 +235,21 @@ function EditStateOrderDialog(props) {
       onClose={handleClose}
       aria-labelledby="simple-dialog-title"
       open={open}
+      justify="center"
     >
-      <DialogTitle id="simple-dialog-title">Edit order</DialogTitle>
+      <DialogTitle id="simple-dialog-title">Edit State of Resource</DialogTitle>
       <EditTextBox
         label="Name"
         mapKey="name"
         initialValue={data["name"]}
-        helperText="Name of the order"
+        helperText="Name of the resource"
         onEdit={onEdit}
       />
       <EditTextBox
-        label="Description"
-        mapKey="description"
-        initialValue={data["description"]}
-        helperText="Description of the order (optional)"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Order number"
-        mapKey="orderNo"
-        initialValue={data["orderNo"]}
-        helperText="Order number of the order"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Order position"
-        mapKey="orderPos"
-        initialValue={data["orderPos"]}
-        helperText="Position of an order within the order itself if an order contains multiple orders"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Costumer"
-        mapKey="costumer"
-        initialValue={data["costumer"]}
-        helperText="Name of the costumer who assigned the order(optional). Only change if new costumer is already created as an costumer"
+        label="State"
+        mapKey="state"
+        initialValue={data["state"]}
+        helperText="State of the resource. Don't change if not necessary"
         onEdit={onEdit}
       />
       <ListItem justify="flex-end">

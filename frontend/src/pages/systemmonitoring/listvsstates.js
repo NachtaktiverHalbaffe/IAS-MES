@@ -3,7 +3,7 @@ import axios from "axios";
 import { Box, GridList, ListItem } from "@material-ui/core";
 
 import { IP_BACKEND } from "../../const";
-import StateVSCard from "../../components/statevisualisationunit/statevscard";
+import StateVSCard from "../../components/cards/statevisualisationunit/statevscard";
 import visualisationUnit from "../../assets/visualisationunit.png";
 
 export default function ListVSStates() {
@@ -54,7 +54,7 @@ export default function ListVSStates() {
 
   return (
     <Box width={1}>
-      <GridList cellHeight={200} cols={2} spacing={30}>
+      <GridList cellHeight={200} cols={2} spacing={40}>
         {createListItem(state)}
       </GridList>
     </Box>

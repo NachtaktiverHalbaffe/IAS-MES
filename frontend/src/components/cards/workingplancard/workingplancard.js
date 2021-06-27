@@ -1,6 +1,6 @@
 /*
-Filename: stateordercard.js
-Version name: 0.1, 2021-06-21
+Filename: workingplancard.js
+Version name: 0.1, 2021-06-27
 Short description: Card component for a specific working step
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -15,16 +15,12 @@ import {
   Paper,
   CardActionArea,
   CardContent,
-  DialogTitle,
-  ListItem,
-  Button,
-  Dialog,
   Typography,
 } from "@material-ui/core";
 
-import EditTextBox from "../edittextbox/edittextbox";
-import ErrorSnackbar from "../errorsnackbar/errorsnackbar";
-import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
+import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
+import EditStateWorkingPlanDialog from "../../editdialogs/editworkingplandialog/editworkingplandialog";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from ".../../../src/const";
 
 export default function StateWorkingPlanCard(props) {
   let name = "";
@@ -74,34 +70,6 @@ export default function StateWorkingPlanCard(props) {
   };
 
   const onSave = (updatedData) => {
-    //validate data
-    if (updatedData["name"].length > 30) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Name too long. Max length: 30",
-        level: "warning",
-      });
-      return false;
-    }
-    if (updatedData["description"].length > 200) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Description too long. Max length: 30",
-        level: "warning",
-      });
-      return false;
-    }
-    if (
-      isNaN(updatedData["workingPlanNo"]) ||
-      updatedData["workingPlanNo"] < 1
-    ) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Workingplan isnt a positive number",
-        level: "warning",
-      });
-      return false;
-    }
     let payload = {};
     if (updatedData["description"] !== "") {
       payload = {
@@ -117,7 +85,13 @@ export default function StateWorkingPlanCard(props) {
         workingSteps: [],
       };
     }
-    axios.patch("http://" + IP_BACKEND + ":8000/api/WorkingPlan/", payload);
+    axios.patch(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/WorkingPlan/" +
+        updatedData["workingPlanNo"].toString(),
+      payload
+    );
     setErrorState({
       snackbarOpen: true,
       msg: "Successfully edited workingplan",
@@ -174,72 +148,10 @@ export default function StateWorkingPlanCard(props) {
           onClose={handleClose}
           data={data}
           onSave={onSave}
+          title="Edit workingplan"
         />
       </Paper>
       <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
     </Box>
-  );
-}
-
-function EditStateWorkingPlanDialog(props) {
-  const { onClose, onSave, open, data } = props;
-  const [state, setState] = React.useState(data);
-
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleSave = () => {
-    if (onSave(state)) {
-      handleClose();
-    }
-  };
-
-  const onEdit = (key, value) => {
-    let newState = state;
-    newState[key] = value;
-    setState(newState);
-  };
-
-  return (
-    <Dialog
-      onClose={handleClose}
-      aria-labelledby="simple-dialog-title"
-      open={open}
-    >
-      <DialogTitle id="simple-dialog-title">Edit order</DialogTitle>
-      <EditTextBox
-        label="Name"
-        mapKey="name"
-        initialValue={data["name"]}
-        helperText="Name of the workingplan"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Description"
-        mapKey="description"
-        initialValue={data["description"]}
-        helperText="Description of the workingplan(optional)"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Workingplan number"
-        mapKey="workingPlanNo"
-        initialValue={data["workingPlanNo"]}
-        helperText="Number of the workingplan. Identifies the workingplan"
-        onEdit={onEdit}
-      />
-      <ListItem justify="flex-end">
-        <Button
-          justify="flex-end"
-          variant="outlined"
-          color="primary"
-          href="#outlined-buttons"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </ListItem>
-    </Dialog>
   );
 }

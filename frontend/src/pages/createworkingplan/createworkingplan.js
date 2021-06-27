@@ -22,11 +22,12 @@ import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 
 //own costum components
-import { IP_BACKEND, AUTO_HIDE_DURATION, DEFINED_TASKS } from "../../const";
-import StateWorkingStepCard from "../../components/workingstepcard/stateworkingstepcard";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
+import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
 import EditTextBox from "../../components/edittextbox/edittextbox";
-import ErrorSnackbar from "../../components/errorsnackbar/errorsnackbar";
-import StateWorkingPlanCard from "../../components/workingplancard/workingplancard";
+import EditStateWorkingStepDialog from "../../components/editdialogs/editworkingstepdialog/editworkingstepdialog";
+import EditStateWorkingPlanDialog from "../../components/editdialogs/editworkingplandialog/editworkingplandialog";
+import StateWorkingPlanCard from "../../components/cards/workingplancard/workingplancard";
 
 //images
 import store from "../../assets/storage.png";
@@ -51,6 +52,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function CreateWorkingPlan() {
+  const classes = useStyles();
   const [state, setState] = React.useState({
     workingPlan: {
       name: "",
@@ -80,6 +82,7 @@ export default function CreateWorkingPlan() {
     return () => clearInterval(interval);
   });
 
+  const [wsopen, setWSOpen] = React.useState(false);
   // states stuff for opening and closing dialogs
   const [open, setOpen] = React.useState(false);
   const [errorState, setErrorState] = React.useState({
@@ -104,18 +107,13 @@ export default function CreateWorkingPlan() {
     setOpen(false);
   };
 
+  const handleWSClose = () => {
+    setWSOpen(false);
+  };
+
   const addItem = (updatedData) => {
     // set some params and validate other params
     let opNo = 0;
-    //task name valid? (defined in DEFINED_TASKS and model in backend)
-    if (!DEFINED_TASKS.includes(updatedData["task"])) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Unkown tasks. Defined tasks: " + DEFINED_TASKS.toString(),
-        level: "warning",
-      });
-      return false;
-    }
     if (updatedData["task"] === "store") {
       opNo = 210;
     } else if (updatedData["task"] === "unstore") {
@@ -132,57 +130,6 @@ export default function CreateWorkingPlan() {
       setErrorState({
         snackbarOpen: true,
         msg: "Internal error: Couldnt assign task a operation number",
-        level: "warning",
-      });
-      return false;
-    }
-    //validate stepNo. It has to be a multiple of 10
-    if (updatedData["stepNo"] % 10 !== 0) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Invalid step number. Step number must be a multiple of 10",
-        level: "warning",
-      });
-      return false;
-    }
-    // validate if color os vaslid hexcolor
-    //expression !/^#[0-9A-F]{6}$/i:
-    // ^# check if first char is #
-    // [0-9A-F]{6} check if next 6 characters are 0-9 or a-f
-    if (!/^#[0-9A-F]{6}$/i.test(updatedData["color"])) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Color is not formatted as a hex color. Format: #0dccff",
-        level: "warning",
-      });
-      return false;
-    }
-    // validate if name is shorter than 30 characters
-    if (updatedData["name"].length > 30) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Name is too long. Max length: 30",
-        level: "warning",
-      });
-      return false;
-    }
-    // validate if description is shorter than 200 character
-    if (updatedData["description"] > 200) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Description is too long.Max length: 200",
-        level: "warning",
-      });
-      return false;
-    }
-    if (
-      isNaN(updatedData["assignedToUnit"]) ||
-      updatedData["assignedToUnit"] < 1 ||
-      updatedData["assignedToUnit"] > 6
-    ) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Invalid resourceId of assigned unit. Value must be between 1-6",
         level: "warning",
       });
       return false;
@@ -244,39 +191,9 @@ export default function CreateWorkingPlan() {
             });
           });
       });
-    setErrorState({
-      snackbarOpen: true,
-      msg: "Sucessfully added workingstep",
-      level: "success",
-    });
-    return true;
   };
 
   const createPlan = (data) => {
-    if (data["name"].length > 30) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Name too long. Max length: 30",
-        level: "warning",
-      });
-      return false;
-    }
-    if (data["description"].length > 200) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Description too long. Max length: 30",
-        level: "warning",
-      });
-      return false;
-    }
-    if (isNaN(data["workingPlanNo"]) || data["workingPlanNo"] < 1) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Workingplan isnt a positive number",
-        level: "warning",
-      });
-      return false;
-    }
     let payload = {};
     if (data["description"] !== "") {
       payload = {
@@ -352,9 +269,18 @@ export default function CreateWorkingPlan() {
     }
   }
 
+  const fab = [
+    {
+      color: "primary",
+      className: classes.fab,
+      icon: <AddIcon />,
+      label: "Add",
+    },
+  ];
+
   return (
     <Box width={1}>
-      <CreateWorkingPlanDialog
+      <EditStateWorkingPlanDialog
         data={{
           name: "",
           description: "",
@@ -362,12 +288,23 @@ export default function CreateWorkingPlan() {
         }}
         onSave={createPlan}
         open={open}
-        handleClose={handleClose}
+        onClose={handleClose}
+        title="Create workingplan"
       />
       <List width={1}>
         {createListItem(state.workingPlan, state.workingSteps)}
       </List>
-      <CreateWorkingStepDialog
+      <Fab
+        color="primary"
+        aria-label="add"
+        className={fab.className}
+        onClick={() => {
+          setWSOpen(true);
+        }}
+      >
+        <AddIcon />
+      </Fab>
+      <EditStateWorkingStepDialog
         data={{
           assignedToUnit: 0,
           description: "",
@@ -378,9 +315,11 @@ export default function CreateWorkingPlan() {
           id: state.workingSteps.length + 1,
           color: "#000000",
         }}
+        title="Create workingstep"
         onSave={addItem}
+        open={wsopen}
+        onClose={handleWSClose}
       />
-      <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
     </Box>
   );
 }
@@ -436,177 +375,6 @@ function createListItem(workingPlan, workingSteps) {
   }
 
   return items;
-}
-
-function CreateWorkingStepDialog(props) {
-  const classes = useStyles();
-  const { onSave, data } = props;
-  const [open, setOpen] = React.useState(false);
-  const [state, setState] = React.useState(data);
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleSave = () => {
-    if (onSave(state)) {
-      handleClose();
-    }
-  };
-
-  const onEdit = (key, value) => {
-    let newState = state;
-
-    newState[key] = value;
-    setState(newState);
-  };
-
-  const fab = [
-    {
-      color: "primary",
-      className: classes.fab,
-      icon: <AddIcon />,
-      label: "Add",
-    },
-  ];
-
-  return (
-    <Box>
-      <Fab
-        color="primary"
-        aria-label="add"
-        className={fab.className}
-        onClick={() => {
-          setOpen(true);
-        }}
-      >
-        <AddIcon />
-      </Fab>
-
-      <Dialog
-        onClose={handleClose}
-        aria-labelledby="simple-dialog-title"
-        open={open}
-      >
-        <DialogTitle id="simple-dialog-title">Create workingstep</DialogTitle>
-        <EditTextBox
-          label="Name"
-          mapKey="name"
-          initialValue={data["name"]}
-          helperText="Name of the workingstep"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Task"
-          mapKey="task"
-          initialValue={data["task"]}
-          helperText="Task which gets executed on the resource"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Description"
-          mapKey="description"
-          initialValue={data["description"]}
-          helperText="Description of the workingstep(optional)"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Step number"
-          mapKey="stepNo"
-          initialValue={data["stepNo"]}
-          helperText="Step number of the workingstep. Workingsteps gets executed in ascending order"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="State"
-          mapKey="state"
-          initialValue={data["state"]}
-          helperText="If workingstep is pending or finished"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Assigned resource"
-          mapKey="assignedToUnit"
-          initialValue={data["assignedToUnit"]}
-          helperText="Id of assigned resource and mounted visualisation unit of the workingstep"
-          onEdit={onEdit}
-        />
-        <ListItem justify="flex-end">
-          <Button
-            justify="flex-end"
-            variant="outlined"
-            color="primary"
-            href="#outlined-buttons"
-            onClick={handleSave}
-          >
-            Save
-          </Button>
-        </ListItem>
-      </Dialog>
-    </Box>
-  );
-}
-
-function CreateWorkingPlanDialog(props) {
-  const { onSave, data, handleClose, open } = props;
-  const [state, setState] = React.useState(data);
-
-  const handleSave = () => {
-    if (onSave(state)) {
-      handleClose();
-    }
-  };
-
-  const onEdit = (key, value) => {
-    let newState = state;
-
-    newState[key] = value;
-    setState(newState);
-  };
-
-  return (
-    <Box>
-      <Dialog
-        onClose={handleClose}
-        aria-labelledby="simple-dialog-title"
-        open={open}
-      >
-        <DialogTitle id="simple-dialog-title">Create workingplan</DialogTitle>
-        <EditTextBox
-          label="Name"
-          mapKey="name"
-          initialValue={data["name"]}
-          helperText="Name of the workingplan"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Description"
-          mapKey="description"
-          initialValue={data["description"]}
-          helperText="Description of the workingplan(optional)"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Workingplan number"
-          mapKey="workingPlanNo"
-          initialValue={data["workingPlanNo"]}
-          helperText="Number of the workingplan. Identifies the workingplan"
-          onEdit={onEdit}
-        />
-        <ListItem justify="flex-end">
-          <Button
-            justify="flex-end"
-            variant="outlined"
-            color="primary"
-            href="#outlined-buttons"
-            onClick={handleSave}
-          >
-            Save
-          </Button>
-        </ListItem>
-      </Dialog>
-    </Box>
-  );
 }
 
 // compares if two states of Workingsteps are equal. Returns true if equal and vise versa

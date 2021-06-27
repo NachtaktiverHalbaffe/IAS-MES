@@ -3,7 +3,7 @@ import { GridList, ListItem } from "@material-ui/core";
 import axios from "axios";
 
 import { IP_BACKEND } from "../../const";
-import StatePLCCard from "../../components/stateplccard/stateplccard";
+import StatePLCCard from "../../components/cards/stateplccard/stateplccard";
 import branch from "../../assets/branch.png";
 import storage from "../../assets/storage.png";
 import robotino from "../../assets/robotino.png";
@@ -60,7 +60,7 @@ export default function ListStates() {
   }
 
   return (
-    <GridList cellHeight={170} cols={3} spacing={20}>
+    <GridList cellHeight={170} cols={3} spacing={15}>
       {createListItem(state)}
     </GridList>
   );
