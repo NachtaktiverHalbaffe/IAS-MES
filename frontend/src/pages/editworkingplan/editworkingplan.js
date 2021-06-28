@@ -279,7 +279,6 @@ export default function EditWorkingPlan() {
             justify="flex-end"
             variant="outlined"
             color="primary"
-            href="#outlined-buttons"
             onClick={() => {
               setOpen(true);
             }}

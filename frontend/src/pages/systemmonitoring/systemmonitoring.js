@@ -13,6 +13,7 @@ import { Grid, Typography } from "@material-ui/core";
 import ListStates from "./liststates";
 import ListVSStates from "./listvsstates";
 import ListStateWorkingSteps from "./liststateworkingsteps";
+import ListStateWorkingPieces from "./liststatesworkingpieces";
 
 export default function SystemMonitoring() {
   return (
@@ -51,6 +52,20 @@ export default function SystemMonitoring() {
               States of the visualisation units
             </Typography>
             <ListVSStates />
+          </Grid>
+          <Grid
+            item
+            xs
+            container
+            direction="column"
+            spacing={2}
+            alignItems="center"
+          >
+            <div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+            <Typography gutterBottom variant="h5" component="h2">
+              States of the workingpieces
+            </Typography>
+            <ListStateWorkingPieces />
           </Grid>
         </Grid>
       </Grid>

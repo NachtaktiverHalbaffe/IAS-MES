@@ -8,16 +8,25 @@ Short description: Card component for a specific working step
 */
 
 import React from "react";
-import { Box, Button, Dialog, DialogTitle, ListItem } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Grid,
+  Dialog,
+  DialogTitle,
+  ListItem,
+} from "@material-ui/core";
 
 import EditTextBox from "../../edittextbox/edittextbox";
 import EditChoiceBox from "../../edittextbox/editchoicebox";
 import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import { AUTO_HIDE_DURATION, DEFINED_TASKS } from "../../../../src/const";
+import { ChromePicker } from "react-color";
 
 export default function EditStateWorkingStepDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
+  const [color, setColor] = React.useState(data["color"]);
 
   // statemanagment for snackbar
   const [errorState, setErrorState] = React.useState({
@@ -127,6 +136,13 @@ export default function EditStateWorkingStepDialog(props) {
     setState(newState);
   };
 
+  const onColorEdit = (value) => {
+    let newState = state;
+    newState["color"] = value.hex;
+    setState(newState);
+    setColor(value.hex);
+  };
+
   return (
     <Box>
       {" "}
@@ -141,70 +157,75 @@ export default function EditStateWorkingStepDialog(props) {
         open={open}
       >
         <DialogTitle id="simple-dialog-title">{title}</DialogTitle>
-        <EditTextBox
-          label="Name"
-          mapKey="name"
-          initialValue={data["name"]}
-          helperText="Name of the workingstep"
-          onEdit={onEdit}
-        />
-        <EditChoiceBox
-          label="Task"
-          mapKey="task"
-          initialValue={data["task"]}
-          helperText="Task which gets executed on the resource"
-          onEdit={onEdit}
-          choices={DEFINED_TASKS}
-        />
-        <EditTextBox
-          label="Description"
-          mapKey="description"
-          initialValue={data["description"]}
-          helperText="Description of the workingstep(optional)"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Step number"
-          mapKey="stepNo"
-          initialValue={data["stepNo"]}
-          helperText="Step number of the workingstep. Workingsteps gets executed in ascending order"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="State"
-          mapKey="state"
-          initialValue={data["state"]}
-          helperText="If workingstep is pending or finished"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="Assigned resource"
-          mapKey="assignedToUnit"
-          initialValue={data["assignedToUnit"]}
-          helperText="Id of assigned resource and mounted visualisation unit of the workingstep"
-          onEdit={onEdit}
-        />
-        <ListItem justify="flex-end">
-          <Button
-            justify="flex-end"
-            variant="outlined"
-            color="primary"
-            href="#outlined-buttons"
-            onClick={handleSave}
-          >
-            Save
-          </Button>
-          <div>&nbsp; &nbsp; &nbsp;</div>
-          <Button
-            justify="flex-end"
-            variant="outlined"
-            color="primary"
-            href="#outlined-buttons"
-            onClick={handleDelete}
-          >
-            Delete
-          </Button>
-        </ListItem>
+        <Grid container direction="column" justify="center" alignItems="center">
+          <EditTextBox
+            label="Name"
+            mapKey="name"
+            initialValue={data["name"]}
+            helperText="Name of the workingstep"
+            onEdit={onEdit}
+          />
+          <EditChoiceBox
+            label="Task"
+            mapKey="task"
+            initialValue={data["task"]}
+            helperText="Task which gets executed on the resource"
+            onEdit={onEdit}
+            choices={DEFINED_TASKS}
+          />
+          <Grid item>
+            <ChromePicker color={color} onChangeComplete={onColorEdit} />
+          </Grid>
+          <EditTextBox
+            label="Description"
+            mapKey="description"
+            initialValue={data["description"]}
+            helperText="Description of the workingstep(optional)"
+            onEdit={onEdit}
+          />
+          <EditTextBox
+            label="Step number"
+            mapKey="stepNo"
+            initialValue={data["stepNo"]}
+            helperText="Step number of the workingstep. Workingsteps gets executed in ascending order"
+            onEdit={onEdit}
+          />
+          <EditTextBox
+            label="State"
+            mapKey="state"
+            initialValue={data["state"]}
+            helperText="If workingstep is pending or finished"
+            onEdit={onEdit}
+          />
+          <EditTextBox
+            label="Assigned resource"
+            mapKey="assignedToUnit"
+            initialValue={data["assignedToUnit"]}
+            helperText="Id of assigned resource and mounted visualisation unit of the workingstep"
+            onEdit={onEdit}
+          />
+          <ListItem justify="flex-end">
+            <Button
+              justify="flex-end"
+              variant="outlined"
+              color="primary"
+              href="#outlined-buttons"
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+            <div>&nbsp; &nbsp; &nbsp;</div>
+            <Button
+              justify="flex-end"
+              variant="outlined"
+              color="primary"
+              href="#outlined-buttons"
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          </ListItem>
+        </Grid>
       </Dialog>
     </Box>
   );

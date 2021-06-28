@@ -94,9 +94,9 @@ class StateWorkingPiece(models.Model):
     # color of the working piece
     color = ColorField()
     # working piece is in assembled state
-    isAssembled = models.BooleanField()
+    isAssembled = models.BooleanField(default= False)
     # working piece is packaged
-    isPackaged = models.BooleanField()
+    isPackaged = models.BooleanField(default= False)
     # model name of 3D Model
     model = models.CharField(
         max_length=100, choices=MODEL_CHOICES, default='IAS-Logo')
