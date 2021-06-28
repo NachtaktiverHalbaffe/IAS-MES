@@ -310,6 +310,7 @@ function createListItem(workingPlan, workingSteps) {
           name={workingPlan["name"]}
           description={workingPlan["description"]}
           workingPlanNo={workingPlan["workingPlanNo"]}
+          workingSteps={workingPlan["workingSteps"]}
         />
       </Grid>
     );

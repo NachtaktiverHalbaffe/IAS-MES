@@ -26,6 +26,7 @@ export default function StateWorkingPlanCard(props) {
   let name = "";
   let description = "";
   let workingPlanNo = 0;
+  let workingSteps;
   let handleClickOpen = null;
   let onClick = null;
 
@@ -61,6 +62,10 @@ export default function StateWorkingPlanCard(props) {
   if (props.workingPlanNo) {
     workingPlanNo = props.workingPlanNo;
     data["workingPlanNo"] = workingPlanNo;
+  }
+  if (props.workingSteps) {
+    workingSteps = props.workingSteps;
+    data["workingSteps"] = workingSteps;
   }
   if (!props.onClick) {
     handleClickOpen = () => {
@@ -102,6 +107,27 @@ export default function StateWorkingPlanCard(props) {
       msg: "Successfully edited workingplan",
       level: "success",
     });
+    return true;
+  };
+
+  const onDelete = (planToDelete) => {
+    // delete corresponding workingsteps from database
+    console.log(planToDelete);
+    for (let i = 0; i < planToDelete["workingSteps"].length; i++) {
+      axios.delete(
+        "http://" +
+          IP_BACKEND +
+          ":8000/api/WorkingStep/" +
+          planToDelete["workingSteps"][i].toString()
+      );
+    }
+    // delete workingplan itself
+    axios.delete(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/WorkingPlan/" +
+        planToDelete["workingPlanNo"].toString()
+    );
     return true;
   };
 
@@ -153,6 +179,7 @@ export default function StateWorkingPlanCard(props) {
           onClose={handleClose}
           data={data}
           onSave={onSave}
+          onDelete={onDelete}
           title="Edit workingplan"
         />
       </Paper>

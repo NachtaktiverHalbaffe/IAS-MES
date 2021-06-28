@@ -8,7 +8,7 @@ callback functions for data managment pruposes are defined in the signals of mes
 
 """
 
-from django.db.models.signals import post_save, pre_save, post_delete, m2m_changed
+from django.db.models.signals import post_save, pre_save, pre_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
 import requests
@@ -124,7 +124,7 @@ def sendVisualisationtasks(sender, instance, **kwargs):
 
 # send delete requests to all visualisationunits when a order is deleted
 # (usually on end of order or if order is aborted)
-@receiver(post_delete, sender=AssignedOrder)
+@receiver(pre_delete, sender=AssignedOrder)
 def deleteOrder(sender, instance, **kwargs):
     if instance.assigendWorkingPlan != None:
         workingsteps = instance.assigendWorkingPlan.workingSteps.all()
@@ -154,13 +154,6 @@ def deleteOrder(sender, instance, **kwargs):
                         errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
                         msg=str(e)
                     )
-            else:
-                safteyMonitoring = SafteyMonitoring()
-                safteyMonitoring.decodeError(
-                    errorLevel=safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=safteyMonitoring.CATEGORY_DATA,
-                    msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES"
-                )
 
 
 # Gets executed after a workingplan is saved. It validates the workingplan on static parameters
