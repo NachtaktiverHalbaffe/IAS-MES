@@ -69,9 +69,6 @@ export default function CreateOrder() {
         setOpen(true);
       }
       getWorkingPlansFromMes();
-      if (state.workingSteps.length !== 0) {
-        getWorkingStepsFromMes();
-      }
     }, pollingTime * 1000);
     return () => clearInterval(interval);
   });
@@ -94,7 +91,7 @@ export default function CreateOrder() {
       .then((res) => {
         setCreatedOrder({
           order: res.data,
-          selectedWorkingPlan: createdOrder.workingSteps,
+          selectedWorkingPlan: createdOrder.selectedWorkingPlan,
         });
       });
 
@@ -103,7 +100,6 @@ export default function CreateOrder() {
 
   const selectWorkingPlan = (selectedPlan) => {
     let order = createdOrder.order;
-    order["assigendWorkingPlan"] = selectedPlan["workingPlanNo"];
     setCreatedOrder({
       order: order,
       selectedWorkingPlan: selectedPlan,
@@ -134,31 +130,6 @@ export default function CreateOrder() {
       });
   }
 
-  async function getWorkingStepsFromMes() {
-    let steps = [];
-    let oldSteps = state.workingSteps;
-    for (let i = 0; i < state.workingPlan["workingSteps"].length; i++) {
-      axios
-        .get(
-          "http://" +
-            IP_BACKEND +
-            ":8000/api/WorkingStep/" +
-            state.workingPlan["workingSteps"][i].toString()
-        )
-        .then(async (res) => {
-          steps.push(res.data);
-          if (steps.length === oldSteps.length) {
-            if (!mCompareWorkingSteps(oldSteps, steps)) {
-              setState({
-                workingPlan: state.workingPlan,
-                workingSteps: steps,
-              });
-            }
-          }
-        });
-    }
-  }
-
   return (
     <Box justify="center" alignItems="center">
       <EditStateOrderDialog
@@ -172,18 +143,8 @@ export default function CreateOrder() {
         onClose={handleClose}
         title="Create Order"
       />
-      <Grid
-        container
-        spacing={0}
-        justify="center"
-        alignItems="center"
-        direction="column"
-      >
-        {createListItem(
-          createdOrder.order,
-          createdOrder.workingPlan,
-          createdOrder.workingSteps
-        )}
+      <Grid container justify="center" alignItems="center" direction="column">
+        {createListItem(createdOrder.order, createdOrder.selectedWorkingPlan)}
         <Grid item>
           <div>&nbsp; &nbsp; &nbsp;</div>
         </Grid>
@@ -220,9 +181,8 @@ export default function CreateOrder() {
   );
 }
 
-function createListItem(order, workingPlan, workingSteps) {
+function createListItem(order, workingPlan) {
   let items = [];
-  let steps = workingSteps;
   if (order["orderNo"] !== 0) {
     items.push(
       <Grid item xs={12}>
@@ -237,74 +197,22 @@ function createListItem(order, workingPlan, workingSteps) {
       </Grid>
     );
   }
-
-  //   if (steps.length > 1) {
-  //     steps = steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
-  //   }
-  //   for (let j = 0; j < steps.length; j++) {
-  //     // get right image
-  //     let img = null;
-  //     if (steps[j].task === "unstore" || steps[j].task === "store") {
-  //       img = store;
-  //     } else if (steps[j].task === "assemble") {
-  //       img = assemble;
-  //     } else if (steps[j].task === "color") {
-  //       img = color;
-  //     } else if (steps[j].task === "generic") {
-  //       img = generic;
-  //     } else if (steps[j].task === "package") {
-  //       img = imgPackage;
-  //     } else if (steps[j].task === "unpackage") {
-  //       img = unpackage;
-  //     }
-  //     // get wright order
-  //     items.push(
-  //       <ListItem width={1} key={steps[j].id}>
-  //         <StateWorkingStepCard
-  //           assignedToUnit={steps[j].assignedToUnit}
-  //           description={steps[j].description}
-  //           name={steps[j].name}
-  //           img={img}
-  //           state="pending"
-  //           task={steps[j].task}
-  //           stepNo={steps[j].stepNo}
-  //           color={steps[j].color}
-  //           id={steps[j].id}
-  //         />
-  //       </ListItem>
-  //     );
-  //   }
+  console.log(workingPlan);
+  if (workingPlan["workingPlanNo"] !== 0) {
+    items.push(
+      <Grid item xs={12}>
+        <Grid item>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+        </Grid>
+        <StateWorkingPlanCard
+          name={workingPlan["name"]}
+          description={workingPlan["description"]}
+          workingPlanNo={workingPlan["workingPlanNo"]}
+          workingSteps={workingPlan["workingSteps"]}
+        />
+      </Grid>
+    );
+  }
 
   return items;
-}
-
-// compares if two states of Workingsteps are equal. Returns true if equal and vise versa
-function mCompareWorkingSteps(oldSteps, newSteps) {
-  // check lengths
-
-  if (oldSteps.length !== newSteps.length) {
-    return false;
-  }
-  // check workingsteps
-  oldSteps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
-  newSteps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
-  for (let i = 0; i < oldSteps.length; i++) {
-    if (oldSteps[i].task !== newSteps[i].task) {
-      return false;
-    }
-    if (oldSteps[i].color !== newSteps[i].color) {
-      return false;
-    }
-    if (oldSteps[i].assignedToUnit !== newSteps[i].assignedToUnit) {
-      return false;
-    }
-    if (oldSteps[i].name !== newSteps[i].name) {
-      return false;
-    }
-    if (oldSteps[i].description !== newSteps[i].description) {
-      return false;
-    }
-  }
-
-  return true;
 }
