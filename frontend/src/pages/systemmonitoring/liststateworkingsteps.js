@@ -56,6 +56,7 @@ export default function ListStateWorkingSteps() {
             orderPos={currentOrders[i].orderPos}
             assignedAt={currentOrders[i].assignedAt}
             costumer={costumer}
+            id={currentOrders[i].id}
           />
         </ListItem>
       );

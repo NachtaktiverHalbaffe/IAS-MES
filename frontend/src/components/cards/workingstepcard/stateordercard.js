@@ -28,6 +28,7 @@ export default function StateOrderCard(props) {
   let orderPos = 0;
   let costumer = "";
   let assignedAt = "";
+  let id = "";
 
   const [open, setOpen] = React.useState(false);
   // statemanagment for snackbar
@@ -74,6 +75,10 @@ export default function StateOrderCard(props) {
     assignedAt = props.assignedAt;
     data["assignetAt"] = assignedAt;
   }
+  if (props.id) {
+    id = props.id;
+    data["id"] = id;
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -89,7 +94,7 @@ export default function StateOrderCard(props) {
       "http://" +
         IP_BACKEND +
         ":8000/api/AssignedOrder/" +
-        updatedData["orderNo"].toString(),
+        updatedData["id"].toString(),
       {
         description: updatedData["description"],
         orderNo: updatedData["orderNo"],
@@ -103,6 +108,16 @@ export default function StateOrderCard(props) {
       msg: "Sucessfully updated workingstep",
       level: "success",
     });
+    return true;
+  };
+
+  const onDelete = (orderToDelete) => {
+    axios.delete(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/AssignedOrder/" +
+        orderToDelete["id"].toString()
+    );
     return true;
   };
 
@@ -184,6 +199,7 @@ export default function StateOrderCard(props) {
           onClose={handleClose}
           data={data}
           onSave={onSave}
+          onDelete={onDelete}
           title="Edit order"
         />
       </Paper>

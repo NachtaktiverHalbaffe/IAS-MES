@@ -10,16 +10,17 @@ Short description: page for creating a order
 import React, { useEffect } from "react";
 import axios from "axios";
 import {
-  Card,
-  CardActionArea,
+  Button,
   Box,
   List,
   ListItem,
+  Grid,
   Typography,
 } from "@material-ui/core";
 
 //own costum components
 import EditStateOrderDialog from "../../components/editdialogs/editorderdialog/editorderdialog";
+import ChooseWorkingPlanDialog from "../../components/editdialogs/chooseworkingplandialog/chooseworkingplandialog";
 import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
 import StateWorkingPlanCard from "../../components/cards/workingplancard/workingplancard";
 import StateOrderCard from "../../components/cards/workingstepcard/stateordercard";
@@ -35,22 +36,7 @@ import generic from "../../assets/generic.png";
 
 export default function CreateOrder() {
   const [state, setState] = React.useState({
-    order: {
-      id: 0,
-      name: "",
-      description: "",
-      assigendWorkingPlan: 0,
-      assignedWorkingPiece: 0,
-      orderNo: 0,
-      orderPos: 0,
-      mainOrderPos: 0,
-    },
-    workingPlan: {
-      name: "",
-      description: "",
-      workingPlanNo: 0,
-      workingSteps: [],
-    },
+    workingPlans: [],
     workingSteps: [],
   });
   const [createdOrder, setCreatedOrder] = React.useState({
@@ -72,6 +58,7 @@ export default function CreateOrder() {
     },
   });
   const [open, setOpen] = React.useState(true);
+  const [openChooseDialog, setOpenChooseDialog] = React.useState(false);
 
   useEffect(() => {
     const pollingTime = 1; // interval for polling in seconds
@@ -115,17 +102,33 @@ export default function CreateOrder() {
   };
 
   const selectWorkingPlan = (selectedPlan) => {
-    console.log(selectedPlan);
+    let order = createdOrder.order;
+    order["assigendWorkingPlan"] = selectedPlan["workingPlanNo"];
+    setCreatedOrder({
+      order: order,
+      selectedWorkingPlan: selectedPlan,
+    });
+    let payload = {
+      assigendWorkingPlan: selectedPlan["workingPlanNo"],
+    };
+    axios.patch(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/AssignedOrder/" +
+        order["id"].toString(),
+      payload
+    );
+    setOpenChooseDialog(false);
+    return true;
   };
 
   function getWorkingPlansFromMes() {
-    let plans = null;
     axios
       .get("http://" + IP_BACKEND + ":8000/api/WorkingPlan/")
       .then(async (res) => {
-        plans = res.data;
+        let plans = res.data;
         await setState({
-          workingPlan: plans,
+          workingPlans: plans,
           workingSteps: state.workingSteps,
         });
       });
@@ -157,10 +160,7 @@ export default function CreateOrder() {
   }
 
   return (
-    <Box>
-      <Typography gutterBottom variant="h5" component="h2">
-        Create order (changes gets autosaved)
-      </Typography>
+    <Box justify="center" alignItems="center">
       <EditStateOrderDialog
         data={{
           name: "",
@@ -172,17 +172,50 @@ export default function CreateOrder() {
         onClose={handleClose}
         title="Create Order"
       />
-      <List width={1}>
+      <Grid
+        container
+        spacing={0}
+        justify="center"
+        alignItems="center"
+        direction="column"
+      >
         {createListItem(
           createdOrder.order,
           createdOrder.workingPlan,
           createdOrder.workingSteps
         )}
+        <Grid item>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+        </Grid>
         <Typography gutterBottom variant="h5" component="h2">
-          Choose Workingplan to get executed
+          Create order (changes gets autosaved)
         </Typography>
-        {createSelectWorkingPlan(state.workingPlan, selectWorkingPlan)}
-      </List>
+        <Grid item>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+        </Grid>
+        <Grid item>
+          <Button
+            justify="flex-end"
+            variant="outlined"
+            color="primary"
+            href="#outlined-buttons"
+            onClick={() => {
+              setOpenChooseDialog(true);
+            }}
+          >
+            Select workingplan
+          </Button>
+        </Grid>
+        <ChooseWorkingPlanDialog
+          open={openChooseDialog}
+          selectWorkingPlan={selectWorkingPlan}
+          title="Choose workingplan to execute"
+          onClose={() => {
+            setOpenChooseDialog(false);
+          }}
+          workingPlans={state.workingPlans}
+        />
+      </Grid>
     </Box>
   );
 }
@@ -192,7 +225,7 @@ function createListItem(order, workingPlan, workingSteps) {
   let steps = workingSteps;
   if (order["orderNo"] !== 0) {
     items.push(
-      <ListItem width={1}>
+      <Grid item xs={12}>
         <StateOrderCard
           name={order.name}
           description={order.description}
@@ -201,7 +234,7 @@ function createListItem(order, workingPlan, workingSteps) {
           assignedAt={order.assignedAt}
           costumer=""
         />
-      </ListItem>
+      </Grid>
     );
   }
 
@@ -241,32 +274,6 @@ function createListItem(order, workingPlan, workingSteps) {
   //       </ListItem>
   //     );
   //   }
-
-  return items;
-}
-
-function createSelectWorkingPlan(workingPlans, selectWorkingPlan) {
-  let items = [];
-
-  if (workingPlans.length > 1) {
-    workingPlans = workingPlans.sort((a, b) =>
-      a.workingPlanNo > b.workingPlanNo ? 1 : -1
-    );
-  }
-  for (let i = 0; i < workingPlans.length; i++) {
-    items.push(
-      <ListItem width={1}>
-        <Card>
-          <StateWorkingPlanCard
-            name={workingPlans[i]["name"]}
-            description={workingPlans[i]["description"]}
-            workingPlanNo={workingPlans[i]["workingPlanNo"]}
-            onClick={selectWorkingPlan}
-          />
-        </Card>
-      </ListItem>
-    );
-  }
 
   return items;
 }
