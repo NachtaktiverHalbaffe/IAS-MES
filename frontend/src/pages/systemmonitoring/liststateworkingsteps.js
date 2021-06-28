@@ -39,7 +39,7 @@ export default function ListStateWorkingSteps() {
       if (order["assigendWorkingPlan"] !== null) {
         getWorkingPlanFromMes();
       }
-      getWorkingStepsFromMes();
+      await getWorkingStepsFromMes();
     }, pollingTime * 1000);
     return () => clearInterval(interval);
   });
@@ -61,7 +61,6 @@ export default function ListStateWorkingSteps() {
       );
 
       // create cards of workingsteps
-      console.log(wssteps);
       if (wssteps.length !== 0) {
         let steps = wssteps[i];
         steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
@@ -145,12 +144,12 @@ export default function ListStateWorkingSteps() {
     }
   }
 
-  function getWorkingStepsFromMes() {
+  async function getWorkingStepsFromMes() {
     let steps = [];
     let allSteps = [];
     for (let j = 0; j < workingPlan.length; j++) {
       for (let i = 0; i < workingPlan[j].workingSteps.length; i++) {
-        axios
+        await axios
           .get(
             "http://" +
               IP_BACKEND +
@@ -166,6 +165,7 @@ export default function ListStateWorkingSteps() {
                 let oldSteps = workingSteps;
                 // only set state if workingsteps have changed
                 if (!mCompareWorkingSteps(oldSteps, allSteps)) {
+                  console.log("Oh no");
                   setWorkingSteps(allSteps);
                 }
               }
@@ -222,11 +222,15 @@ function mCompareWorkingSteps(oldSteps, newSteps) {
       return false;
     } else if (oldSteps[i].length === newSteps[i].length) {
       let old = oldSteps[i];
-      old.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
+      old = old.sort((a, b) => (a["stepNo"] > b["stepNo"] ? 1 : -1));
       let newP = newSteps[i];
-      newP.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
+      newP = newP.sort((a, b) => (a["stepNo"] > b["stepNo"] ? 1 : -1));
       for (let j = 0; j < old.length; j++) {
-        if (old[j].task !== newP[j].task) {
+        // console.log("old");
+        // console.log(old);
+        // console.log("new ");
+        // console.log(newP);
+        if (old[j]["task"] !== newP[j]["task"]) {
           return false;
         }
         if (old[j].color !== newP[j].color) {

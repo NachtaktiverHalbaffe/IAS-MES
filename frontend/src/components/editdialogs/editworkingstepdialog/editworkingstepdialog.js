@@ -16,7 +16,7 @@ import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import { AUTO_HIDE_DURATION, DEFINED_TASKS } from "../../../../src/const";
 
 export default function EditStateWorkingStepDialog(props) {
-  const { onClose, onSave, open, data, title } = props;
+  const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
 
   // statemanagment for snackbar
@@ -114,6 +114,13 @@ export default function EditStateWorkingStepDialog(props) {
     }
   };
 
+  const handleDelete = () => {
+    if (onDelete(state)) {
+      handleClose();
+      return true;
+    }
+  };
+
   const onEdit = (key, value) => {
     let newState = state;
     newState[key] = value;
@@ -186,6 +193,16 @@ export default function EditStateWorkingStepDialog(props) {
             onClick={handleSave}
           >
             Save
+          </Button>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+          <Button
+            justify="flex-end"
+            variant="outlined"
+            color="primary"
+            href="#outlined-buttons"
+            onClick={handleDelete}
+          >
+            Delete
           </Button>
         </ListItem>
       </Dialog>

@@ -142,6 +142,16 @@ export default function StateWorkingStepCard(props) {
     return true;
   };
 
+  const onDelete = (stepToDelete) => {
+    axios.delete(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/WorkingStep/" +
+        stepToDelete["id"].toString()
+    );
+    return true;
+  };
+
   return (
     <Box width={1}>
       <Paper elevation={3}>
@@ -233,6 +243,7 @@ export default function StateWorkingStepCard(props) {
           onClose={handleClose}
           data={data}
           onSave={onSave}
+          onDelete={onDelete}
           title="Edit workingstep"
         />
       </Paper>

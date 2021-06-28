@@ -15,7 +15,7 @@ import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import { AUTO_HIDE_DURATION } from "../../../../src/const";
 
 export default function EditStateOrderDialog(props) {
-  const { onClose, onSave, open, data, title } = props;
+  const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
 
   // statemanagment for snackbar
@@ -39,6 +39,13 @@ export default function EditStateOrderDialog(props) {
 
   const handleClose = () => {
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (onDelete(state)) {
+      handleClose();
+      return true;
+    }
   };
 
   const handleSave = () => {
@@ -137,6 +144,16 @@ export default function EditStateOrderDialog(props) {
           onClick={handleSave}
         >
           Save
+        </Button>
+        <div>&nbsp; &nbsp; &nbsp;</div>
+        <Button
+          justify="flex-end"
+          variant="outlined"
+          color="primary"
+          href="#outlined-buttons"
+          onClick={handleDelete}
+        >
+          Delete
         </Button>
       </ListItem>
       <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
