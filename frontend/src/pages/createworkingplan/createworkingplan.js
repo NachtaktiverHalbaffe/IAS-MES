@@ -9,16 +9,7 @@ Short description: page for creating a workingplan
 
 import React, { useEffect } from "react";
 import axios from "axios";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogTitle,
-  Fab,
-  List,
-  ListItem,
-  Typography,
-} from "@material-ui/core";
+import { Box, Fab, Grid, List, ListItem, Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import AddIcon from "@material-ui/icons/Add";
 
@@ -298,30 +289,31 @@ export default function CreateWorkingPlan() {
       <Typography gutterBottom variant="h5" component="h2">
         Create workingplan (changes gets autosaved)
       </Typography>
-      <EditStateWorkingPlanDialog
-        data={{
-          name: "",
-          description: "",
-          workingPlanNo: 0,
-        }}
-        onSave={createPlan}
-        open={open}
-        onClose={handleClose}
-        title="Create workingplan"
-      />
-      <List width={1}>
-        {createListItem(state.workingPlan, state.workingSteps)}
-      </List>
-      <Fab
-        color="primary"
-        aria-label="add"
-        className={fab.className}
-        onClick={() => {
-          setWSOpen(true);
-        }}
+
+      <Grid
+        container
+        justify="space-evenly"
+        alignItems="center"
+        direction="column"
       >
-        <AddIcon />
-      </Fab>
+        <List width={1}>
+          {createListItem(state.workingPlan, state.workingSteps)}
+        </List>
+        <Grid item>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+          <Fab
+            color="primary"
+            aria-label="add"
+            className={fab.className}
+            onClick={() => {
+              setWSOpen(true);
+            }}
+          >
+            <AddIcon />
+          </Fab>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+        </Grid>
+      </Grid>
       <EditStateWorkingStepDialog
         data={{
           assignedToUnit: 0,
@@ -337,6 +329,17 @@ export default function CreateWorkingPlan() {
         onSave={addItem}
         open={wsopen}
         onClose={handleWSClose}
+      />
+      <EditStateWorkingPlanDialog
+        data={{
+          name: "",
+          description: "",
+          workingPlanNo: 0,
+        }}
+        onSave={createPlan}
+        open={open}
+        onClose={handleClose}
+        title="Create workingplan"
       />
       <ErrorSnackbar
         level={errorState.level}

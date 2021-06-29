@@ -272,8 +272,7 @@ export default function EditWorkingPlan() {
           >
             <AddIcon />
           </Fab>
-          <div>&nbsp; &nbsp; &nbsp;</div>
-        </Grid>
+          
         <Grid item>
           <Button
             justify="flex-end"
@@ -347,6 +346,7 @@ function createListItem(workingPlan, workingSteps) {
           stepNo={steps[j].stepNo}
           color={steps[j].color}
           id={steps[j].id}
+          allSteps={steps}
         />
       </ListItem>
     );
