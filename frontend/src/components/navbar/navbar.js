@@ -11,6 +11,7 @@ import SystemMonitoring from "../../pages/systemmonitoring/systemmonitoring";
 import CreateOrder from "../../pages/createorder/createorder";
 import CreateWorkingPlan from "../../pages/createworkingplan/createworkingplan";
 import EditWorkingPlan from "../../pages/editworkingplan/editworkingplan";
+import ErrorLogs from "../../pages/errorlogs/errorlogs";
 
 export default function Navbar() {
   const [selectedTab, setSelectedTab] = React.useState(0);
@@ -30,6 +31,7 @@ export default function Navbar() {
           <Tab label="Create order" />
           <Tab label="Create workingplan" />
           <Tab label="Edit workingplan" />
+          <Tab label="Error logs" />
         </Tabs>
       </Toolbar>
       <TabPanel value={selectedTab} index={0}>
@@ -43,6 +45,9 @@ export default function Navbar() {
       </TabPanel>
       <TabPanel value={selectedTab} index={3}>
         <EditWorkingPlan />
+      </TabPanel>
+      <TabPanel value={selectedTab} index={4}>
+        <ErrorLogs />
       </TabPanel>
     </>
   );
