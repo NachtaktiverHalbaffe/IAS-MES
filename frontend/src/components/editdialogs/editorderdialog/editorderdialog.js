@@ -8,11 +8,12 @@ Short description: Dialog to edit/create a order
 */
 
 import React from "react";
+import axios from "axios";
 import { Button, Dialog, DialogTitle, ListItem } from "@material-ui/core";
 
 import EditTextBox from "../../edittextbox/edittextbox";
 import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
-import { AUTO_HIDE_DURATION } from "../../../../src/const";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../../../src/const";
 
 export default function EditStateOrderDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
@@ -82,15 +83,56 @@ export default function EditStateOrderDialog(props) {
       });
       return false;
     }
+    if (state["costumer"] !== undefined) {
+      let name = state["costumer"].split(" ");
+      if (name.length !== 2 && state["costumer"].length !== 0) {
+        setErrorState({
+          snackbarOpen: true,
+          msg: "Invalid name. Please enter a fristname and lastname e.g. John Doe",
+          level: "warning",
+        });
+        return false;
+      } else if (state["costumerNo"] === 0 && state["costumer"].length !== 0) {
+        setErrorState({
+          snackbarOpen: true,
+          msg: "Costumer doesnt exist. Make sure to type the name wright",
+          level: "warning",
+        });
+        return false;
+      }
+    }
     if (onSave(state)) {
       handleClose();
     }
   };
 
-  const onEdit = (key, value) => {
+  const onEdit = async (key, value) => {
     let newState = state;
+    if (key === "costumer") {
+      let name = value.split(" ");
+      if (name.length === 2) {
+        axios
+          .get(
+            "http://" +
+              IP_BACKEND +
+              ":8000/api/Costumer/byName/" +
+              name[0] +
+              "/" +
+              name[1]
+          )
+          .then(async (res) => {
+            if (res.data.length === 1) {
+              if (!isNaN(res.data[0]["costumerNo"])) {
+                newState["costumerNo"] = res.data[0]["costumerNo"];
+              }
+            } else {
+              newState["costumerNo"] = 0;
+            }
+          });
+      }
+    }
     newState[key] = value;
-    setState(newState);
+    await setState(newState);
   };
 
   return (

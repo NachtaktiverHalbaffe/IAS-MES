@@ -29,6 +29,7 @@ export default function StateOrderCard(props) {
   let costumer = "";
   let assignedAt = "";
   let id = "";
+  let costumerNo = 0;
 
   const [open, setOpen] = React.useState(false);
   // statemanagment for snackbar
@@ -78,6 +79,10 @@ export default function StateOrderCard(props) {
     id = props.id;
     data["id"] = id;
   }
+  if (props.costumerNo) {
+    costumerNo = props.costumerNo;
+    data["costumerNo"] = costumerNo;
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -89,6 +94,10 @@ export default function StateOrderCard(props) {
 
   const onSave = (updatedData) => {
     //update data in Mes
+    let costumerNo = updatedData["costumerNo"];
+    if (costumerNo === 0) {
+      costumerNo = null;
+    }
     axios.patch(
       "http://" +
         IP_BACKEND +
@@ -99,6 +108,7 @@ export default function StateOrderCard(props) {
         orderNo: updatedData["orderNo"],
         orderPos: updatedData["orderPos"],
         name: updatedData["name"],
+        costumer: costumerNo,
       }
     );
 

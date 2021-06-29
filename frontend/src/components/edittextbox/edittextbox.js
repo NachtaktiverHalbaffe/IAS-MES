@@ -25,7 +25,6 @@ export default function EditTextBox(props) {
         id="outlined-full-width"
         label={label}
         style={{ margin: 8 }}
-        defaultValue={initialValue}
         helperText={helperText}
         fullWidth
         margin="normal"

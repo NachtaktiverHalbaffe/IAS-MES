@@ -40,7 +40,7 @@ function createSelectWorkingPlan(workingPlans, selectWorkingPlan) {
   }
   for (let i = 0; i < workingPlans.length; i++) {
     items.push(
-      <ListItem width={1}>
+      <ListItem width={1} key={workingPlans[i]["workingPlanNo"]}>
         <Card>
           <StateWorkingPlanCard
             name={workingPlans[i]["name"]}

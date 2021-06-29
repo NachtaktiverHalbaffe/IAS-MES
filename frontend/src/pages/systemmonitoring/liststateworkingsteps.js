@@ -30,19 +30,44 @@ export default function ListStateWorkingSteps() {
   const [order, setOrder] = useState([]);
   const [workingPlan, setWorkingPlan] = useState([]);
   const [workingSteps, setWorkingSteps] = useState([]);
+  const [costumer, setCostumer] = useState([]);
 
   useEffect(() => {
     const pollingTime = 2; // interval for polling in seconds
 
     const interval = setInterval(async () => {
       getDataFromMes();
+
+      let costumers = [];
+      for (let i = 0; i < order.length; i++) {
+        if (order[i]["costumer"] !== null) {
+          axios
+            .get(
+              "http://" +
+                IP_BACKEND +
+                ":8000/api/Costumer/" +
+                order[i]["costumer"].toString()
+            )
+            .then((res) => {
+              costumers.push(
+                res.data["firstName"] + " " + res.data["lastName"]
+              );
+              if (costumers.length === order.length) {
+                setCostumer(costumers);
+              }
+            });
+        } else {
+          setCostumer([]);
+        }
+      }
     }, pollingTime * 1000);
     return () => clearInterval(interval);
   });
 
   useLayoutEffect(() => {
     getDataFromMes();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function getDataFromMes() {
     axios
@@ -104,9 +129,7 @@ export default function ListStateWorkingSteps() {
 
   return (
     <Box width={1}>
-      <List>
-        {createListItem(order, workingPlan, workingSteps, "Max Mustermann")}
-      </List>
+      <List>{createListItem(order, workingPlan, workingSteps, costumer)}</List>
     </Box>
   );
 }
@@ -186,8 +209,9 @@ function createListItem(currentOrders, wp, wssteps, costumer) {
           orderNo={currentOrders[i].orderNo}
           orderPos={currentOrders[i].orderPos}
           assignedAt={currentOrders[i].assignedAt}
-          costumer={costumer}
+          costumer={costumer[i]}
           id={currentOrders[i].id}
+          costumerNo={currentOrders[i].costumer}
         />
       </ListItem>
     );

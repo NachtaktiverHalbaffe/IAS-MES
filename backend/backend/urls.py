@@ -13,7 +13,7 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     # API urls. Each model has a endpoint for a view for all entities
     # and a enpoint for a single entity of an object
-    path("api/Costumer/byName/<str:name>", SingleCostumerByNameView.as_view()),
+    path("api/Costumer/byName/<str:firstName>/<str:lastName>", SingleCostumerByNameView.as_view()),
     path("api/Costumer/<pk>", SingleCostumerView.as_view()),
     path("api/Costumer/", CostumerView.as_view()),
     path("api/Setting/<pk>", SingleSettingView.as_view()),

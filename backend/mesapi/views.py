@@ -10,6 +10,7 @@ which inhertis from APIView. All the REST-Requests are handled here
 
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views import generic
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -144,16 +145,15 @@ class SingleCostumerView(RetrieveUpdateDestroyAPIView):
     serializer_class = CostumerSerializer
     queryset = Costumer.objects.all()
 
-class SingleCostumerByNameView(RetrieveUpdateDestroyAPIView):
+class SingleCostumerByNameView(ListCreateAPIView):
     serializer_class = CostumerSerializer
-    lookup_url_kwarg = 'name'
+    lookup_url_kwarg = 'firstName'
+    lookup_url_kwarg = 'lastName'
 
     def get_queryset(self):
-        queryset= Costumer.objects.all()
-        name = self.kwargs.get(self.lookup_url_kwarg)
-        firstName = name.split(" ")[0]
-        lastName = name.split(" ")[1]
-        print(firstName)
-        print(lastName)
-        costumer = queryset.filter(firstName=firstName).filter(lastName=lastName)
-        return costumer
+            queryset= Costumer.objects.all()
+            firstName = self.kwargs.get("firstName")
+            lastName = self.kwargs.get("lastName")
+            costumer = queryset.filter(firstName=firstName).filter(lastName=lastName)
+            return costumer
+

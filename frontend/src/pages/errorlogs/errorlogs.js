@@ -47,7 +47,7 @@ function createListItem(errors) {
   errors.sort((a, b) => (a.id > b.id ? 1 : -1));
   for (let i = 0; i < errors.length; i++) {
     items.push(
-      <ListItem width="100%">
+      <ListItem width="100%" key={errors[i].id}>
         <Typography variant="body1" color="textSecondary" component="div">
           <Box fontWeight="fontWeightBold" display="inline">
             {"[" + errors[i]["timestamp"] + "]" + errors[i]["level"] + ": "}{" "}
