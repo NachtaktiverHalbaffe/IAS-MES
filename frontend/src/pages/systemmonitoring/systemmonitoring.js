@@ -25,7 +25,14 @@ export default function SystemMonitoring() {
           justify="flex-start"
           alignItems="center"
         >
-          <Grid item xs container direction="column" spacing={2}>
+          <Grid
+            item
+            xs
+            container
+            direction="column"
+            spacing={2}
+            alignItems="center"
+          >
             <Typography gutterBottom variant="h5" component={"span"}>
               States of the resources
             </Typography>
@@ -46,8 +53,15 @@ export default function SystemMonitoring() {
             </Typography>
             <ListVSStates />
           </Grid>
-          <Grid item xs>
-            <div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+          <Grid
+            item
+            xs
+            container
+            direction="column"
+            spacing={2}
+            alignItems="center"
+          >
+            <div>&nbsp; &nbsp; &nbsp; &nbsp; </div>
             <Typography gutterBottom variant="h5" component={"span"}>
               States of the workingpieces
             </Typography>
@@ -55,8 +69,15 @@ export default function SystemMonitoring() {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item xs={3}>
-        <Grid item xs container direction="column" spacing={2}>
+      <Grid item xs={4}>
+        <Grid
+          item
+          xs
+          container
+          direction="column"
+          spacing={2}
+          alignItems="center"
+        >
           <Typography gutterBottom variant="h5" component={"span"}>
             Current Order
           </Typography>

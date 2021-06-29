@@ -144,6 +144,7 @@ class WorkingStep(models.Model):
 
     class Meta:
         ordering = ['stepNo']
+        unique_together = ('id', 'stepNo')
 
     def __str__(self):
         return self.name + " (Step Number: " + str(self.stepNo) + ")"
@@ -204,7 +205,7 @@ class AssignedOrder(models.Model):
     status = models.CharField(max_length=30, null=True)
 
     class Meta:
-        unique_together = ('orderNo', 'orderPos',)
+        unique_together = ('orderNo', 'orderPos')
 
     # getter and setter for status cause it needs to be converted to string and vise versa
     def setStatus(self, statusArray):

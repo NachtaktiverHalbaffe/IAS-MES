@@ -232,7 +232,6 @@ export default function CreateWorkingPlan() {
   };
 
   function getWorkingPlanFromMes() {
-    let plan = null;
     axios
       .get(
         "http://" +
@@ -241,10 +240,21 @@ export default function CreateWorkingPlan() {
           state.workingPlan.workingPlanNo.toString()
       )
       .then(async (res) => {
-        plan = res.data;
-        await setState({
+        let plan = res.data;
+        setState({
           workingPlan: plan,
           workingSteps: state.workingSteps,
+        });
+      })
+      .catch(() => {
+        setState({
+          workingPlan: {
+            name: "",
+            description: "",
+            workingPlanNo: 0,
+            workingSteps: [],
+          },
+          workingSteps: [],
         });
       });
   }
@@ -252,6 +262,7 @@ export default function CreateWorkingPlan() {
   async function getWorkingStepsFromMes() {
     let steps = [];
     let oldSteps = state.workingSteps;
+    console.log(state.workingPlan);
     for (let i = 0; i < state.workingPlan["workingSteps"].length; i++) {
       axios
         .get(
@@ -271,6 +282,12 @@ export default function CreateWorkingPlan() {
               });
             }
           }
+        })
+        .catch(() => {
+          setState({
+            workingPlan: state.workingPlan,
+            workingSteps: [],
+          });
         });
     }
   }
@@ -302,7 +319,7 @@ export default function CreateWorkingPlan() {
         <Grid item>
           <div>&nbsp; &nbsp; &nbsp;</div>
           <Fab
-            color="primary"
+            color="secondary"
             aria-label="add"
             className={fab.className}
             onClick={() => {
@@ -360,6 +377,7 @@ function createListItem(workingPlan, workingSteps) {
           name={workingPlan["name"]}
           description={workingPlan["description"]}
           workingPlanNo={workingPlan["workingPlanNo"]}
+          workingSteps={workingPlan["workingSteps"]}
         />
       </ListItem>
     );

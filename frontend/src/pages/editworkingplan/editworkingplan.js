@@ -180,6 +180,17 @@ export default function EditWorkingPlan() {
           workingPlan: res.data,
           workingSteps: selectedWorkingplan.workingSteps,
         });
+      })
+      .catch((err) => {
+        setSelectedWorkingplan({
+          workingPlan: {
+            name: "",
+            description: "",
+            workingPlanNo: 0,
+            workingSteps: [],
+          },
+          workingSteps: [],
+        });
       });
   }
 
@@ -257,8 +268,8 @@ export default function EditWorkingPlan() {
         <Grid item>
           <div>&nbsp; &nbsp; &nbsp;</div>
           <Fab
-            color="primary"
             aria-label="add"
+            color="secondary"
             onClick={() => {
               setWSOpen(true);
             }}
@@ -271,7 +282,7 @@ export default function EditWorkingPlan() {
           <Button
             justify="flex-end"
             variant="outlined"
-            color="primary"
+            color="secondary"
             onClick={() => {
               setOpen(true);
             }}

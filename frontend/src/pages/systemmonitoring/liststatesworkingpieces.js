@@ -75,7 +75,7 @@ export default function ListStateWorkingPieces() {
   }
 
   return (
-    <GridList cellHeight={270} cols={3} spacing={30}>
+    <GridList cellHeight={290} cols={3} spacing={15}>
       {createListItem(state)}
     </GridList>
   );

@@ -192,9 +192,6 @@ export default function StateWorkingPieceCard(props) {
             width="1000px"
           >
             <Grid item>
-              <div>&nbsp; &nbsp; &nbsp;</div>
-            </Grid>
-            <Grid item>
               <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
                   {"Workingpiece number " + id.toString()}

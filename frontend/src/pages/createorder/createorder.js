@@ -142,8 +142,7 @@ export default function CreateOrder() {
           <Button
             justify="flex-end"
             variant="outlined"
-            color="primary"
-            href="#outlined-buttons"
+            color="secondary"
             onClick={() => {
               setOpenChooseDialog(true);
             }}
@@ -181,7 +180,7 @@ function createListItem(order, workingPlan) {
       </Grid>
     );
   }
-  console.log(workingPlan);
+
   if (workingPlan["workingPlanNo"] !== 0) {
     items.push(
       <Grid item xs={12}>
