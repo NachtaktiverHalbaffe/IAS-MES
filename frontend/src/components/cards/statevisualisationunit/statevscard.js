@@ -192,7 +192,7 @@ export default function StateVSCard(props) {
             <Grid item>
               <img
                 src={img}
-                alt="Image of resource"
+                alt="Visualisation unit"
                 width="100px"
                 height="100px"
                 alignItems="center"

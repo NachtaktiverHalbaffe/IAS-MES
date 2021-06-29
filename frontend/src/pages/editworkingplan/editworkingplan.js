@@ -67,14 +67,6 @@ export default function EditWorkingPlan() {
     return () => clearInterval(interval);
   });
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleWSClose = () => {
-    setWSOpen(false);
-  };
-
   const selectWorkingPlan = (selectedPlan) => {
     setSelectedWorkingplan({
       workingPlan: selectedPlan,
@@ -184,7 +176,6 @@ export default function EditWorkingPlan() {
           selectedWorkingplan.workingPlan["workingPlanNo"]
       )
       .then(async (res) => {
-        let plans = res.data;
         setSelectedWorkingplan({
           workingPlan: res.data,
           workingSteps: selectedWorkingplan.workingSteps,
@@ -258,7 +249,9 @@ export default function EditWorkingPlan() {
             title="Create workingstep"
             onSave={addItem}
             open={wsopen}
-            onClose={handleWSClose}
+            onClose={() => {
+              setWSOpen(false);
+            }}
           />
         </List>
         <Grid item>

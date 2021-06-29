@@ -188,18 +188,13 @@ export default function StateWorkingPieceCard(props) {
             container
             direction="row"
             alignItems="center"
-            justify="flex-evenly"
+            justify="space-evenly"
             width="1000px"
           >
             <Grid item>
               <div>&nbsp; &nbsp; &nbsp;</div>
             </Grid>
-            <Grid
-              item
-              direction="column"
-              justify="space-between"
-              alignItems="center"
-            >
+            <Grid item>
               <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
                   {"Workingpiece number " + id.toString()}

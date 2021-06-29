@@ -37,10 +37,9 @@ export default function StateOrderCard(props) {
     msg: "",
     level: "",
   });
-  const { level, msg, snackbarOpen } = errorState;
   React.useEffect(() => {
     setTimeout(() => {
-      if (snackbarOpen) {
+      if (errorState.snackbarOpen) {
         setErrorState({
           snackbarOpen: false,
           msg: "",

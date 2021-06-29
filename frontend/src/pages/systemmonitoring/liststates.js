@@ -39,13 +39,14 @@ export default function ListStates() {
       }
 
       items.push(
-        <ListItem width="100%">
+        <ListItem key={statesPLC[i].id}>
           <StatePLCCard
             name={statesPLC[i].name}
             mode={statesPLC[i].mode}
             image={img}
             state={statesPLC[i].state}
             resourceId={statesPLC[i].id}
+            dockedAt={statesPLC[i].dockedAt}
           />
         </ListItem>
       );

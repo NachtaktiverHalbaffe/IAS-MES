@@ -29,7 +29,7 @@ export default function ListVSStates() {
       // get image depending on resourceId
       let img = visualisationUnit;
       items.push(
-        <ListItem width={1}>
+        <ListItem width={1} key={statesVS[i].boundToRessource}>
           <StateVSCard
             boundToRessource={statesVS[i].boundToRessource}
             ipadress={statesVS[i].ipAdress}

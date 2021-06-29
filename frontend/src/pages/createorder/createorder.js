@@ -9,30 +9,14 @@ Short description: page for creating a order
 
 import React, { useEffect } from "react";
 import axios from "axios";
-import {
-  Button,
-  Box,
-  List,
-  ListItem,
-  Grid,
-  Typography,
-} from "@material-ui/core";
+import { Button, Box, Grid, Typography } from "@material-ui/core";
 
 //own costum components
 import EditStateOrderDialog from "../../components/editdialogs/editorderdialog/editorderdialog";
 import ChooseWorkingPlanDialog from "../../components/editdialogs/chooseworkingplandialog/chooseworkingplandialog";
-import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
 import StateWorkingPlanCard from "../../components/cards/workingplancard/workingplancard";
 import StateOrderCard from "../../components/cards/workingstepcard/stateordercard";
 import { IP_BACKEND } from "../../const";
-
-//images
-import store from "../../assets/storage.png";
-import assemble from "../../assets/assemble.png";
-import color from "../../assets/color.png";
-import imgPackage from "../../assets/package.png";
-import unpackage from "../../assets/unpackage.png";
-import generic from "../../assets/generic.png";
 
 export default function CreateOrder() {
   const [state, setState] = React.useState({

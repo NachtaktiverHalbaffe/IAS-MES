@@ -25,7 +25,9 @@ export default function Navbar() {
         <IconButton>
           <img src={logo} width="42" alt="Logo" />
         </IconButton>
-        <Typography variant="h6">IAS-MES</Typography>
+        <Typography variant="h6" component={"span"}>
+          IAS-MES
+        </Typography>
         <Tabs value={selectedTab} onChange={handleChange}>
           <Tab label="Systemmonitoring" />
           <Tab label="Create order" />
@@ -66,7 +68,7 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box p={3}>
-          <Typography>{children}</Typography>
+          <Typography component={"span"}>{children}</Typography>
         </Box>
       )}
     </div>

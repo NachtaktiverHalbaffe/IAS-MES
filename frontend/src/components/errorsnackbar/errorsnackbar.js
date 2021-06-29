@@ -13,11 +13,11 @@ export default function ErrorSnackbar(props) {
   const { isOpen, level, message } = props;
   const [open, setOpen] = React.useState(isOpen);
 
-  React.useEffect(() => {
-    if (isOpen && !open) {
-      setOpen(true);
-    }
-  });
+  // React.useEffect(() => {
+  //   if (isOpen && !open) {
+  //     setOpen(true);
+  //   }
+  // }, []);
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {

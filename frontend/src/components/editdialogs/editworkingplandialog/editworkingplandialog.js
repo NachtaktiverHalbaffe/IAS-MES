@@ -16,16 +16,16 @@ import { AUTO_HIDE_DURATION } from "../../../const";
 export default function EditStateWorkingPlanDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
+
   // statemanagment for snackbar
   const [errorState, setErrorState] = React.useState({
     snackbarOpen: false,
     msg: "",
     level: "",
   });
-  const { level, msg, snackbarOpen } = errorState;
   React.useEffect(() => {
     setTimeout(() => {
-      if (snackbarOpen) {
+      if (errorState.snackbarOpen) {
         setErrorState({
           snackbarOpen: false,
           msg: "",
@@ -34,10 +34,6 @@ export default function EditStateWorkingPlanDialog(props) {
       }
     }, AUTO_HIDE_DURATION);
   });
-
-  const handleClose = () => {
-    onClose();
-  };
 
   const handleSave = () => {
     if (state["name"].length > 30) {
@@ -67,13 +63,13 @@ export default function EditStateWorkingPlanDialog(props) {
       return false;
     }
     if (onSave(state)) {
-      handleClose();
+      onClose();
     }
   };
 
   const handleDelete = () => {
     if (onDelete(state)) {
-      handleClose();
+      onClose();
       return true;
     }
   };
@@ -86,7 +82,9 @@ export default function EditStateWorkingPlanDialog(props) {
 
   return (
     <Dialog
-      onClose={handleClose}
+      onClose={() => {
+        onClose();
+      }}
       aria-labelledby="simple-dialog-title"
       open={open}
     >

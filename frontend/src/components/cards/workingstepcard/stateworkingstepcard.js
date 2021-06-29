@@ -197,10 +197,9 @@ export default function StateWorkingStepCard(props) {
             <Grid item>
               <img
                 src={img}
-                alt="Image of task"
+                alt={task}
                 width="100px"
                 height="100px"
-                alignItems="center"
                 margin="10px"
               />
             </Grid>

@@ -23,17 +23,10 @@ export default function SystemMonitoring() {
           container
           direction="column"
           justify="flex-start"
-          alignItems="Center"
+          alignItems="center"
         >
-          <Grid
-            item
-            xs
-            container
-            direction="column"
-            spacing={2}
-            alignItems="center"
-          >
-            <Typography gutterBottom variant="h5" component="h2">
+          <Grid item xs container direction="column" spacing={2}>
+            <Typography gutterBottom variant="h5" component={"span"}>
               States of the resources
             </Typography>
             <ListStates />
@@ -48,37 +41,23 @@ export default function SystemMonitoring() {
             alignItems="center"
           >
             <div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
-            <Typography gutterBottom variant="h5" component="h2">
+            <Typography gutterBottom variant="h5" component={"span"}>
               States of the visualisation units
             </Typography>
             <ListVSStates />
           </Grid>
-          <Grid
-            item
-            xs
-            container
-            direction="column"
-            spacing={2}
-            alignItems="center"
-          >
+          <Grid item xs>
             <div>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
-            <Typography gutterBottom variant="h5" component="h2">
+            <Typography gutterBottom variant="h5" component={"span"}>
               States of the workingpieces
             </Typography>
             <ListStateWorkingPieces />
           </Grid>
         </Grid>
       </Grid>
-      <Grid item xs={3} alignItems="center">
-        <Grid
-          item
-          xs
-          container
-          direction="column"
-          spacing={2}
-          alignItems="center"
-        >
-          <Typography gutterBottom variant="h5" component="h2">
+      <Grid item xs={3}>
+        <Grid item xs container direction="column" spacing={2}>
+          <Typography gutterBottom variant="h5" component={"span"}>
             Current Order
           </Typography>
           <ListStateWorkingSteps />

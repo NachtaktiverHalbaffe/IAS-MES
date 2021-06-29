@@ -35,7 +35,7 @@ export default function ListStateWorkingPieces() {
     statesWorkingPieces.sort((a, b) => (a.id > b.id ? 1 : -1));
     for (let i = 0; i < statesWorkingPieces.length; i++) {
       items.push(
-        <ListItem width="100%">
+        <ListItem width="100%" key={statesWorkingPieces[i]["id"]}>
           <StateWorkingPieceCard
             id={statesWorkingPieces[i]["id"]}
             location={statesWorkingPieces[i]["location"]}

@@ -48,7 +48,7 @@ export default function ListStateWorkingSteps() {
     for (let i = 0; i < currentOrders.length; i++) {
       // create card for order info
       items.push(
-        <ListItem width={1}>
+        <ListItem width={1} key={0}>
           <StateOrderCard
             name={currentOrders[i].name}
             description={currentOrders[i].description}
@@ -91,7 +91,7 @@ export default function ListStateWorkingSteps() {
           }
 
           items.push(
-            <ListItem width={1}>
+            <ListItem width={1} key={steps[j].id}>
               <StateWorkingStepCard
                 assignedToUnit={steps[j].assignedToUnit}
                 description={steps[j].description}
@@ -147,9 +147,9 @@ export default function ListStateWorkingSteps() {
   }
 
   async function getWorkingStepsFromMes() {
-    let steps = [];
     let allSteps = [];
     for (let j = 0; j < workingPlan.length; j++) {
+      let steps = [];
       for (let i = 0; i < workingPlan[j].workingSteps.length; i++) {
         await axios
           .get(
@@ -162,12 +162,10 @@ export default function ListStateWorkingSteps() {
             steps.push(res.data);
             if (steps.length === workingPlan[j].workingSteps.length) {
               allSteps.push(steps);
-              steps = [];
               if (allSteps.length === workingPlan.length) {
                 let oldSteps = workingSteps;
                 // only set state if workingsteps have changed
                 if (!mCompareWorkingSteps(oldSteps, allSteps)) {
-                  console.log("Oh no");
                   setWorkingSteps(allSteps);
                 }
               }

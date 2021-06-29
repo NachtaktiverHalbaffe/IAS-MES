@@ -31,6 +31,7 @@ export default function StatePLCCard(props) {
   let state = "";
   let image = "";
   let resourceId = "";
+  let dockedAt = 0;
   let data = new Map();
 
   const [open, setOpen] = React.useState(false);
@@ -71,6 +72,10 @@ export default function StatePLCCard(props) {
   if (props.resourceId) {
     resourceId = props.resourceId;
     data["resourceId"] = resourceId;
+  }
+  if (props.dockedAt && props.dockedAt !== null) {
+    dockedAt = props.dockedAt;
+    data["dockedAt"] = dockedAt;
   }
 
   const handleClickOpen = () => {
@@ -132,82 +137,178 @@ export default function StatePLCCard(props) {
     return true;
   };
 
-  return (
-    <Box width={1}>
-      <Paper elevation={3}>
-        <CardActionArea onClick={handleClickOpen}>
-          <Grid
-            container
-            direction="row"
-            alignItems="center"
-            justify="flex-start"
-            width="1000px"
-          >
-            <Grid item>
-              <div>&nbsp; &nbsp; &nbsp;</div>
+  // render card for stations
+  if (resourceId < 7) {
+    let altTag = "";
+    if (resourceId === 1) {
+      altTag = "Storage";
+    } else {
+      altTag = "Branch";
+    }
+    return (
+      <Box width={1}>
+        <Paper elevation={3}>
+          <CardActionArea onClick={handleClickOpen}>
+            <Grid
+              container
+              direction="row"
+              alignItems="center"
+              justify="flex-start"
+              width="1000px"
+            >
+              <Grid item>
+                <div>&nbsp; &nbsp; &nbsp;</div>
+              </Grid>
+              <Grid item>
+                <img
+                  src={image}
+                  alt={altTag}
+                  width="100px"
+                  height="100px"
+                  margin="10px"
+                />
+              </Grid>
+              <Grid item>
+                <div>&nbsp; &nbsp; &nbsp;</div>
+              </Grid>
+              <Grid item>
+                <CardContent>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {name}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      State:{" "}
+                    </Box>{" "}
+                    {state}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      ResourceId:{" "}
+                    </Box>{" "}
+                    {resourceId}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      Mode:{" "}
+                    </Box>{" "}
+                    {mode}
+                  </Typography>
+                </CardContent>
+              </Grid>
             </Grid>
-            <Grid item>
-              <img
-                src={image}
-                alt="Image of resource"
-                width="100px"
-                height="100px"
-                alignItems="center"
-                margin="10px"
-              />
+          </CardActionArea>
+          <EditStatePLCDialog
+            open={open}
+            onClose={handleClose}
+            onSave={onSave}
+            data={data}
+          />
+        </Paper>
+        <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
+      </Box>
+    );
+  }
+  // render card for robotinos
+  else {
+    return (
+      <Box width={1}>
+        <Paper elevation={3}>
+          <CardActionArea onClick={handleClickOpen}>
+            <Grid
+              container
+              direction="row"
+              alignItems="center"
+              justify="flex-start"
+              width="1000px"
+            >
+              <Grid item>
+                <div>&nbsp; &nbsp; &nbsp;</div>
+              </Grid>
+              <Grid item>
+                <img
+                  src={image}
+                  alt="Robotino"
+                  width="100px"
+                  height="100px"
+                  margin="10px"
+                />
+              </Grid>
+              <Grid item>
+                <div>&nbsp; &nbsp; &nbsp;</div>
+              </Grid>
+              <Grid item>
+                <CardContent>
+                  <Typography gutterBottom variant="h5" component="h2">
+                    {name}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      State:{" "}
+                    </Box>{" "}
+                    {state}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      ResourceId:{" "}
+                    </Box>{" "}
+                    {resourceId}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      Mode:{" "}
+                    </Box>{" "}
+                    {mode}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="textSecondary"
+                    component="div"
+                  >
+                    <Box fontWeight="fontWeightBold" display="inline">
+                      Docked at resource:{" "}
+                    </Box>{" "}
+                    {dockedAt}
+                  </Typography>
+                </CardContent>
+              </Grid>
             </Grid>
-            <Grid item>
-              <div>&nbsp; &nbsp; &nbsp;</div>
-            </Grid>
-            <Grid item>
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                  {name}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    State:{" "}
-                  </Box>{" "}
-                  {state}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    ResourceId:{" "}
-                  </Box>{" "}
-                  {resourceId}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    Mode:{" "}
-                  </Box>{" "}
-                  {mode}
-                </Typography>
-              </CardContent>
-            </Grid>
-          </Grid>
-        </CardActionArea>
-        <EditStatePLCDialog
-          open={open}
-          onClose={handleClose}
-          onSave={onSave}
-          data={data}
-        />
-      </Paper>
-      <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
-    </Box>
-  );
+          </CardActionArea>
+          <EditStatePLCDialog
+            open={open}
+            onClose={handleClose}
+            onSave={onSave}
+            data={data}
+          />
+        </Paper>
+        <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
+      </Box>
+    );
+  }
 }
 
 function EditStatePLCDialog(props) {
