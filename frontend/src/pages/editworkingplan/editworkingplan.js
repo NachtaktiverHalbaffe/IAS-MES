@@ -272,7 +272,8 @@ export default function EditWorkingPlan() {
           >
             <AddIcon />
           </Fab>
-          
+          <div>&nbsp; &nbsp; &nbsp;</div>
+        </Grid>
         <Grid item>
           <Button
             justify="flex-end"
