@@ -353,6 +353,13 @@ function EditStateWorkingPieceDialog(props) {
           helperText="Location of the workingpiece (resourceId)"
           onEdit={onEdit}
         />
+        <EditTextBox
+          label="Location in storage"
+          mapKey="storageLocation"
+          initialValue={data["storageLocation"]}
+          helperText="Location in storage of the workingpiece (resourceId)"
+          onEdit={onEdit}
+        />
         <Grid item>
           <ChromePicker color={color} onChangeComplete={onColorEdit} />
         </Grid>

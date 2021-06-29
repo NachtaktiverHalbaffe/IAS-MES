@@ -19,9 +19,12 @@ import {
 } from "@material-ui/core";
 
 import EditStateWorkingStepDialog from "../../editdialogs/editworkingstepdialog/editworkingstepdialog";
+import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
+import validateWorkingsteps from "../../validateworkingsteps/validateworkingsteps";
 import { IP_BACKEND, AUTO_HIDE_DURATION } from ".../../../src/const";
 
 export default function StateWorkingStepCard(props) {
+  let allSteps = [];
   let assignedToUnit = 0;
   let name = "";
   let description = "";
@@ -40,10 +43,9 @@ export default function StateWorkingStepCard(props) {
     msg: "",
     level: "",
   });
-  const { level, msg, snackbarOpen } = errorState;
   React.useEffect(() => {
     setTimeout(() => {
-      if (snackbarOpen) {
+      if (errorState.snackbarOpen) {
         setErrorState({
           snackbarOpen: false,
           msg: "",
@@ -88,6 +90,9 @@ export default function StateWorkingStepCard(props) {
   if (props.color) {
     color = props.color;
     data["color"] = color;
+  }
+  if (props.allSteps) {
+    allSteps = props.allSteps;
   }
 
   const handleClickOpen = () => {
@@ -143,13 +148,36 @@ export default function StateWorkingStepCard(props) {
   };
 
   const onDelete = (stepToDelete) => {
-    axios.delete(
-      "http://" +
-        IP_BACKEND +
-        ":8000/api/WorkingStep/" +
-        stepToDelete["id"].toString()
-    );
-    return true;
+    let isValid = true;
+    let errormsg = "";
+    if (allSteps.length !== 0) {
+      let newWorkingSteps = allSteps;
+      newWorkingSteps.splice(
+        newWorkingSteps.findIndex((v) => v.id === stepToDelete["id"]),
+        1
+      );
+      let validator = validateWorkingsteps(newWorkingSteps);
+      isValid = validator[0];
+      errormsg = validator[1];
+    }
+    if (isValid) {
+      axios.delete(
+        "http://" +
+          IP_BACKEND +
+          ":8000/api/WorkingStep/" +
+          stepToDelete["id"].toString()
+      );
+      return true;
+    } else {
+      setErrorState({
+        snackbarOpen: true,
+        msg:
+          "Deleting workingstep would make workingplan inexecutable. Reason: " +
+          errormsg,
+        level: "warning",
+      });
+      return false;
+    }
   };
 
   return (
@@ -245,6 +273,11 @@ export default function StateWorkingStepCard(props) {
           onSave={onSave}
           onDelete={onDelete}
           title="Edit workingstep"
+        />
+        <ErrorSnackbar
+          level={errorState.level}
+          message={errorState.msg}
+          isOpen={errorState.snackbarOpen}
         />
       </Paper>
     </Box>

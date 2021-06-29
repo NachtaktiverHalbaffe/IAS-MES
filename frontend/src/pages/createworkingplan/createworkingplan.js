@@ -25,10 +25,11 @@ import AddIcon from "@material-ui/icons/Add";
 //own costum components
 import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
 import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
-import EditTextBox from "../../components/edittextbox/edittextbox";
 import EditStateWorkingStepDialog from "../../components/editdialogs/editworkingstepdialog/editworkingstepdialog";
 import EditStateWorkingPlanDialog from "../../components/editdialogs/editworkingplandialog/editworkingplandialog";
 import StateWorkingPlanCard from "../../components/cards/workingplancard/workingplancard";
+import validateWorkingSteps from "../../components/validateworkingsteps/validateworkingsteps";
+import ErrorSnackbar from "../../components/errorsnackbar/errorsnackbar";
 
 //images
 import store from "../../assets/storage.png";
@@ -91,10 +92,9 @@ export default function CreateWorkingPlan() {
     msg: "",
     level: "",
   });
-  const { level, msg, snackbarOpen } = errorState;
   React.useEffect(() => {
     setTimeout(() => {
-      if (snackbarOpen) {
+      if (errorState.snackbarOpen) {
         setErrorState({
           snackbarOpen: false,
           msg: "",
@@ -135,65 +135,77 @@ export default function CreateWorkingPlan() {
       });
       return false;
     }
-
-    //update data in Mes
-    let payload = {};
-    if (updatedData["description"] !== "") {
-      payload = {
-        name: updatedData["name"],
-        description: updatedData["description"],
-        task: updatedData["task"],
-        color: updatedData["color"],
-        stepNo: updatedData["stepNo"],
-        operationNo: opNo,
-        assignedToUnit: updatedData["assignedToUnit"],
-      };
-    } else {
-      payload = {
-        name: updatedData["name"],
-        task: updatedData["task"],
-        color: updatedData["color"],
-        stepNo: updatedData["stepNo"],
-        operationNo: opNo,
-        assignedToUnit: updatedData["assignedToUnit"],
-      };
-    }
-    // send workingplan to mes
-    axios
-      .post("http://" + IP_BACKEND + ":8000/api/WorkingStep/", payload)
-      .then(async (res) => {
-        // create list of workingstep ids for workingplan because
-        // in the backend workingsteps and workingplan are linked
-        // with a many to many relationship which are represented as
-        // ids.
-        let workingSteps = state.workingSteps.concat(res.data);
-        let wsIds = [];
-        for (let i = 0; i < workingSteps.length; i++) {
-          wsIds.push(workingSteps[i]["id"]);
-        }
-        let workingPlan = state.workingPlan;
-        workingPlan["workingSteps"] = wsIds;
-        // update workingplan in mes
-        let payload = {
-          workingSteps: wsIds,
+    let newSteps = state.workingSteps.concat(updatedData);
+    let validator = validateWorkingSteps(newSteps);
+    let isValid = validator[0];
+    let errormsg = validator[1];
+    if (isValid) {
+      //update data in Mes
+      let payload = {};
+      if (updatedData["description"] !== "") {
+        payload = {
+          name: updatedData["name"],
+          description: updatedData["description"],
+          task: updatedData["task"],
+          color: updatedData["color"],
+          stepNo: updatedData["stepNo"],
+          operationNo: opNo,
+          assignedToUnit: updatedData["assignedToUnit"],
         };
-        axios
-          .patch(
-            "http://" +
-              IP_BACKEND +
-              ":8000/api/WorkingPlan/" +
-              state.workingPlan.workingPlanNo.toString(),
-            payload
-          )
-          .then((res) => {
-            setState({
-              workingPlan: res.data,
-              workingSteps: workingSteps,
+      } else {
+        payload = {
+          name: updatedData["name"],
+          task: updatedData["task"],
+          color: updatedData["color"],
+          stepNo: updatedData["stepNo"],
+          operationNo: opNo,
+          assignedToUnit: updatedData["assignedToUnit"],
+        };
+      }
+      // send workingplan to mes
+      axios
+        .post("http://" + IP_BACKEND + ":8000/api/WorkingStep/", payload)
+        .then(async (res) => {
+          // create list of workingstep ids for workingplan because
+          // in the backend workingsteps and workingplan are linked
+          // with a many to many relationship which are represented as
+          // ids.
+          let workingSteps = state.workingSteps.concat(res.data);
+          let wsIds = [];
+          for (let i = 0; i < workingSteps.length; i++) {
+            wsIds.push(workingSteps[i]["id"]);
+          }
+          let workingPlan = state.workingPlan;
+          workingPlan["workingSteps"] = wsIds;
+          // update workingplan in mes
+          let payload = {
+            workingSteps: wsIds,
+          };
+          axios
+            .patch(
+              "http://" +
+                IP_BACKEND +
+                ":8000/api/WorkingPlan/" +
+                state.workingPlan.workingPlanNo.toString(),
+              payload
+            )
+            .then((res) => {
+              setState({
+                workingPlan: res.data,
+                workingSteps: workingSteps,
+              });
             });
-          });
-      });
+        });
 
-    return true;
+      return true;
+    } else {
+      setErrorState({
+        snackbarOpen: true,
+        msg: errormsg,
+        level: "warning",
+      });
+      return false;
+    }
   };
 
   const createPlan = (data) => {
@@ -325,6 +337,11 @@ export default function CreateWorkingPlan() {
         onSave={addItem}
         open={wsopen}
         onClose={handleWSClose}
+      />
+      <ErrorSnackbar
+        level={errorState.level}
+        message={errorState.msg}
+        isOpen={errorState.snackbarOpen}
       />
     </Box>
   );

@@ -102,6 +102,7 @@ export default function ListStateWorkingSteps() {
                 stepNo={steps[j].stepNo}
                 color={steps[j].color}
                 id={steps[j].id}
+                allSteps={steps}
               />
             </ListItem>
           );

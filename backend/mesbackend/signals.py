@@ -285,8 +285,6 @@ def _checkUnpackage(workingSteps, isValid, i):
             isValid = True
         elif workingSteps[j].task == 'unpackage':
             isValid = False
-        elif workingSteps[j].task == 'unstore':
-            isValid = True
         elif workingSteps[j].task == 'store':
             isValid = False
     return isValid
@@ -300,8 +298,6 @@ def _checkPackage(workingSteps, isValid, i):
             isValid = False
         elif workingSteps[j].task == 'unpackage':
             isValid = True
-        elif workingSteps[j].task == 'unstore':
-            isValid = True
         elif workingSteps[j].task == 'store':
             isValid = False
     return isValid
@@ -314,8 +310,6 @@ def _checkAssemble(workingSteps, isValid, i):
             isValid = False
         elif workingSteps[j].task == 'assemble':
             isValid = False
-        elif workingSteps[j].task == 'unstore':
-            isValid = True
         elif workingSteps[j].task == 'store':
             isValid = False
     return isValid
@@ -327,8 +321,6 @@ def _checkColor(workingSteps, isValid, i):
         if workingSteps[j].task == 'package':
             isValid = False
         elif workingSteps[j].task == 'unpackage':
-            isValid = True
-        elif workingSteps[j].task == 'unstore':
             isValid = True
         elif workingSteps[j].task == 'store':
             isValid = False
