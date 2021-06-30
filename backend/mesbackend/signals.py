@@ -8,7 +8,7 @@ callback functions for data managment pruposes are defined in the signals of mes
 
 """
 
-from django.db.models.signals import post_save, pre_save, pre_delete, m2m_changed
+from django.db.models.signals import post_save, pre_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
 import requests
@@ -74,57 +74,58 @@ def handleError(sender, instance, **kwargs):
 
 # Gets executed after a order is saved. It sends all visualisationunits their
 # tasks
-#@receiver(post_save, sender=AssignedOrder)
+@receiver(post_save, sender=AssignedOrder)
 def sendVisualisationtasks(sender, instance, **kwargs):
-    workingsteps = instance.assigendWorkingPlan.workingSteps.all()
+    if(instance.assigendWorkingPlan != None):
+        workingsteps = instance.assigendWorkingPlan.workingSteps.all()
 
-    for i in range(len(workingsteps)):
-        step = workingsteps[i]
-        unit = step.assignedToUnit
-        workingPiece = instance.assignedWorkingPiece.id
-        task = step.task
-        color = step.color
-        stepNo = step.stepNo
-        status = instance.getStatus()
-        stateVisualisationUnit = StateVisualisationUnit.objects.filter(
-            boundToRessource=unit)
-        if stateVisualisationUnit.count() == 1:
-            ipAdress = stateVisualisationUnit.first().ipAdress
-            payload = {
-                "task": task,
-                "assignedWorkingPiece": workingPiece,
-                "stepNo": stepNo,
-                "paintColor": color
-            }
-            try:
-                request = requests.put("http://" +
-                                       ipAdress + ':2000/api/VisualisationTask', data=payload)
-            except Exception as e:
+        for i in range(len(workingsteps)):
+            step = workingsteps[i]
+            unit = step.assignedToUnit
+            workingPiece = instance.assignedWorkingPiece.id
+            task = step.task
+            color = step.color
+            stepNo = step.stepNo
+            status = instance.getStatus()
+            stateVisualisationUnit = StateVisualisationUnit.objects.filter(
+                boundToRessource=unit)
+            if stateVisualisationUnit.count() == 1:
+                ipAdress = stateVisualisationUnit.first().ipAdress
+                payload = {
+                    "task": task,
+                    "assignedWorkingPiece": workingPiece,
+                    "stepNo": stepNo,
+                    "paintColor": color
+                }
+                try:
+                    request = requests.put("http://" +
+                                        ipAdress + ':5000/api/VisualisationTask', data=payload)
+                except Exception as e:
+                    safteyMonitoring = SafteyMonitoring()
+                    safteyMonitoring.decodeError(
+                        errorLevel=safteyMonitoring.LEVEL_ERROR,
+                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                        msg=str(e)
+                    )
+            # only send error if unit is a branch which has a unit mounted to it
+            elif not unit == 1 and not unit >= 7:
                 safteyMonitoring = SafteyMonitoring()
                 safteyMonitoring.decodeError(
                     errorLevel=safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                    msg=str(e)
+                    errorCategory=safteyMonitoring.CATEGORY_DATA,
+                    msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES. Ordernumber and orderposition:" +
+                        str(instance.orderNo) + ":" +
+                    str(instance.orderPos)
                 )
-        # only send error if unit is a branch which has a unit mounted to it
-        elif not unit == 1 and not unit >= 7:
-            safteyMonitoring = SafteyMonitoring()
-            safteyMonitoring.decodeError(
-                errorLevel=safteyMonitoring.LEVEL_ERROR,
-                errorCategory=safteyMonitoring.CATEGORY_DATA,
-                msg="Visualisation unit is not represented in database. Please check if unit is online and connected to the MES. Ordernumber and orderposition:" +
-                    str(instance.orderNo) + ":" +
-                str(instance.orderPos)
-            )
-            status[i] = 1
-            instance.setStatus(status)
-    AssignedOrder.objects.filter(orderNo=instance.orderNo).filter(
-        orderPos=instance.orderPos).update(status=status)
+                status[i] = 1
+                instance.setStatus(status)
+        AssignedOrder.objects.filter(orderNo=instance.orderNo).filter(
+            orderPos=instance.orderPos).update(status=status)
 
 
 # send delete requests to all visualisationunits when a order is deleted
 # (usually on end of order or if order is aborted)
-@receiver(pre_delete, sender=AssignedOrder)
+@receiver(post_delete, sender=AssignedOrder)
 def deleteOrder(sender, instance, **kwargs):
     if instance.assigendWorkingPlan != None:
         workingsteps = instance.assigendWorkingPlan.workingSteps.all()

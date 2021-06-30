@@ -6,7 +6,7 @@ Short description: Data model definitions of the backend. All datamodels are def
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
-
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.base import Model
 from django.db.models.deletion import CASCADE
@@ -262,6 +262,15 @@ class Setting(models.Model):
     isInBridgingMode = models.BooleanField()
     # ip adress of mes4
     ipAdressMES4 = models.GenericIPAddressField()
+    # if fleetmanager is used
+    useFleetmanager = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and Setting.objects.exists():
+        # if you'll not check for self.pk 
+        # then error will also raised in update of exists model
+            raise ValidationError('There is can be only one Setting instance')
+        return super(Setting, self).save(*args, **kwargs)
 
     def __str__(self):
         return "Setting"

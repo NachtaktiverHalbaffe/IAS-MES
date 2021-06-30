@@ -137,4 +137,4 @@ class CostumerSerializer(serializers.ModelSerializer):
 class SettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
-        fields = ("isInBridgingMode", "ipAdressMES4")
+        fields = ("isInBridgingMode", "ipAdressMES4","useFleetmanager")

@@ -45,7 +45,8 @@ try:
     serviceProcess = Process(target=PLCServiceOrderSocket().runServer)
     stateProcess = Process(target=PLCStateSocket().runServer)
     # start processes
-    # serviceProcess.start()
-    # stateProcess.start()
+    print("Starting sockets")
+    serviceProcess.start()
+    stateProcess.start()
 except Exception:
     pass

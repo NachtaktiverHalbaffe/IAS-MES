@@ -39,7 +39,7 @@ logger.addHandler(file_handler)
 
 
 @receiver(pre_save, sender=AssignedOrder)
-def createStatusBits(sender, instance, **kwargs):
+def createMissingParams(sender, instance, **kwargs):
     if instance.status == None:
         statusArray = []
         if(instance.assigendWorkingPlan != None):
@@ -49,7 +49,27 @@ def createStatusBits(sender, instance, **kwargs):
             logger.info("[AssignedOrder] Created order " + str(instance.orderNo) + " with workingplan " +
                         str(instance.assigendWorkingPlan.workingPlanNo)
                         )
-
+    # assign workingpiece to order if it isnt already assigned a workingpiece
+    if instance.assignedWorkingPiece == None and instance.assigendWorkingPlan != None:
+        # the workingplan is already validated, so the only task is to find the first workingpiece with the right state
+        # for the order to start. So for each task it is checked if a filtering would find a workingpiece. If not that means
+        # that theres a workingstep before which changes the state of the workingpiece to the right state e.g. a package before a unpackage
+        workingPieces = StateWorkingPiece.objects.all()
+        workingSteps = instance.assigendWorkingPlan.workingSteps.all()
+        for step in workingSteps:
+            if step.task == "assemble" and workingPieces.filter(isAssembled= False).count() != 0:
+                workingPieces = workingPieces.filter(isAssembled= False)
+            # check for generic task only if 3D-Model is ias logo (default model). For diffrent 3d Model the generic task can differ
+            elif step.task == "generic" and workingPieces.filter(model="IAS-Logo").filter(isAssembled= False).count() != 0 :
+                workingPieces = workingPieces.filter(model="IAS-Logo").filter(isAssembled= False)
+            elif step.task == "unpackage" and workingPieces.filter(isPackaged= True).count() != 0:
+                workingPieces = workingPieces.filter(isPackaged= True)
+            elif step.task == "package" and workingPieces.filter(isPackaged= False).count() != 0:
+                workingPieces = workingPieces.filter(isPackaged= False) 
+            
+        assignedWorkingPiece = workingPieces.first()
+        instance.assignedWorkingPiece = assignedWorkingPiece
+            
 
 @receiver(pre_delete, sender=AssignedOrder)
 def logOrderDel(sender, instance, **kwargs):

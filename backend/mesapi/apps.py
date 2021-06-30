@@ -9,11 +9,11 @@ class MesapiConfig(AppConfig):
         import mesapi.signals
         from .models import StatePLC
 
-        # undock all robotinos
-        plcs = StatePLC.objects.all()
-        for plc in plcs:
-            if plc.id >6:
-                plc.dockedAt = 0
-                plc.save()
+        # # undock all robotinos
+        # plcs = StatePLC.objects.all()
+        # for plc in plcs:
+        #     if plc.id >6:
+        #         plc.dockedAt = 0
+        #         plc.save()
 
         return super().ready()

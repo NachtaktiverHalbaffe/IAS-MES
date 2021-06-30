@@ -15,15 +15,15 @@ import { IP_BACKEND } from "../../const";
 export default function ErrorLogs() {
   // React hooks
   const [state, setState] = useState([]);
-  useEffect(() => {
-    const pollingTime = 1.5; // interval for polling in seconds
+  // useEffect(() => {
+  //   const pollingTime = 3; // interval for polling in seconds
 
-    const interval = setInterval(() => {
-      getDataFromMes();
-    }, pollingTime * 1000);
+  //   const interval = setInterval(() => {
+  //     getDataFromMes();
+  //   }, pollingTime * 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // });
 
   useLayoutEffect(() => {
     getDataFromMes();
