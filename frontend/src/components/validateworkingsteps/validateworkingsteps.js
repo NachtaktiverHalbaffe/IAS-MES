@@ -46,7 +46,6 @@ export default function validateWorkingsteps(workingsteps) {
         }
       } else if (steps[i]["task"] === "unpackage") {
         let validator = mCheckUnpackage(steps, i + 1, state);
-        console.log(validator);
         isValid = validator[0];
         errormsg = validator[1];
         state = validator[2];

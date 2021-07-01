@@ -25,7 +25,9 @@ import EditStateWorkingStepDialog from "../../components/editdialogs/editworking
 import ChooseWorkingPlanDialog from "../../components/editdialogs/chooseworkingplandialog/chooseworkingplandialog";
 import StateWorkingStepCard from "../../components/cards/workingstepcard/stateworkingstepcard";
 import StateWorkingPlanCard from "../../components/cards/workingplancard/workingplancard";
-import { IP_BACKEND } from "../../const";
+import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
+import validateWorkingsteps from "../../components/validateworkingsteps/validateworkingsteps";
+import ErrorSnackbar from "../../components/errorsnackbar/errorsnackbar";
 
 //images
 import store from "../../assets/storage.png";
@@ -50,6 +52,22 @@ export default function EditWorkingPlan() {
   });
   const [open, setOpen] = React.useState(true);
   const [wsopen, setWSOpen] = React.useState(false);
+  const [errorState, setErrorState] = React.useState({
+    snackbarOpen: false,
+    msg: "",
+    level: "",
+  });
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (errorState.snackbarOpen) {
+        setErrorState({
+          snackbarOpen: false,
+          msg: "",
+          level: "",
+        });
+      }
+    }, AUTO_HIDE_DURATION);
+  });
 
   useEffect(() => {
     const pollingTime = 1; // interval for polling in seconds
@@ -94,65 +112,77 @@ export default function EditWorkingPlan() {
     } else {
       return false;
     }
-
-    //update data in Mes
-    let payload = {};
-    if (updatedData["description"] !== "") {
-      payload = {
-        name: updatedData["name"],
-        description: updatedData["description"],
-        task: updatedData["task"],
-        color: updatedData["color"],
-        stepNo: updatedData["stepNo"],
-        operationNo: opNo,
-        assignedToUnit: updatedData["assignedToUnit"],
-      };
-    } else {
-      payload = {
-        name: updatedData["name"],
-        task: updatedData["task"],
-        color: updatedData["color"],
-        stepNo: updatedData["stepNo"],
-        operationNo: opNo,
-        assignedToUnit: updatedData["assignedToUnit"],
-      };
-    }
-    // send workingplan to mes
-    axios
-      .post("http://" + IP_BACKEND + ":8000/api/WorkingStep/", payload)
-      .then(async (res) => {
-        // create list of workingstep ids for workingplan because
-        // in the backend workingsteps and workingplan are linked
-        // with a many to many relationship which are represented as
-        // ids.
-        let workingSteps = selectedWorkingplan.workingSteps.concat(res.data);
-        let wsIds = [];
-        for (let i = 0; i < workingSteps.length; i++) {
-          wsIds.push(workingSteps[i]["id"]);
-        }
-        let workingPlan = selectedWorkingplan.workingPlan;
-        workingPlan["workingSteps"] = wsIds;
-        // update workingplan in mes
-        let payload = {
-          workingSteps: wsIds,
+    let newSteps = selectedWorkingplan.workingSteps.concat(updatedData);
+    let validator = validateWorkingsteps(newSteps);
+    let isValid = validator[0];
+    let errormsg = validator[1];
+    if (isValid) {
+      //update data in Mes
+      let payload = {};
+      if (updatedData["description"] !== "") {
+        payload = {
+          name: updatedData["name"],
+          description: updatedData["description"],
+          task: updatedData["task"],
+          color: updatedData["color"],
+          stepNo: updatedData["stepNo"],
+          operationNo: opNo,
+          assignedToUnit: updatedData["assignedToUnit"],
         };
-        axios
-          .patch(
-            "http://" +
-              IP_BACKEND +
-              ":8000/api/WorkingPlan/" +
-              selectedWorkingplan.workingPlan.workingPlanNo.toString(),
-            payload
-          )
-          .then((res) => {
-            setSelectedWorkingplan({
-              workingPlan: res.data,
-              workingSteps: workingSteps,
+      } else {
+        payload = {
+          name: updatedData["name"],
+          task: updatedData["task"],
+          color: updatedData["color"],
+          stepNo: updatedData["stepNo"],
+          operationNo: opNo,
+          assignedToUnit: updatedData["assignedToUnit"],
+        };
+      }
+      // send workingplan to mes
+      axios
+        .post("http://" + IP_BACKEND + ":8000/api/WorkingStep/", payload)
+        .then(async (res) => {
+          // create list of workingstep ids for workingplan because
+          // in the backend workingsteps and workingplan are linked
+          // with a many to many relationship which are represented as
+          // ids.
+          let workingSteps = selectedWorkingplan.workingSteps.concat(res.data);
+          let wsIds = [];
+          for (let i = 0; i < workingSteps.length; i++) {
+            wsIds.push(workingSteps[i]["id"]);
+          }
+          let workingPlan = selectedWorkingplan.workingPlan;
+          workingPlan["workingSteps"] = wsIds;
+          // update workingplan in mes
+          let payload = {
+            workingSteps: wsIds,
+          };
+          axios
+            .patch(
+              "http://" +
+                IP_BACKEND +
+                ":8000/api/WorkingPlan/" +
+                selectedWorkingplan.workingPlan.workingPlanNo.toString(),
+              payload
+            )
+            .then((res) => {
+              setSelectedWorkingplan({
+                workingPlan: res.data,
+                workingSteps: workingSteps,
+              });
             });
-          });
-      });
+        });
 
-    return true;
+      return true;
+    } else {
+      setErrorState({
+        snackbarOpen: true,
+        msg: errormsg,
+        level: "warning",
+      });
+      return false;
+    }
   };
 
   function getWorkingPlansFromMes() {
@@ -300,6 +330,11 @@ export default function EditWorkingPlan() {
           workingPlans={state.workingPlans}
         />
       </Grid>
+      <ErrorSnackbar
+        level={errorState.level}
+        message={errorState.msg}
+        isOpen={errorState.snackbarOpen}
+      />
     </Box>
   );
 }

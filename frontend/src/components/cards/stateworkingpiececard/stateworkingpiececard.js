@@ -180,6 +180,16 @@ export default function StateWorkingPieceCard(props) {
     return true;
   };
 
+  const onDelete = (orderToDelete) => {
+    axios.delete(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/StateWorkingPiece/" +
+        orderToDelete["id"].toString()
+    );
+    return true;
+  };
+
   return (
     <Box width={1}>
       <Paper elevation={3}>
@@ -285,6 +295,7 @@ export default function StateWorkingPieceCard(props) {
           open={open}
           onClose={handleClose}
           onSave={onSave}
+          onDelete={onDelete}
           data={data}
         />
       </Paper>
@@ -294,7 +305,7 @@ export default function StateWorkingPieceCard(props) {
 }
 
 function EditStateWorkingPieceDialog(props) {
-  const { onClose, onSave, open, data } = props;
+  const { onClose, onSave, onDelete, open, data } = props;
   const [state, setState] = React.useState(data);
   const [color, setColor] = React.useState(data["color"]);
 
@@ -308,11 +319,19 @@ function EditStateWorkingPieceDialog(props) {
     }
   };
 
+  const handleDelete = () => {
+    if (onDelete(state)) {
+      handleClose();
+      return true;
+    }
+  };
+
   const onEdit = (key, value) => {
     let newState = state;
     newState[key] = value;
     setState(newState);
   };
+
   const onColorEdit = (value) => {
     let newState = state;
     newState["color"] = value.hex;
@@ -386,6 +405,16 @@ function EditStateWorkingPieceDialog(props) {
             onClick={handleSave}
           >
             Save
+          </Button>
+          <div>&nbsp; &nbsp; &nbsp;</div>
+          <Button
+            justify="flex-end"
+            variant="outlined"
+            color="primary"
+            href="#outlined-buttons"
+            onClick={handleDelete}
+          >
+            Delete
           </Button>
         </ListItem>
       </Grid>

@@ -127,6 +127,7 @@ export default function StatePLCCard(props) {
       {
         state: updatedData["state"],
         name: updatedData["name"],
+        dockedAt: updatedData["dockedAt"],
       }
     );
     setErrorState({
@@ -331,39 +332,91 @@ function EditStatePLCDialog(props) {
     setState(newState);
   };
 
-  return (
-    <Dialog
-      onClose={handleClose}
-      aria-labelledby="simple-dialog-title"
-      open={open}
-      justify="center"
-    >
-      <DialogTitle id="simple-dialog-title">Edit State of Resource</DialogTitle>
-      <EditTextBox
-        label="Name"
-        mapKey="name"
-        initialValue={data["name"]}
-        helperText="Name of the resource"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="State"
-        mapKey="state"
-        initialValue={data["state"]}
-        helperText="State of the resource. Don't change if not necessary"
-        onEdit={onEdit}
-      />
-      <ListItem justify="flex-end">
-        <Button
-          justify="flex-end"
-          variant="outlined"
-          color="primary"
-          href="#outlined-buttons"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-      </ListItem>
-    </Dialog>
-  );
+  // resource isnt robotino => render "normal" plc dialog
+  if (data["resourceId"] < 7) {
+    return (
+      <Dialog
+        onClose={handleClose}
+        aria-labelledby="simple-dialog-title"
+        open={open}
+        justify="center"
+      >
+        <DialogTitle id="simple-dialog-title">
+          Edit State of Resource
+        </DialogTitle>
+        <EditTextBox
+          label="Name"
+          mapKey="name"
+          initialValue={data["name"]}
+          helperText="Name of the resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="State"
+          mapKey="state"
+          initialValue={data["state"]}
+          helperText="State of the resource. Don't change if not necessary"
+          onEdit={onEdit}
+        />
+        <ListItem justify="flex-end">
+          <Button
+            justify="flex-end"
+            variant="outlined"
+            color="primary"
+            href="#outlined-buttons"
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+        </ListItem>
+      </Dialog>
+    );
+  }
+  // resource is robotino => render robotino dialog
+  else {
+    return (
+      <Dialog
+        onClose={handleClose}
+        aria-labelledby="simple-dialog-title"
+        open={open}
+        justify="center"
+      >
+        <DialogTitle id="simple-dialog-title">
+          Edit State of Resource
+        </DialogTitle>
+        <EditTextBox
+          label="Name"
+          mapKey="name"
+          initialValue={data["name"]}
+          helperText="Name of the resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="State"
+          mapKey="state"
+          initialValue={data["state"]}
+          helperText="State of the resource. Don't change if not necessary"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Docked at"
+          mapKey="dockedAt"
+          initialValue={data["dockedAt"]}
+          helperText="Resource where the robotino is docked at the moment"
+          onEdit={onEdit}
+        />
+        <ListItem justify="flex-end">
+          <Button
+            justify="flex-end"
+            variant="outlined"
+            color="primary"
+            href="#outlined-buttons"
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+        </ListItem>
+      </Dialog>
+    );
+  }
 }

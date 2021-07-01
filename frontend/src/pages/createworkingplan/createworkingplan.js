@@ -262,7 +262,6 @@ export default function CreateWorkingPlan() {
   async function getWorkingStepsFromMes() {
     let steps = [];
     let oldSteps = state.workingSteps;
-    console.log(state.workingPlan);
     for (let i = 0; i < state.workingPlan["workingSteps"].length; i++) {
       axios
         .get(

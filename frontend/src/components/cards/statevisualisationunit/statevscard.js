@@ -175,6 +175,16 @@ export default function StateVSCard(props) {
     return true;
   };
 
+  const onDelete = (orderToDelete) => {
+    axios.delete(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/StateVisualisationUnit/" +
+        orderToDelete["boundToRessource"].toString()
+    );
+    return true;
+  };
+
   return (
     <Box width={1}>
       <Paper elevation={3}>
@@ -195,7 +205,6 @@ export default function StateVSCard(props) {
                 alt="Visualisation unit"
                 width="100px"
                 height="100px"
-                alignItems="center"
                 margin="10px"
               />
             </Grid>
@@ -256,6 +265,7 @@ export default function StateVSCard(props) {
           onClose={handleClose}
           data={data}
           onSave={onSave}
+          onDelete={onDelete}
         />
       </Paper>
       <ErrorSnackbar level={level} message={msg} isOpen={snackbarOpen} />
@@ -264,7 +274,7 @@ export default function StateVSCard(props) {
 }
 
 function EditStateVSDialog(props) {
-  const { onClose, onSave, open, data } = props;
+  const { onClose, onSave, onDelete, open, data } = props;
   const [state, setState] = React.useState(data);
 
   const handleClose = () => {
@@ -274,6 +284,13 @@ function EditStateVSDialog(props) {
   const handleSave = () => {
     if (onSave(state)) {
       handleClose();
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete(state)) {
+      handleClose();
+      return true;
     }
   };
 
@@ -321,7 +338,7 @@ function EditStateVSDialog(props) {
         helperText="Baselevel of the ultrasonic sensor. Gets calibrated on startup of the unit. Only change if you know what are you doing!"
         onEdit={onEdit}
       />
-      <ListItem justify="flex-end">
+      <ListItem>
         <Button
           justify="flex-end"
           variant="outlined"
@@ -330,6 +347,16 @@ function EditStateVSDialog(props) {
           onClick={handleSave}
         >
           Save
+        </Button>
+        <div>&nbsp; &nbsp; &nbsp;</div>
+        <Button
+          justify="flex-end"
+          variant="outlined"
+          color="primary"
+          href="#outlined-buttons"
+          onClick={handleDelete}
+        >
+          Delete
         </Button>
       </ListItem>
     </Dialog>

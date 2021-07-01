@@ -169,7 +169,7 @@ class Costumer(models.Model):
     firstName = models.CharField(max_length=30)
     lastName = models.CharField(max_length=100)
     adress = models.CharField(max_length=300, null=True)
-    phone = models.PositiveIntegerField(null=True)
+    phone = models.CharField(max_length=30, null = True)
     eMail = models.EmailField(null=True)
     company = models.CharField(max_length=100, null=True)
 

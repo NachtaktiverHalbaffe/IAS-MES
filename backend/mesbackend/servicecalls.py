@@ -5,7 +5,6 @@ Short description: Module for handling the service calls. The buisness logic for
 is handled here. Given on the servicecalls some output parameters are set
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
-
 """
 
 from mesapi.models import AssignedOrder, Buffer, Costumer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
@@ -449,25 +448,30 @@ class Servicecalls(object):
         #TODO fix this!!!
         # get input parameter
         requestId = obj.requestID
+        carrierId = obj.carrierId
         oNo = obj.oNo
         oPos = obj.oPos
-        carrierId = obj.carrierId
         self.logger.info("[OPEND] Requested OpEnd for oNo: " +
                          str(oNo) + " and oPos " + str(oPos))
         # Find corresponding order
         # request send valid oNo and oPos so it can be searched
         currentOrder = AssignedOrder.objects.all().filter(
             orderNo=oNo).filter(orderPos=oPos)
-        if currentOrder.count() == 0 and oNo != 0 and oPos != 0:
-            currentOrder = AssignedOrder.objects.all()
-            obj.oNo = currentOrder.first().orderNo
-            obj.oPos = currentOrder.first().orderPos
-            oNo = obj.oNo
-            oPos = obj.oPos
         if currentOrder.count() != 0:
             order = currentOrder.first()
             workingPlan = order.assigendWorkingPlan
             workingsteps = workingPlan.workingSteps.all()
+            # set general output parameter
+            obj.oNo = order.orderNo
+            obj.oPos = order.orderPos
+            obj.wpNo = workingPlan.workingPlanNo
+            if order.costumer != None:
+                obj.cNo = order.costumer.costumerNo
+            else:
+                obj.cNo = 0
+            obj.mainOPos = order.mainOrderPos
+            obj.errorStepNo = 0
+            obj.pNo = 25  # 25= pallet, 31 = carrier
             status = order.getStatus()
             for i in range(len(status)):
                 # find first unfinished step in list
@@ -476,12 +480,10 @@ class Servicecalls(object):
                     # Write NFC tags, data for NFC tag can be manipulated here
                     stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
                         boundToRessource=requestId)
-                    # visualisationunit finished task => write next step of workingplan on rfid,
                     if stateVisualisationUnit.count() != 0:
                         # only check if resource is branch
                         stateVisualisationUnit = stateVisualisationUnit.first()
-                        self.logger.info(
-                                "[OPEND] Resource has attached visualisationunit")
+                        # visualisationunit finished task => write next step of workingplan on rfid,
                         if stateVisualisationUnit.state == "finished" or stateVisualisationUnit.state == "idle" and requestId > 1 and requestId < 7:
                             if i+1 < len(status):
                                 obj.stepNo = workingsteps[i+1].stepNo
@@ -491,10 +493,15 @@ class Servicecalls(object):
                                 status[i] = 1
                                 order.setStatus(status)
                                 order.save()
+                                Thread(target=self._sendVisualisationTask, args=[oNo, oPos, workingsteps[i+1].assignedToUnit]).start()
                             else:
-                                obj.stepNo = 0
                                 obj.resourceId = 0
+                                obj.oNo = 0
+                                obj.oPos = 0
+                                obj.wpNo = 0
                                 obj.opNo = 0
+                                obj.pNo = 0
+                                obj.stepNo = 0
                                 status[i] = 1
                                 order.setStatus(status)
                                 order.save()
@@ -513,17 +520,9 @@ class Servicecalls(object):
                             status[i] = 1
                             order.setStatus(status)
                             order.save()
-                    obj.oNo = order.orderNo
-                    obj.oPos = order.orderPos
-                    obj.wpNo = workingPlan.workingPlanNo
-                    if order.costumer != None:
-                        #obj.cNo = order.costumer.costumerNo
-                        obj.cNo = 0
-                    else:
-                        obj.cNo = 0
-                    obj.mainOPos = order.mainOrderPos
-                    obj.errorStepNo = 0
-                    obj.pNo = 25  # 25= pallet, 31 = carrier
+                            Thread(target=self._sendVisualisationTask, args=[oNo, oPos, workingsteps[i+1].assignedToUnit]).start()
+                    
+                    
                     self.logger.info("[OPEND] Operation on resource " +
                                      str(requestId) + " ended. Writing next operation on RFID with ONo: " + str(obj.oNo) + " and OPos " + str(obj.oPos))
                     # update data
@@ -732,7 +731,6 @@ class Servicecalls(object):
         self.logger.info("[SERVICEORDERHANDLER] Request MoveBuf")
         # input parameter
         inputParameter = obj.serviceParams
-
         # get buffer from request which should be moved
         oldId = inputParameter[0]
         oldBufNo = inputParameter[1]
@@ -757,9 +755,10 @@ class Servicecalls(object):
                 targetbuffer.update(bufInONo=oNo)
                 targetbuffer.update(bufInOPos=oPos)
         # update origin buffer
+            # send visualisation task if robotino unloads carrier
+            if oldId > 6 and oNo != 0 and oPos != 0:
+                Thread(target=self._sendVisualisationTask, args=[oNo, oPos, newId]).start()
             # update source buffer (only if old buffer isnt robotino)
-            if oldId >6 and oNo != 0 and oPos != 0:
-                self._sendVisualisationTask(oNo, oPos, newId)
             if oldId < 7:
                 if oldBufNo == 1:
                     oldbuffer.update(bufOutONo=0)
@@ -937,18 +936,23 @@ class Servicecalls(object):
                     targetBufPos,
                     targetBeltNo
                 ]
-                
-                # only set output parameter if bufferIn from target is empty and
-                # if bufferOut from start isnt empty
-                if Buffer.objects.filter(resourceId=startId).count != 0 and Buffer.objects.filter(resourceId=targetId).count() != 0:
-                    bufOutStart = Buffer.objects.filter(resourceId=startId).first()
-                    bufInTarget = Buffer.objects.filter(resourceId=targetId).first()
-                    if bufInTarget.bufInONo == 0 and bufOutStart.bufOutONo != 0:
-                        # only add transport task to output params if length of records doesnt
-                        # exceed specified maxRecords from Fleetmanager
-                        if currentRecords < maxRecords:
-                            serviceParams.extend(answerParameterlist)
-                            currentRecords += 1
+                # only do buffer check if MES uses Fleetmanager
+                if Setting.objects.all().first().useFleetmanager:
+                    # only set output parameter if bufferIn from target is empty and
+                    # if bufferOut from start isnt empty
+                    if Buffer.objects.filter(resourceId=startId).count != 0 and Buffer.objects.filter(resourceId=targetId).count() != 0:
+                        bufOutStart = Buffer.objects.filter(resourceId=startId).first()
+                        bufInTarget = Buffer.objects.filter(resourceId=targetId).first()
+                        if bufInTarget.bufInONo == 0 and bufOutStart.bufOutONo != 0:
+                            # only add transport task to output params if length of records doesnt
+                            # exceed specified maxRecords from Fleetmanager
+                            if currentRecords < maxRecords:
+                                serviceParams.extend(answerParameterlist)
+                                currentRecords += 1
+                else:
+                    if currentRecords < maxRecords:
+                                serviceParams.extend(answerParameterlist)
+                                currentRecords += 1
             # pad parameterlist to required length with 0
             for i in range(8 * maxRecords - len(serviceParams)):
                 answerParameterlist.append(0)

@@ -10,7 +10,7 @@ Short description: Component for text input with choices to select
 import React from "react";
 import { ListItem, FormControlLabel, Checkbox } from "@material-ui/core";
 
-export default function EditChoiceBox(props) {
+export default function EditCheckBox(props) {
   const { onEdit, label, initialValue, mapKey } = props;
   const [value, setValue] = React.useState(initialValue);
 
