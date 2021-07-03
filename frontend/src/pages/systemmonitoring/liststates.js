@@ -10,7 +10,10 @@ import robotino from "../../assets/robotino.png";
 
 export default function ListStates() {
   // React hooks
-  const [state, setState] = useState([]);
+  const [state, setState] = useState({
+    statePLC: [],
+    buffer: [],
+  });
   useEffect(() => {
     const pollingTime = 1.5; // interval for polling in seconds
 
@@ -24,9 +27,10 @@ export default function ListStates() {
     getDataFromMes();
   }, []);
 
-  function createListItem(statesPLC) {
+  function createListItem(statesPLC, buffer) {
     let items = [];
     statesPLC.sort((a, b) => (a.id > b.id ? 1 : -1));
+    buffer.sort((a, b) => (a.resourceId > b.resourceId ? 1 : -1));
     for (let i = 0; i < statesPLC.length; i++) {
       // get image depending on resourceId
       let img = null;
@@ -47,6 +51,10 @@ export default function ListStates() {
             state={statesPLC[i].state}
             resourceId={statesPLC[i].id}
             dockedAt={statesPLC[i].dockedAt}
+            bufInONo={buffer[i].bufInONo}
+            bufOutONo={buffer[i].bufOutONo}
+            bufInOPos={buffer[i].bufInOPos}
+            bufOutOPos={buffer[i].bufOutOPos}
           />
         </ListItem>
       );
@@ -56,13 +64,19 @@ export default function ListStates() {
 
   function getDataFromMes() {
     axios.get("http://" + IP_BACKEND + ":8000/api/StatePLC/").then((res) => {
-      setState(res.data);
+      let statePLCs = res.data;
+      axios.get("http://" + IP_BACKEND + ":8000/api/Buffer/").then((res) => {
+        setState({
+          statePLC: statePLCs,
+          buffer: res.data,
+        });
+      });
     });
   }
 
   return (
     <GridList cellHeight={170} cols={3} spacing={15}>
-      {createListItem(state)}
+      {createListItem(state.statePLC, state.buffer)}
     </GridList>
   );
 }

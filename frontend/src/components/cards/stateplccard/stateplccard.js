@@ -32,6 +32,10 @@ export default function StatePLCCard(props) {
   let image = "";
   let resourceId = "";
   let dockedAt = 0;
+  let bufInONo = 0;
+  let bufOutONo = 0;
+  let bufInOPos = 0;
+  let bufOutOPos = 0;
   let data = new Map();
 
   const [open, setOpen] = React.useState(false);
@@ -76,6 +80,22 @@ export default function StatePLCCard(props) {
   if (props.dockedAt && props.dockedAt !== null) {
     dockedAt = props.dockedAt;
     data["dockedAt"] = dockedAt;
+  }
+  if (props.bufInONo) {
+    bufInONo = props.bufInONo;
+    data["bufInONo"] = bufInONo;
+  }
+  if (props.bufOutONo) {
+    bufOutONo = props.bufOutONo;
+    data["bufOutONo"] = bufOutONo;
+  }
+  if (props.bufInOPos) {
+    bufInOPos = props.bufInOPos;
+    data["bufInOPos"] = bufInOPos;
+  }
+  if (props.bufOutOPos) {
+    bufOutOPos = props.bufOutOPos;
+    data["bufOutOPos"] = bufOutOPos;
   }
 
   const handleClickOpen = () => {
@@ -351,11 +371,35 @@ function EditStatePLCDialog(props) {
           helperText="Name of the resource"
           onEdit={onEdit}
         />
+        <DialogTitle id="simple-dialog-title">
+          Edit Buffer (advanced option)
+        </DialogTitle>
         <EditTextBox
-          label="State"
-          mapKey="state"
-          initialValue={data["state"]}
-          helperText="State of the resource. Don't change if not necessary"
+          label="Order number for buffer in"
+          mapKey="bufInONo"
+          initialValue={data["bufInONo"]}
+          helperText="Order number of the assigned workingpiece which is located on buffer in of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order position for buffer in"
+          mapKey="bufInOPos"
+          initialValue={data["bufInOPos"]}
+          helperText="Order position of the assigned workingpiece which is located on buffer in of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order number for buffer out"
+          mapKey="bufOutONo"
+          initialValue={data["bufOutONo"]}
+          helperText="Order number of the assigned workingpiece which is located on buffer out of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order position for buffer out"
+          mapKey="bufOutOPos"
+          initialValue={data["bufOutOPos"]}
+          helperText="Order position of the assigned workingpiece which is located on buffer out of resource"
           onEdit={onEdit}
         />
         <ListItem justify="flex-end">
@@ -392,17 +436,41 @@ function EditStatePLCDialog(props) {
           onEdit={onEdit}
         />
         <EditTextBox
-          label="State"
-          mapKey="state"
-          initialValue={data["state"]}
-          helperText="State of the resource. Don't change if not necessary"
-          onEdit={onEdit}
-        />
-        <EditTextBox
           label="Docked at"
           mapKey="dockedAt"
           initialValue={data["dockedAt"]}
           helperText="Resource where the robotino is docked at the moment"
+          onEdit={onEdit}
+        />
+        <DialogTitle id="simple-dialog-title">
+          Edit Buffer (advanced option)
+        </DialogTitle>
+        <EditTextBox
+          label="Order number for buffer in"
+          mapKey="bufInONo"
+          initialValue={data["bufInONo"]}
+          helperText="Order number of the assigned workingpiece which is located on buffer in of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order position for buffer in"
+          mapKey="bufInOPos"
+          initialValue={data["bufInOPos"]}
+          helperText="Order position of the assigned workingpiece which is located on buffer in of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order number for buffer out"
+          mapKey="bufOutONo"
+          initialValue={data["bufOutONo"]}
+          helperText="Order number of the assigned workingpiece which is located on buffer out of resource"
+          onEdit={onEdit}
+        />
+        <EditTextBox
+          label="Order position for buffer out"
+          mapKey="bufOutOPos"
+          initialValue={data["bufOutOPos"]}
+          helperText="Order position of the assigned workingpiece which is located on buffer out of resource"
           onEdit={onEdit}
         />
         <ListItem justify="flex-end">
