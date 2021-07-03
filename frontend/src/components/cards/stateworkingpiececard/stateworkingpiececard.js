@@ -239,13 +239,16 @@ export default function StateWorkingPieceCard(props) {
 
                 <Typography
                   variant="body1"
-                  color="textSecondary"
                   component="div"
+                  color="textSecondary"
                 >
                   <Box fontWeight="fontWeightBold" display="inline">
                     Color:{" "}
                   </Box>{" "}
                   {color}
+                  <Box color={color} width={10} height={10} display="inline">
+                    {"    ♦"}
+                  </Box>
                 </Typography>
                 <Typography
                   variant="body1"
