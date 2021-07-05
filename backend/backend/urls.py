@@ -48,5 +48,5 @@ try:
     print("Starting sockets")
     serviceProcess.start()
     stateProcess.start()
-except Exception:
-    pass
+except Exception as e:
+    print(e)

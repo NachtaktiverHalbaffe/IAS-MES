@@ -84,6 +84,6 @@ class PLCStateSocket(object):
             SERVER_THREADING.start()
             SERVER_THREADING.join()
         except Exception as e:
-            pass
+            print(e)
         # Close server if all connections crashed
         self.SERVER.close()

@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogTitle,
   ListItem,
+  Typography,
 } from "@material-ui/core";
 
 import EditTextBox from "../../edittextbox/edittextbox";
@@ -249,6 +250,9 @@ export default function EditStateWorkingStepDialog(props) {
             choices={DEFINED_TASKS}
           />
           <Grid item>
+            <Typography gutterBottom component="h4">
+              {"Painting color"}
+            </Typography>
             <ChromePicker color={color} onChangeComplete={onColorEdit} />
           </Grid>
           <EditTextBox

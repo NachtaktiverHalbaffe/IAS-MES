@@ -368,6 +368,9 @@ function EditStateWorkingPieceDialog(props) {
           onEdit={onEdit}
         />
         <Grid item>
+          <Typography gutterBottom component="h4">
+            {"Color"}
+          </Typography>
           <ChromePicker color={color} onChangeComplete={onColorEdit} />
         </Grid>
         <EditCheckBox
