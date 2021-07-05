@@ -29,11 +29,11 @@ class SystemMonitoring(object):
         self.ERROR_MSG_DATA2 = "where no ressource exists"
         self.ERROR_MSG_LEN = "invalid length of message"
 
+
     # Gets cyclic messages from PLCStateSocket, decodes it to StatePLC and saves it. All neccessary inputs are validated.
     # @params:
     # msg: message from the TCP Socket
     # ipAdress: ip Adress from which the PLC send the Socket the message
-
     def decodeCyclicMessage(self, msg, ipAdress):
         if msg == "0000":
             return
@@ -88,19 +88,19 @@ class SystemMonitoring(object):
                               manualMode, busy, reset, mesMode, ipAdress)
 
             # check error bits
-            if errorL0 == 1:
+            if errorL0 == 1 and autoMode != 0 and manualMode != 0:
                 SafteyMonitoring().decodeError(
                     errorLevel=SafteyMonitoring().LEVEL_ERROR,
                     errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L0 + str(ressourceId),
                 )
-            elif errorL1 == 1:
+            elif errorL1 == 1 and autoMode != 0 and manualMode != 0:
                 SafteyMonitoring().decodeError(
                     errorLevel=SafteyMonitoring().LEVEL_ERROR,
                     errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L1 + str(ressourceId),
                 )
-            elif errorL2 == 1:
+            elif errorL2 == 1and autoMode != 0 and manualMode != 0:
                 SafteyMonitoring().decodeError(
                     errorLevel=SafteyMonitoring().LEVEL_WARNING,
                     errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
