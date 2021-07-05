@@ -282,7 +282,7 @@ export default function EditWorkingPlan() {
               description: "",
               state: "pending",
               task: "",
-              stepNo: 0,
+              stepNo: (selectedWorkingplan.workingSteps.length + 1) *10,
               name: "",
               id: selectedWorkingplan.workingSteps.length + 1,
               color: "#000000",

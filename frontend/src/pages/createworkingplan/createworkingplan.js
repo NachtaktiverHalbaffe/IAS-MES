@@ -187,7 +187,6 @@ export default function CreateWorkingPlan() {
               });
             });
         });
-
       return true;
     } else {
       setErrorState({
@@ -336,7 +335,7 @@ export default function CreateWorkingPlan() {
           description: "",
           state: "pending",
           task: "",
-          stepNo: 0,
+          stepNo: (state.workingSteps.length + 1) *10,
           name: "",
           id: state.workingSteps.length + 1,
           color: "#000000",
@@ -446,6 +445,9 @@ function mCompareWorkingSteps(oldSteps, newSteps) {
       return false;
     }
     if (oldSteps[i].description !== newSteps[i].description) {
+      return false;
+    }
+     if (oldSteps[i].stepNo !== newSteps[i].stepNo) {
       return false;
     }
   }

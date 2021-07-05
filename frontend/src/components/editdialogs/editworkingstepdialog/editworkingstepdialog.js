@@ -56,16 +56,32 @@ export default function EditStateWorkingStepDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Unkown tasks. Defined tasks: " + DEFINED_TASKS.toString(),
-        level: "warning",
+        level: "error",
       });
       return false;
     }
-    //validate stepNo. It has to be a multiple of 10
-    if (state["stepNo"] % 10 !== 0) {
+    if( (state["task"] ==="unstore" || state["task"] ==="store") && state["assignedToUnit"] !=1 ){
       setErrorState({
         snackbarOpen: true,
-        msg: "Invalid step number. Step number must be a multiple of 10",
-        level: "warning",
+        msg: "Task store and unstore must be assigned to resource 1",
+        level: "error",
+      });
+      return false;
+    }
+    if( (state["task"] ==="package" || state["task"] ==="unpackage" || state["task"] ==="color" || state["task"] ==="assemble" || state["task"] ==="generic") && state["assignedToUnit"] ==1 ){
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Resource 1 can only execute tasks store and unstore",
+        level: "error",
+      });
+      return false;
+    }
+    //validate stepNo. It has to be a number
+    if (isNaN(state["stepNo"]) ||state["stepNo"] <1) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Step number should be a number greater than 0. Its a convention to choose numbers multiple to 10 e.g. 20",
+        level: "error",
       });
       return false;
     }
@@ -77,7 +93,7 @@ export default function EditStateWorkingStepDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Color is not formatted as a hex color. Format: #0dccff",
-        level: "warning",
+        level: "error",
       });
       return false;
     }
@@ -86,7 +102,16 @@ export default function EditStateWorkingStepDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Name is too long. Max length: 30",
-        level: "warning",
+        level: "error",
+      });
+      return false;
+    }
+    // validate if name is given because name is required argument
+    if (state["name"]=== "") {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Name is required",
+        level: "error",
       });
       return false;
     }
@@ -95,7 +120,7 @@ export default function EditStateWorkingStepDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Description is too long.Max length: 200",
-        level: "warning",
+        level: "error",
       });
       return false;
     }
@@ -107,16 +132,33 @@ export default function EditStateWorkingStepDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Invalid resourceId of assigned unit. Value must be between 1-6",
-        level: "warning",
+        level: "error",
       });
       return false;
     }
 
     if (onSave(state)) {
+      if (state["stepNo"] % 10 !== 0) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Step number should be a multiple of 10",
+        level: "warning",
+      });
+    } else{
       setErrorState({
         snackbarOpen: true,
         msg: "Sucessfully added workingstep",
         level: "success",
+      });}
+      setState({
+          assignedToUnit: 0,
+          description: "",
+          state: "pending",
+          task: "",
+          stepNo: 0,
+          name: "",
+          id: 0,
+          color: "#000000",
       });
       handleClose();
       return true;
@@ -133,6 +175,9 @@ export default function EditStateWorkingStepDialog(props) {
   const onEdit = (key, value) => {
     let newState = state;
     newState[key] = value;
+    if(key !== "stepNo"){
+      newState["stepNo"] = data["stepNo"];
+    }
     setState(newState);
   };
 
