@@ -36,6 +36,7 @@ export default function StateWorkingStepCard(props) {
   let color = "";
   let data = new Map();
   let clearDialogOnSave = false;
+  let assignedToOrder = {};
   let updateStatus = (index, state) => {
     return true;
   };
@@ -104,6 +105,9 @@ export default function StateWorkingStepCard(props) {
   if (props.clearDialogOnSave) {
     clearDialogOnSave = props.clearDialogOnSave;
   }
+  if (props.assignedToOrder) {
+    assignedToOrder = props.assignedToOrder;
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -165,21 +169,34 @@ export default function StateWorkingStepCard(props) {
     let errormsg = "";
     if (allSteps.length !== 0) {
       let newWorkingSteps = allSteps;
-      newWorkingSteps.splice(
-        newWorkingSteps.findIndex((v) => v.id === stepToDelete["id"]),
-        1
-      );
+      let index = newWorkingSteps.findIndex((v) => v.id === stepToDelete["id"]);
+      newWorkingSteps.splice(index, 1);
       let validator = validateWorkingsteps(newWorkingSteps);
       isValid = validator[0];
       errormsg = validator[1];
     }
     if (isValid) {
-      axios.delete(
-        "http://" +
-          IP_BACKEND +
-          ":8000/api/WorkingStep/" +
-          stepToDelete["id"].toString()
-      );
+      axios
+        .delete(
+          "http://" +
+            IP_BACKEND +
+            ":8000/api/WorkingStep/" +
+            stepToDelete["id"].toString()
+        )
+        .then(() => {
+          let status = JSON.parse(assignedToOrder.status);
+          let index = allSteps.findIndex((v) => v.id === stepToDelete["id"]);
+          status.splice(index, 1);
+          axios.patch(
+            "http://" +
+              IP_BACKEND +
+              ":8000/api/AssignedOrder/" +
+              assignedToOrder["id"].toString(),
+            {
+              status: JSON.stringify(status),
+            }
+          );
+        });
       return true;
     } else {
       setErrorState({

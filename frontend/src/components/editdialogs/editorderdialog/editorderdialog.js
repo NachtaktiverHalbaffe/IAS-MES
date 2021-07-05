@@ -15,6 +15,7 @@ import EditTextBox from "../../edittextbox/edittextbox";
 import EditChoiceBox from "../../edittextbox/editchoicebox";
 import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../../../src/const";
+import validateWorkingPiece from "../../validateWorkingPiece/validateWorkingPiece";
 
 export default function EditStateOrderDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
@@ -126,6 +127,7 @@ export default function EditStateOrderDialog(props) {
 
   const onEdit = async (key, value) => {
     let newState = state;
+    //  check if costumer exists and then assign costumerNo
     if (key === "costumer") {
       let name = value.split(" ");
       if (name.length === 2) {
@@ -150,9 +152,32 @@ export default function EditStateOrderDialog(props) {
       } else {
         newState["costumerNo"] = "";
       }
+    }
+    // validate if workingpiece has right state
+    else if (key === "assignedWorkingPiece") {
+      axios
+        .get(
+          "http://" +
+            IP_BACKEND +
+            ":8000/api/StateWorkingPiece/" +
+            value.toString()
+        )
+        .then((res) => {
+          const validator = validateWorkingPiece(data["allSteps"], res.data);
+          if (validator[0]) {
+            newState[key] = value;
+            setState(newState);
+          } else {
+            setErrorState({
+              snackbarOpen: true,
+              msg: validator[1],
+              level: "error",
+            });
+          }
+        });
     } else {
       newState[key] = value;
-      await setState(newState);
+      setState(newState);
     }
   };
 
@@ -206,7 +231,7 @@ export default function EditStateOrderDialog(props) {
       <EditChoiceBox
         label="Assigned workingpiece"
         mapKey="assignedWorkingPiece"
-        initialValue={workingPieces[0]}
+        initialValue={data["assignedWorkingPiece"]}
         choices={workingPieces}
         helperText="Optional: Id of the assigned workingpiece. Make sure that the state of the workingpiece is correct so the workingplan is executable. If not specified the MES searches by itself for the first available piece."
         onEdit={onEdit}

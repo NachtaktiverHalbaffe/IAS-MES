@@ -282,7 +282,7 @@ export default function EditWorkingPlan() {
               description: "",
               state: "pending",
               task: "",
-              stepNo: (selectedWorkingplan.workingSteps.length + 1) *10,
+              stepNo: (selectedWorkingplan.workingSteps.length + 1) * 10,
               name: "",
               id: selectedWorkingplan.workingSteps.length + 1,
               color: "#000000",
@@ -290,6 +290,7 @@ export default function EditWorkingPlan() {
             title="Create workingstep"
             onSave={addItem}
             open={wsopen}
+            clearDialogOnSave={true}
             onClose={() => {
               setWSOpen(false);
             }}

@@ -213,6 +213,7 @@ function createListItem(currentOrders, wssteps, costumer) {
           id={currentOrders[i].id}
           costumerNo={currentOrders[i].costumer}
           assignedWorkingPiece={currentOrders[i].assignedWorkingPiece}
+          allSteps={wssteps}
         />
       </ListItem>
     );
@@ -277,6 +278,7 @@ function createListItem(currentOrders, wssteps, costumer) {
               id={steps[j].id}
               allSteps={steps}
               updateStatus={updateStatus}
+              assignedToOrder={currentOrders[i]}
             />
           </ListItem>
         );

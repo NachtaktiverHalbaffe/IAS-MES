@@ -19,5 +19,6 @@ export const DEFINED_VS_TASKS = [
   "None",
 ];
 export const DEFINED_VS_STATES = ["idle", "waiting", "playing", "finished"];
+export const DEFINED_PLC_STATES = ["pending", "finished"];
 export const AUTO_HIDE_DURATION = 6000;
 export const DEFINED_MODELS = ["IAS-Logo"];

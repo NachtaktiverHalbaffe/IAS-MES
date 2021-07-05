@@ -31,6 +31,7 @@ export default function StateOrderCard(props) {
   let id = 0;
   let assignedWorkingPiece = 0;
   let costumerNo = 0;
+  let allSteps = [];
 
   const [open, setOpen] = React.useState(false);
   // statemanagment for snackbar
@@ -88,12 +89,16 @@ export default function StateOrderCard(props) {
     assignedWorkingPiece = props.assignedWorkingPiece;
     data["assignedWorkingPiece"] = assignedWorkingPiece;
   }
+  if (props.allSteps) {
+    allSteps = props.allSteps;
+    data["allSteps"] = allSteps;
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (data) => {
+  const handleClose = () => {
     setOpen(false);
   };
 
