@@ -28,7 +28,8 @@ export default function StateOrderCard(props) {
   let orderPos = 0;
   let costumer = "";
   let assignedAt = "";
-  let id = "";
+  let id = 0;
+  let assignedWorkingPiece = 0;
   let costumerNo = 0;
 
   const [open, setOpen] = React.useState(false);
@@ -82,6 +83,10 @@ export default function StateOrderCard(props) {
   if (props.costumerNo) {
     costumerNo = props.costumerNo;
     data["costumerNo"] = costumerNo;
+  }
+  if (props.assignedWorkingPiece) {
+    assignedWorkingPiece = props.assignedWorkingPiece;
+    data["assignedWorkingPiece"] = assignedWorkingPiece;
   }
 
   const handleClickOpen = () => {
@@ -178,6 +183,16 @@ export default function StateOrderCard(props) {
                     Order position:{" "}
                   </Box>{" "}
                   {orderPos}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="textSecondary"
+                  component="div"
+                >
+                  <Box fontWeight="fontWeightBold" display="inline">
+                    Assigned workingpiece:{" "}
+                  </Box>{" "}
+                  { "Workingpiece "+ assignedWorkingPiece.toString()}
                 </Typography>
                 <Typography
                   variant="body1"

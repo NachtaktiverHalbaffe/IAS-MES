@@ -52,6 +52,7 @@ export default function CreateOrder() {
       if (createdOrder.order["orderNo"] === 0) {
         setOpen(true);
       }
+      getOrderFromMes();
       getWorkingPlansFromMes();
     }, pollingTime * 1000);
     return () => clearInterval(interval);
@@ -112,6 +113,19 @@ export default function CreateOrder() {
           workingSteps: state.workingSteps,
         });
       });
+  }
+
+  function getOrderFromMes(){
+    axios.get(
+      "http://" +
+        IP_BACKEND +
+        ":8000/api/AssignedOrder/" +
+        createdOrder.order["id"].toString()).then((res)=>{
+          setCreatedOrder({
+          order: res.data,
+          selectedWorkingPlan: createdOrder.selectedWorkingPlan,
+           });
+        });
   }
 
   return (
@@ -176,6 +190,8 @@ function createListItem(order, workingPlan) {
           orderPos={order.orderPos}
           assignedAt={order.assignedAt}
           costumer=""
+          assignedWorkingPiece= {order.assignedWorkingPiece}
+          id = {order.id}
         />
       </Grid>
     );

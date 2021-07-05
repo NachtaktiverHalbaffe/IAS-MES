@@ -212,6 +212,7 @@ function createListItem(currentOrders, wp, wssteps, costumer) {
           costumer={costumer[i]}
           id={currentOrders[i].id}
           costumerNo={currentOrders[i].costumer}
+          assignedWorkingPiece = {currentOrders[i].assignedWorkingPiece}
         />
       </ListItem>
     );

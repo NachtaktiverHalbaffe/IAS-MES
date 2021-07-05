@@ -75,6 +75,7 @@ export default function EditStateOrderDialog(props) {
       });
       return false;
     }
+    if(state["description"] !== undefined){
     if (state["description"].length > 200) {
       setErrorState({
         snackbarOpen: true,
@@ -82,8 +83,9 @@ export default function EditStateOrderDialog(props) {
         level: "warning",
       });
       return false;
+      }
     }
-    if (state["costumer"] !== undefined) {
+    if (state["costumer"] !== undefined || state["costumer"] !== 0 ) {
       let name = state["costumer"].split(" ");
       if (name.length !== 2 && state["costumer"].length !== 0) {
         setErrorState({
@@ -130,9 +132,13 @@ export default function EditStateOrderDialog(props) {
             }
           });
       }
+      else{
+        newState["costumerNo"] ="";
+      }
+    } else{
+      newState[key] = value;
+      await setState(newState);
     }
-    newState[key] = value;
-    await setState(newState);
   };
 
   return (
