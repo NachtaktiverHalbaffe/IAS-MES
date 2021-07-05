@@ -214,10 +214,10 @@ function mCheckUnpackage(workingsteps, range, state) {
       errormsg = "Workingpiece must be unstored before executing generic task";
     } else if (workingsteps[i]["task"] === "unstore") {
       if (newState["isStored"] == true) {
-        newState["isStored"] = false;
         mIsValid = true;
         errormsg = "";
       }
+      newState["isStored"] = false;
     }
     // state tracking
     else if (workingsteps[i]["task"] === "assemble") {
@@ -242,10 +242,8 @@ function mCheckAssemble(workingsteps, range, state) {
       }
       newState["isPackaged"] = false;
     } else if (workingsteps[i]["task"] === "package") {
-      if (newState["isPackaged"] == false) {
-        mIsValid = false;
-        errormsg = "Workingpiece must be unpackaged before executing assemble";
-      }
+      mIsValid = false;
+      errormsg = "Workingpiece must be unpackaged before executing assemble";
       newState["isPackaged"] = true;
     } else if (workingsteps[i]["task"] === "store") {
       newState["isStored"] = true;
@@ -260,7 +258,7 @@ function mCheckAssemble(workingsteps, range, state) {
     } else if (workingsteps[i]["task"] === "assemble") {
       if (newState["isAssembled"] == true) {
         mIsValid = false;
-        errormsg = "Workingpiece must be unassembled before being assembled";
+        errormsg = "Workingpiece must be disassembled before being assembled";
       }
       newState["isAssembled"] = true;
     } else if (workingsteps[i]["task"] === "generic") {

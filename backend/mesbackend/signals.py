@@ -11,6 +11,7 @@ callback functions for data managment pruposes are defined in the signals of mes
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
 from django.db import transaction
+from django.utils import tree
 import requests
 import logging
 
@@ -74,7 +75,7 @@ def handleError(sender, instance, **kwargs):
 
 # send delete requests to all visualisationunits when a order is deleted
 # (usually on end of order or if order is aborted)
-@receiver(post_delete, sender=AssignedOrder)
+@receiver(pre_delete, sender=AssignedOrder)
 def deleteOrder(sender, instance, **kwargs):
     if instance.assigendWorkingPlan != None:
         workingsteps = instance.assigendWorkingPlan.workingSteps.all()
@@ -87,7 +88,7 @@ def deleteOrder(sender, instance, **kwargs):
                 ipAdress = stateVisualisationUnit.first().ipAdress
                 try:
                     request = requests.delete(
-                        "http://" + ipAdress + '/api/VisualisationTask')
+                        "http://" + ipAdress + ':5000/api/VisualisationTask')
                     # Error message
                 except Exception as e:
                     pass
@@ -123,8 +124,9 @@ def validateWorkingPlan(sender, instance, **kwargs):
 # workingSteps: sorted List of the workingsteps in the workingplan which needs to be checked
 def _validateWorkingSteps(workingSteps):
     ERROR_PRE = "While saving workingplan: "
-    isValid = True
-    state= {
+    isValid = False
+    errormsg = ""
+    state = {
         "isPackaged": None,
         "isAssembled": None,
         "isStored": None,
@@ -132,84 +134,92 @@ def _validateWorkingSteps(workingSteps):
     for i in range(len(workingSteps)):
         if i != 0:
             if workingSteps[i].task == 'unpackage':
-                isValid = _checkUnpackage(workingSteps, isValid,  i)
+                isValid, errormsg, state = _checkUnpackage(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task unpackage can't be run if workingpiece isnt packaged or is stored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'package':
-                isValid = _checkPackage(workingSteps, isValid, i)
+                isValid, errormsg, state = _checkPackage(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task package can't be run if workingpiece is already packaged or stored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'assemble':
                 # check condition for assemble
-                isValid = _checkAssemble(workingSteps, isValid, i)
+                isValid, errormsg, state = _checkAssemble(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task assemble can't be run if workingpiece is packaged or stored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'color':
                 # check condition for color
-                isValid = _checkColor(workingSteps, isValid, i)
+                isValid, errormsg, state = _checkColor(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task color can't be run if workingpiece is packaged or is stored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'store':
                 # check condition for store
-                isValid = _checkStore(workingSteps, isValid, i)
+                isValid, errormsg, state = _checkStore(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task store can't be run if workingpiece is already stored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'unstore':
                 # check condition for unstore
-                isValid = _checkUnstore(workingSteps, isValid, i)
+                isValid, errormsg, state = _checkUnstore(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE + "task unstore can't be run if workingpiece is already unstored"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
             elif workingSteps[i].task == 'generic':
                 # check condition for generic
-                isValid = _checkGeneric(workingSteps, False, i)
+                isValid, errormsg, state = _checkGeneric(
+                    workingSteps, i+1, state)
                 if not isValid:
                     safteyMonitoring = SafteyMonitoring()
                     safteyMonitoring.decodeError(
                         errorLevel=safteyMonitoring.LEVEL_ERROR,
                         errorCategory=safteyMonitoring.CATEGORY_INPUT,
-                        msg=ERROR_PRE +
-                        "task generic (test) can't be run if workingpiece isnt assembled or is stored or packaged"
+                        msg=ERROR_PRE + errormsg
                     )
                     break
         else:
             if workingSteps[i].task == 'unstore':
                 isValid = True
+                errormsg = ""
+                state["isStored"] = False
             else:
                 isValid = False
                 safteyMonitoring = SafteyMonitoring()
@@ -220,94 +230,234 @@ def _validateWorkingSteps(workingSteps):
                     "first task must be unstore"
                 )
                 break
-
     return isValid
 
 
-def _checkUnpackage(workingSteps, isValid, i):
+def _checkUnpackage(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
     # check conditions for unpackage
     for j in range(i):
-        # before unpackage the task package has to be run
-        # and the package must be unstored
+        # validating
         if workingSteps[j].task == 'package':
-            isValid = True
+            if (newState["isPackaged"] == False):
+                isValid = True
+                errormsg = ""
+            newState["isPackaged"] = True
         elif workingSteps[j].task == 'unpackage':
-            isValid = False
+            if newState["isPackaged"] == False:
+                isValid = False
+                errormsg = "task package must be run before being unpackaged"
+            newState["isPackaged"] = False
         elif workingSteps[j].task == 'store':
+            newState["isStored"] = True
             isValid = False
-    return isValid
+            errormsg = "workingpiece must be unstored before being unpackaged"
+        elif workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+        # state tracking
+        elif workingSteps[j].task == 'assemble':
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            newState["isAssembled"] = False
+    return (isValid, errormsg, newState)
 
 
-def _checkPackage(workingSteps, isValid, i):
+def _checkPackage(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
     # check condition for package
     for j in range(i):
-        # before package the workingpiece must be unstored and unpackaged
+        # validating
         if workingSteps[j].task == 'package':
-            isValid = False
+            if newState["isPackaged"] == True:
+                isValid = False
+                errormsg = "task unpackaged must be run before being packaged"
+            newState["isPackaged"] = True
         elif workingSteps[j].task == 'unpackage':
-            isValid = True
+            if newState["isPackaged"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isPackaged"] = False
         elif workingSteps[j].task == 'store':
+            newState["isStored"] = True
             isValid = False
-    return isValid
-
-
-def _checkAssemble(workingSteps, isValid, i):
-    for j in range(i):
-        # the workingpiece must be unpackaged, not already assembled and unstored
-        if workingSteps[j].task == 'package':
-            isValid = False
+            errormsg = "workingpiece must be unstored before being unpackaged"
+        elif workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+        # state tracking
         elif workingSteps[j].task == 'assemble':
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            newState["isAssembled"] = False
+    return (isValid, errormsg, newState)
+
+
+def _checkAssemble(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
+    for j in range(i):
+        # validating
+        if workingSteps[j].task == 'assemble':
+            if newState["isAssembled"] == True:
+                isValid = False
+                errormsg = "task disassemble must be run before being assembled"
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            if newState["isAssembled"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isAssemled"] = False
+        elif workingSteps[j].task == 'package':
             isValid = False
+            errormsg = "task unpackage must be run before being assembled"
+            newState["isPackaged"] = True
+        elif workingSteps[j].task == 'unpackage':
+            if newState["isPackaged"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isPackaged"] = False
         elif workingSteps[j].task == 'store':
+            newState["isStored"] = True
             isValid = False
-    return isValid
+            errormsg = "workingpiece must be unstored before being unpackaged"
+        elif workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+    return (isValid, errormsg, newState)
 
 
-def _checkColor(workingSteps, isValid, i):
+def _checkGeneric(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
+    for j in range(i):
+        # validating
+        if workingSteps[j].task == 'assemble':
+            if newState["isAssembled"] == False:
+                isValid = True
+                errormsg = ""
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            if newState["isAssembled"] == False:
+                isValid = False
+                errormsg = "task assemble must be run before being assembled"
+            newState["isAssembled"] = False
+        elif workingSteps[j].task == 'store':
+            newState["isStored"] = True
+            isValid = False
+            errormsg = "workingpiece must be unstored before being unpackaged"
+        elif workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+        elif workingSteps[j].task == 'package':
+            isValid = False
+            errormsg = "task unpackage must be run before being assembled"
+            newState["isPackaged"] = True
+        elif workingSteps[j].task == 'unpackage':
+            if newState["isPackaged"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isPackaged"] = False
+    return (isValid, errormsg, newState)
+
+
+def _checkColor(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
     for j in range(i):
         # the workingpiece must be unpackaged and unstored
         if workingSteps[j].task == 'package':
             isValid = False
+            errormsg = "task unpackage must be run before being assembled"
+            newState["isPackaged"] = True
         elif workingSteps[j].task == 'unpackage':
-            isValid = True
-        elif workingSteps[j].task == 'store':
-            isValid = False
-    return isValid
-
-
-def _checkStore(workingSteps, isValid, i):
-    for j in range(i):
-        # workingpiece must be unstored
-        if workingSteps[j].task == 'unstore':
-            isValid = True
-        elif workingSteps[j].task == 'store':
-            isValid = False
-    return isValid
-
-
-def _checkUnstore(workingSteps, isValid, i):
-    for j in range(i):
-        # workingpiece must be stored
-        if(j != 0):
-            if workingSteps[j].task == 'unstore':
-                isValid = False
-            elif workingSteps[j].task == 'store':
+            if newState["isPackaged"] == True:
                 isValid = True
-    return isValid
-
-
-def _checkGeneric(workingSteps, isValid, i):
-    for j in range(i):
-        # workingpiece must be unstored and assembled. If generic gets changed
-        # the condition checking must be updated
-        if workingSteps[j].task == 'assemble':
-            isValid = True
-        elif workingSteps[j].task == 'unstore':
-            isValid = True
+                errormsg = ""
+            newState["isPackaged"] = False
         elif workingSteps[j].task == 'store':
+            newState["isStored"] = True
             isValid = False
+            errormsg = "workingpiece must be unstored before being unpackaged"
+        elif workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+        # state tracking
+        elif workingSteps[j].task == 'assemble':
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            newState["isAssembled"] = False
+    return (isValid, errormsg, newState)
+
+
+def _checkStore(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
+    for j in range(i):
+        # validating
+        if workingSteps[j].task == 'unstore':
+            if newState["isStored"] == True:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = False
+        elif workingSteps[j].task == 'store':
+            if newState["isStored"] == True:
+                isValid = False
+                errormsg = "task unstore must be run before being stored"
+            newState["isStored"] = True
+        # state tracking
+        elif workingSteps[j].task == 'assemble':
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            newState["isAssembled"] = False
         elif workingSteps[j].task == 'package':
-            isValid = False
+            newState["isPackaged"] = True
         elif workingSteps[j].task == 'unpackage':
-            isValid = True
-    return isValid
+            newState["isPackaged"] = False
+    return (isValid, errormsg, newState)
+
+
+def _checkUnstore(workingSteps, i, state):
+    isValid = True
+    errormsg = ""
+    newState = state
+    for j in range(i):
+        # validating
+        if workingSteps[j].task == 'unstore':
+            if newState["isStored"] == False:
+                isValid = False
+                errormsg = "task store must be run before being unstored"
+            newState["isStored"] = False
+        elif workingSteps[j].task == 'store':
+            if newState["isStored"] == False:
+                isValid = True
+                errormsg = ""
+            newState["isStored"] = True
+        # state tracking
+        elif workingSteps[j].task == 'assemble':
+            newState["isAssembled"] = True
+        elif workingSteps[j].task == 'generic':
+            newState["isAssembled"] = False
+        elif workingSteps[j].task == 'package':
+            newState["isPackaged"] = True
+        elif workingSteps[j].task == 'unpackage':
+            newState["isPackaged"] = False
+    return (isValid, errormsg, newState)
