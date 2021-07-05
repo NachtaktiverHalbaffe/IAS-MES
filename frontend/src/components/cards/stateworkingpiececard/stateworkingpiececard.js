@@ -354,13 +354,6 @@ function EditStateWorkingPieceDialog(props) {
       </DialogTitle>
       <Grid container direction="column" justify="center" alignItems="center">
         <EditTextBox
-          label="Id"
-          mapKey="id"
-          initialValue={data["id"]}
-          helperText="Id of the workingpiece. Identifies the workingpiece"
-          onEdit={onEdit}
-        />
-        <EditTextBox
           label="Location"
           mapKey="location"
           initialValue={data["location"]}

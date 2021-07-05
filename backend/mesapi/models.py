@@ -258,10 +258,6 @@ class Error(models.Model):
 
 
 class Setting(models.Model):
-    # if tcp connections are forwared to mes4
-    isInBridgingMode = models.BooleanField()
-    # ip adress of mes4
-    ipAdressMES4 = models.GenericIPAddressField()
     # if fleetmanager is used
     useFleetmanager = models.BooleanField(default=True)
 

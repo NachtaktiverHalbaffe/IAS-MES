@@ -311,31 +311,10 @@ function EditStateVSDialog(props) {
           data["boundToRessource"].toString()}
       </DialogTitle>
       <EditTextBox
-        label="State"
-        mapKey="state"
-        initialValue={data["state"]}
-        helperText="State of the visualisation unit. Only change if you know what are you doing!"
-        onEdit={onEdit}
-      />
-      <EditTextBox
         label="IP-Adress"
         mapKey="ipAdress"
         initialValue={data["ipadress"]}
         helperText="IP-Adress of the visualisation unit. Only change if you know what are you doing! "
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Task"
-        mapKey="task"
-        initialValue={data["task"]}
-        helperText="Current visualisation task which is assigned to the unit. Only change if you know what are you doing!"
-        onEdit={onEdit}
-      />
-      <EditTextBox
-        label="Baselevel height"
-        mapKey="baseLevelHeight"
-        initialValue={data["baseLevelHeight"]}
-        helperText="Baselevel of the ultrasonic sensor. Gets calibrated on startup of the unit. Only change if you know what are you doing!"
         onEdit={onEdit}
       />
       <ListItem>

@@ -139,17 +139,34 @@ export default function StatePLCCard(props) {
     }
 
     //update data in Mes
-    axios.patch(
-      "http://" +
-        IP_BACKEND +
-        ":8000/api/StatePLC/" +
-        updatedData["resourceId"].toString(),
-      {
-        state: updatedData["state"],
-        name: updatedData["name"],
-        dockedAt: updatedData["dockedAt"],
-      }
-    );
+    axios
+      .patch(
+        "http://" +
+          IP_BACKEND +
+          ":8000/api/StatePLC/" +
+          updatedData["resourceId"].toString(),
+        {
+          state: updatedData["state"],
+          name: updatedData["name"],
+          dockedAt: updatedData["dockedAt"],
+        }
+      )
+      .then(() => {
+        let payload = {
+          resourceId: updatedData["resourceId"],
+          bufInONo: updatedData["bufInONo"],
+          bufInOPos: updatedData["bufInOPos"],
+          bufOutONo: updatedData["bufOutONo"],
+          bufOutOPos: updatedData["bufOutOPos"],
+        };
+        axios.patch(
+          "http://" +
+            IP_BACKEND +
+            ":8000/api/Buffer/" +
+            updatedData["resourceId"].toString(),
+          payload
+        );
+      });
     setErrorState({
       snackbarOpen: true,
       msg: "Successfully updated state of resource",

@@ -15,6 +15,7 @@ import requests
 import logging
 
 from .models import AssignedOrder, Setting, StateWorkingPiece, StatePLC, Buffer
+from mesbackend.safteymonitoring import SafteyMonitoring
 
 # setup logging
 log_formatter = logging.Formatter('[%(asctime)s ] %(name)s : %(message)s')
@@ -57,26 +58,35 @@ def createMissingParams(sender, instance, **kwargs):
         workingPieces = StateWorkingPiece.objects.all()
         workingSteps = instance.assigendWorkingPlan.workingSteps.all()
         for step in workingSteps:
-            if step.task == "assemble" and workingPieces.filter(isAssembled= False).count() != 0:
-                workingPieces = workingPieces.filter(isAssembled= False)
+            if step.task == "assemble" and workingPieces.filter(isAssembled=False).count() != 0:
+                workingPieces = workingPieces.filter(isAssembled=False)
             # check for generic task only if 3D-Model is ias logo (default model). For diffrent 3d Model the generic task can differ
-            elif step.task == "generic" and workingPieces.filter(model="IAS-Logo").filter(isAssembled= False).count() != 0 :
-                workingPieces = workingPieces.filter(model="IAS-Logo").filter(isAssembled= False)
-            elif step.task == "unpackage" and workingPieces.filter(isPackaged= True).count() != 0:
-                workingPieces = workingPieces.filter(isPackaged= True)
-            elif step.task == "package" and workingPieces.filter(isPackaged= False).count() != 0:
-                workingPieces = workingPieces.filter(isPackaged= False) 
-            
-        assignedWorkingPiece = workingPieces.first()
-        instance.assignedWorkingPiece = assignedWorkingPiece
-            
+            elif step.task == "generic" and workingPieces.filter(model="IAS-Logo").filter(isAssembled=False).count() != 0:
+                workingPieces = workingPieces.filter(
+                    model="IAS-Logo").filter(isAssembled=False)
+            elif step.task == "unpackage" and workingPieces.filter(isPackaged=True).count() != 0:
+                workingPieces = workingPieces.filter(isPackaged=True)
+            elif step.task == "package" and workingPieces.filter(isPackaged=False).count() != 0:
+                workingPieces = workingPieces.filter(isPackaged=False)
+
+        if(workingPieces.count() != 0):
+            assignedWorkingPiece = workingPieces.first()
+            instance.assignedWorkingPiece = assignedWorkingPiece
+        else:
+            safteyMonitoring = SafteyMonitoring()
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_ERROR,
+                errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                msg="No workingpiece exists with the matching state to execute the order. Deleting order..."
+            )
+            instance.delete()
+
 
 @receiver(pre_delete, sender=AssignedOrder)
 def logOrderDel(sender, instance, **kwargs):
     logging.basicConfig(filename="orders.log",
                         level=logging.INFO, format='[%(asctime)s ] %(name)s : %(message)s')
     logging.info("[AssignedOrder] Deleted order " + str(instance.orderNo))
-
 
 
 # Creates a buffer if a StatePLC is created and hasnt a buffer yet

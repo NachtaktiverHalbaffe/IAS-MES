@@ -12,6 +12,7 @@ from django.db.models.signals import post_save, pre_save, pre_delete, post_delet
 from django.dispatch import receiver
 from django.db import transaction
 from django.utils import tree
+from threading import Thread
 import requests
 import logging
 
@@ -86,21 +87,10 @@ def deleteOrder(sender, instance, **kwargs):
                 boundToRessource=unit)
             if stateVisualisationUnit.count() == 1:
                 ipAdress = stateVisualisationUnit.first().ipAdress
-                try:
-                    request = requests.delete(
-                        "http://" + ipAdress + ':5000/api/VisualisationTask')
-                    # Error message
-                except Exception as e:
-                    pass
-                    safteyMonitoring = SafteyMonitoring()
-                    safteyMonitoring.decodeError(
-                        errorLevel=safteyMonitoring.LEVEL_ERROR,
-                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
-                        msg=str(e)
-                    )
+                Thread(target=_sendAbortVSTask, args=[ipAdress]).start()
 
 
-# Gets executed after a workingplan is saved. It validates the workingplan on static parameters
+# Gets executed after a workingplan is saved. It validates the workingplan if it is executable
 @receiver(m2m_changed, sender=WorkingPlan.workingSteps.through)
 def validateWorkingPlan(sender, instance, **kwargs):
     print("[VALIDATING] Validate workingplan")
@@ -461,3 +451,17 @@ def _checkUnstore(workingSteps, i, state):
         elif workingSteps[j].task == 'unpackage':
             newState["isPackaged"] = False
     return (isValid, errormsg, newState)
+
+
+def _sendAbortVSTask(ipAdress):
+    try:
+        request = requests.delete(
+            "http://" + ipAdress + ':5000/api/VisualisationTask')
+        # Error message
+    except Exception as e:
+        safteyMonitoring = SafteyMonitoring()
+        safteyMonitoring.decodeError(
+            errorLevel=safteyMonitoring.LEVEL_ERROR,
+            errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+            msg=str(e)
+        )

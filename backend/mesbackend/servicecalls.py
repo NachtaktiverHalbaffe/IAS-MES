@@ -80,7 +80,7 @@ class Servicecalls(object):
                                 if step.operationNo == 210 or step.operationNo == 211:
                                     obj.dataLength = 12
                                     bufPos = 0
-                                    for j in range(1,30):
+                                    for j in range(1, 30):
                                         # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
                                         if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
                                             bufPos = j
@@ -152,8 +152,8 @@ class Servicecalls(object):
             status = currentOrder.getStatus()
             # get assigned workingpiece and update location where piece is located
             workingPiece = StateWorkingPiece.objects.filter(
-                            id=currentOrder.assignedWorkingPiece.id).first()
-            workingPiece.location=requestId
+                id=currentOrder.assignedWorkingPiece.id).first()
+            workingPiece.location = requestId
             workingPiece.save()
             partNo = workingPiece.partNo
             for i in range(len(status)):
@@ -182,7 +182,7 @@ class Servicecalls(object):
                         # set output params
                         obj.dataLength = 12
                         bufPos = 0
-                        for j in range(1,30):
+                        for j in range(1, 30):
                             # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
                             if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
                                 bufPos = j
@@ -200,8 +200,8 @@ class Servicecalls(object):
                             obj.serviceParams = [
                                 0, 91, 0, bufPos, 0, partNo]
                         # update mes data
-                        workingPiece.storageLocation=bufPos
-                        workingPiece.carrierId=0
+                        workingPiece.storageLocation = bufPos
+                        workingPiece.carrierId = 0
                         workingPiece.save()
                     if obj.opNo == 212 or obj.opNo == 213:
                         bufPos = currentOrder.assignedWorkingPiece.storageLocation
@@ -477,7 +477,8 @@ class Servicecalls(object):
                                 status[i] = 1
                                 order.setStatus(status)
                                 order.save()
-                                Thread(target=self._sendVisualisationTask, args=[oNo, oPos, obj.resourceId,obj.stepNo]).start()
+                                Thread(target=self._sendVisualisationTask, args=[
+                                       oNo, oPos, obj.resourceId, obj.stepNo]).start()
                         # visualisationunit hasnt finished => write current task again to repeat operation on PLC
                         elif stateVisualisationUnit.state == "playing" or stateVisualisationUnit.state == "waiting" and requestId > 1 and requestId < 7:
                             self.logger.info(
@@ -493,7 +494,8 @@ class Servicecalls(object):
                             status[i] = 1
                             order.setStatus(status)
                             order.save()
-                            Thread(target=self._sendVisualisationTask, args=[oNo, oPos, obj.resourceId,obj.stepNo]).start()
+                            Thread(target=self._sendVisualisationTask, args=[
+                                   oNo, oPos, obj.resourceId, obj.stepNo]).start()
                         else:
                             obj.resourceId = 0
                             obj.oNo = 0
@@ -505,8 +507,7 @@ class Servicecalls(object):
                             status[i] = 1
                             order.setStatus(status)
                             order.save()
-                    
-                    
+
                     self.logger.info("[OPEND] Operation on resource " +
                                      str(requestId) + " ended. Writing next operation on RFID with ONo: " + str(obj.oNo) + " and OPos " + str(obj.oPos))
                     # update data
@@ -514,7 +515,7 @@ class Servicecalls(object):
                         id=order.assignedWorkingPiece.id)
                     workingpiece.update(carrierId=carrierId)
                     workingpiece.update(location=requestId)
-                    
+
                     # all steps in workingplan are complete => delete order
                     if not 0 in status:
                         order.delete()
@@ -626,7 +627,8 @@ class Servicecalls(object):
                 if bufNo == 1:
                     obj.oNo = 0
                     obj.oPos = 0
-                    workingPiece = StateWorkingPiece.objects.filter(storageLocation = bufPos)
+                    workingPiece = StateWorkingPiece.objects.filter(
+                        storageLocation=bufPos)
                     if workingPiece.count() == 1:
                         obj.pNo = 25
                         obj.boxPNo = 25
@@ -672,7 +674,7 @@ class Servicecalls(object):
             plcs = StatePLC.objects.all()
             for resource in plcs:
                 if resource.id >= 6:
-                    if resource.state =="busy":
+                    if resource.state == "busy":
                         buffer = resource.buffer
                         obj.resourceId = resource.id
                         break
@@ -733,8 +735,8 @@ class Servicecalls(object):
             oNo = oldbuffer.first().bufOutONo
             oPos = oldbuffer.first().bufOutOPos
             if newBufNo == 1:
-                targetbuffer.update(bufOutONo= oNo)
-                targetbuffer.update(bufOutOPos= oPos)
+                targetbuffer.update(bufOutONo=oNo)
+                targetbuffer.update(bufOutOPos=oPos)
             elif newBufNo == 2:
                 targetbuffer.update(bufInONo=oNo)
                 targetbuffer.update(bufInOPos=oPos)
@@ -747,7 +749,6 @@ class Servicecalls(object):
                 elif oldBufNo == 2:
                     oldbuffer.update(bufInONo=0)
                     oldbuffer.update(bufInOPos=0)
-            
 
         # update location of workingpiece
         StateWorkingPiece.objects.filter(location=oldId).update(location=newId)
@@ -880,7 +881,7 @@ class Servicecalls(object):
                     # find first unfinished step => first unfinished
                     # step is target and the step before is start
                     if status[i] == 0:
-                        if i>0:
+                        if i > 0:
                             workingSteps = order.assigendWorkingPlan.workingSteps.all()
                             targetId = workingSteps[i].assignedToUnit
                             startId = workingSteps[i-1].assignedToUnit
@@ -922,8 +923,10 @@ class Servicecalls(object):
                     # only set output parameter if bufferIn from target is empty and
                     # if bufferOut from start isnt empty
                     if Buffer.objects.filter(resourceId=startId).count != 0 and Buffer.objects.filter(resourceId=targetId).count() != 0:
-                        bufOutStart = Buffer.objects.filter(resourceId=startId).first()
-                        bufInTarget = Buffer.objects.filter(resourceId=targetId).first()
+                        bufOutStart = Buffer.objects.filter(
+                            resourceId=startId).first()
+                        bufInTarget = Buffer.objects.filter(
+                            resourceId=targetId).first()
                         if bufInTarget.bufInONo == 0 and bufOutStart.bufOutONo != 0:
                             # only add transport task to output params if length of records doesnt
                             # exceed specified maxRecords from Fleetmanager
@@ -932,14 +935,14 @@ class Servicecalls(object):
                                 currentRecords += 1
                 else:
                     if currentRecords < maxRecords:
-                                serviceParams.extend(answerParameterlist)
-                                currentRecords += 1
+                        serviceParams.extend(answerParameterlist)
+                        currentRecords += 1
             # pad parameterlist to required length with 0
             for i in range(8 * maxRecords - len(serviceParams)):
                 answerParameterlist.append(0)
             # set output parameter
             obj.maxRecords = 0
-            
+
             if len(serviceParams) == 0:
                 obj.dataLength = 0
                 obj.serviceParams = []
@@ -949,7 +952,7 @@ class Servicecalls(object):
                 obj.dataLength = maxRecords * 8 * 2
                 obj.serviceParams = serviceParams
                 self.logger.info("[GETTOAGVBUF] Found start " + str(startId) +
-                                    " and target " + str(targetId)+" for Robotinos")
+                                 " and target " + str(targetId)+" for Robotinos")
         else:
             obj.dataLength = 0
             obj.serviceParams = []
@@ -966,7 +969,7 @@ class Servicecalls(object):
         if robotino.count() == 1:
             robotino.update(dockedAt=dockedAt)
             self.logger.info("[SETAGVPOS] Robotino with id " + str(robotinoId) +
-                                " docked at resource " + str(dockedAt))
+                             " docked at resource " + str(dockedAt))
         # set output parameter
         obj.aux1Int = 0
         obj.resourceId = 0
@@ -974,10 +977,12 @@ class Servicecalls(object):
 
     def _sendVisualisationTask(self, orderNo, orderPos, resourceId, stepNo):
         # get task
-        order = AssignedOrder.objects.filter(orderNo = orderNo).filter(orderPos=orderPos).first()
-        visualisationTasks = order.assigendWorkingPlan.workingSteps.filter(stepNo=stepNo).filter(assignedToUnit=resourceId)
+        order = AssignedOrder.objects.filter(
+            orderNo=orderNo).filter(orderPos=orderPos).first()
+        visualisationTasks = order.assigendWorkingPlan.workingSteps.filter(
+            stepNo=stepNo).filter(assignedToUnit=resourceId)
         if(visualisationTasks.count() != 0):
-            task= visualisationTasks.first()
+            task = visualisationTasks.first()
             # send task
             payload = {
                 "task": task.task,
@@ -987,16 +992,16 @@ class Servicecalls(object):
             }
             try:
                 request = requests.put("http://" +
-                            StateVisualisationUnit.objects.filter(boundToRessource=resourceId).first().ipAdress+ ':5000/api/VisualisationTask', data=payload)
+                                       StateVisualisationUnit.objects.filter(boundToRessource=resourceId).first().ipAdress + ':5000/api/VisualisationTask', data=payload)
 
                 if not request.ok:
                     pass
                     self.safteyMonitoring.decodeError(
-                    errorLevel=self.safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
-                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
+                        errorLevel=self.safteyMonitoring.LEVEL_ERROR,
+                        errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
+                        msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
                         str(orderNo) + ":" + str(orderPos))
-        
+
             except Exception as e:
                 pass
                 self.safteyMonitoring.decodeError(

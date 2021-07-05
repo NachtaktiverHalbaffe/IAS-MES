@@ -64,8 +64,6 @@ export default function Settings() {
     //update data in Mes
     axios.patch("http://" + IP_BACKEND + ":8000/api/Setting/1", {
       useFleetmanager: updatedData["useFleetmanager"],
-      ipAdressMES4: updatedData["ipAdressMES4"],
-      isInBridgingMode: updatedData["isInBridgingMode"],
     });
     return true;
   };
@@ -100,32 +98,6 @@ export default function Settings() {
                 <Typography gutterBottom variant="h5" component="h2">
                   Settings MES
                 </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    Is in bridging mode:{" "}
-                  </Box>{" "}
-                  <Checkbox
-                    checked={state["isInBridgingMode"]}
-                    onChange={() => {}}
-                    name="checkedB"
-                    color="primary"
-                  />
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="textSecondary"
-                  component="div"
-                >
-                  <Box fontWeight="fontWeightBold" display="inline">
-                    IP-Adress MES4 (if in bridging mode):{" "}
-                  </Box>{" "}
-                  {state["ipAdressMES4"]}
-                </Typography>
-
                 <Typography
                   variant="body1"
                   color="textSecondary"
@@ -185,25 +157,6 @@ function EditStateWorkingPieceDialog(props) {
   };
 
   const handleSave = () => {
-    let ipAdressSplit = state["ipAdressMES4"].split(".");
-    if (
-      ipAdressSplit.length !== 4 ||
-      isNaN(ipAdressSplit[0]) ||
-      isNaN(ipAdressSplit[1]) ||
-      isNaN(ipAdressSplit[2]) ||
-      isNaN(ipAdressSplit[3]) ||
-      ipAdressSplit[0].length > 3 ||
-      ipAdressSplit[1].length > 3 ||
-      ipAdressSplit[2].length > 3 ||
-      ipAdressSplit[3].length > 3
-    ) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Invalid id adress. Format(ipv4): e.g. 129.69.102.129 ",
-        level: "warning",
-      });
-      return false;
-    }
     if (onSave(state)) {
       setErrorState({
         snackbarOpen: true,
@@ -229,18 +182,6 @@ function EditStateWorkingPieceDialog(props) {
     >
       <DialogTitle id="simple-dialog-title">Edit settings</DialogTitle>
       <Grid container direction="column" justify="center" alignItems="center">
-        <EditCheckBox
-          label="Bridging mode"
-          mapKey="isInBridgingMode"
-          onEdit={onEdit}
-        />
-        <EditTextBox
-          label="IP-Adress MES4"
-          mapKey="ipAdressMES4"
-          initialValue={data["ipAdressMES4"]}
-          helperText="IP-Adress of MES4 (if MES is in brdiging Mode)"
-          onEdit={onEdit}
-        />
         <EditCheckBox
           label="Use Fleetmanager"
           mapKey="useFleetmanager"

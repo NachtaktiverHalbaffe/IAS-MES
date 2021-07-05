@@ -30,28 +30,17 @@ class PLCStateSocket(object):
         self.SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.SERVER.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.SERVER.bind(self.ADDR)
-        # setting up forwarding if server should be in bridging mode
-        settings = apps.get_model('mesapi', 'Setting')
-        settings = settings.objects.all().first()
-        self.isBridging = settings.isInBridgingMode
-        self.ipAdressMES4 = settings.ipAdressMES4
-        self.CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.isBridging:
-            self.CLIENT.connect((self.ipAdressMES4, self.PORT))
+        
 
     # Thread for the cyclic communication. Receives messages from plc and gives them to SafteyMonitoring
     # @params:
     # client: socket of the plc
     # addr: ipv4 adress of the plc
-
     def cyclicCommunication(self, client, addr):
         # django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
-            # if Socket is in bridging mode forward connection
-            if self.isBridging:
-                self.CLIENT.send(msg)
             # decode message
             if msg:
                 startTime = time.time()
