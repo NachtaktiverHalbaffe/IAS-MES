@@ -7,17 +7,19 @@ Short description: Dialog to edit/create a order
 
 */
 
-import React from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import axios from "axios";
 import { Button, Dialog, DialogTitle, ListItem } from "@material-ui/core";
 
 import EditTextBox from "../../edittextbox/edittextbox";
+import EditChoiceBox from "../../edittextbox/editchoicebox";
 import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
 import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../../../src/const";
 
 export default function EditStateOrderDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
+  const [workingPieces, setWorkingPieces] = React.useState([]);
 
   // statemanagment for snackbar
   const [errorState, setErrorState] = React.useState({
@@ -37,6 +39,20 @@ export default function EditStateOrderDialog(props) {
       }
     }, AUTO_HIDE_DURATION);
   });
+
+  useEffect(() => {
+    const pollingTime = 2; // interval for polling in seconds
+
+    const interval = setInterval(async () => {
+      getDataFromMes();
+    }, pollingTime * 1000);
+    return () => clearInterval(interval);
+  });
+
+  useLayoutEffect(() => {
+    getDataFromMes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleClose = () => {
     onClose();
@@ -75,17 +91,17 @@ export default function EditStateOrderDialog(props) {
       });
       return false;
     }
-    if(state["description"] !== undefined){
-    if (state["description"].length > 200) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Description too long. Max length: 200",
-        level: "warning",
-      });
-      return false;
+    if (state["description"] !== undefined) {
+      if (state["description"].length > 200) {
+        setErrorState({
+          snackbarOpen: true,
+          msg: "Description too long. Max length: 200",
+          level: "warning",
+        });
+        return false;
       }
     }
-    if (state["costumer"] !== undefined || state["costumer"] !== 0 ) {
+    if (state["costumer"] !== undefined) {
       let name = state["costumer"].split(" ");
       if (name.length !== 2 && state["costumer"].length !== 0) {
         setErrorState({
@@ -131,15 +147,26 @@ export default function EditStateOrderDialog(props) {
               newState["costumerNo"] = 0;
             }
           });
+      } else {
+        newState["costumerNo"] = "";
       }
-      else{
-        newState["costumerNo"] ="";
-      }
-    } else{
+    } else {
       newState[key] = value;
       await setState(newState);
     }
   };
+
+  function getDataFromMes() {
+    axios
+      .get("http://" + IP_BACKEND + ":8000/api/StateWorkingPiece/")
+      .then((res) => {
+        let workingPieceIds = [];
+        for (let i = 0; i < res.data.length; i++) {
+          workingPieceIds.push(res.data[i].id);
+        }
+        setWorkingPieces(workingPieceIds);
+      });
+  }
 
   return (
     <Dialog
@@ -159,7 +186,7 @@ export default function EditStateOrderDialog(props) {
         label="Description"
         mapKey="description"
         initialValue={data["description"]}
-        helperText="Description of the order (optional)"
+        helperText="Optional: Description of the order"
         onEdit={onEdit}
       />
       <EditTextBox
@@ -176,11 +203,20 @@ export default function EditStateOrderDialog(props) {
         helperText="Position of an order within the order itself if an order contains multiple orders"
         onEdit={onEdit}
       />
+      <EditChoiceBox
+        label="Assigned workingpiece"
+        mapKey="assignedWorkingPiece"
+        initialValue={workingPieces[0]}
+        choices={workingPieces}
+        helperText="Optional: Id of the assigned workingpiece. Make sure that the state of the workingpiece is correct so the workingplan is executable. If not specified the MES searches by itself for the first available piece."
+        onEdit={onEdit}
+      />
+
       <EditTextBox
         label="Costumer"
         mapKey="costumer"
         initialValue={data["costumer"]}
-        helperText="Name of the costumer who assigned the order(optional). Only change if new costumer is already created as an costumer"
+        helperText="Optional: Name of the costumer who assigned the order. Only change if new costumer is already created as an costumer"
         onEdit={onEdit}
       />
       <ListItem justify="flex-end">
@@ -188,7 +224,6 @@ export default function EditStateOrderDialog(props) {
           justify="flex-end"
           variant="outlined"
           color="primary"
-          href="#outlined-buttons"
           onClick={handleSave}
         >
           Save
@@ -198,7 +233,6 @@ export default function EditStateOrderDialog(props) {
           justify="flex-end"
           variant="outlined"
           color="primary"
-          href="#outlined-buttons"
           onClick={handleDelete}
         >
           Delete

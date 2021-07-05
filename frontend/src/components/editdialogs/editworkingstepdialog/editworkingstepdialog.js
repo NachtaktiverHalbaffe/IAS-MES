@@ -20,13 +20,22 @@ import {
 import EditTextBox from "../../edittextbox/edittextbox";
 import EditChoiceBox from "../../edittextbox/editchoicebox";
 import ErrorSnackbar from "../../errorsnackbar/errorsnackbar";
-import { AUTO_HIDE_DURATION, DEFINED_TASKS } from "../../../../src/const";
+import {
+  AUTO_HIDE_DURATION,
+  DEFINED_TASKS,
+  DEFINED_PLC_STATES,
+} from "../../../../src/const";
 import { ChromePicker } from "react-color";
 
 export default function EditStateWorkingStepDialog(props) {
   const { onClose, onSave, onDelete, open, data, title } = props;
   const [state, setState] = React.useState(data);
   const [color, setColor] = React.useState(data["color"]);
+
+  let clearDialogOnSave = false;
+  if (props.clearDialogOnSave) {
+    clearDialogOnSave = true;
+  }
 
   // statemanagment for snackbar
   const [errorState, setErrorState] = React.useState({
@@ -60,7 +69,10 @@ export default function EditStateWorkingStepDialog(props) {
       });
       return false;
     }
-    if( (state["task"] ==="unstore" || state["task"] ==="store") && state["assignedToUnit"] !=1 ){
+    if (
+      (state["task"] === "unstore" || state["task"] === "store") &&
+      state["assignedToUnit"] != 1
+    ) {
       setErrorState({
         snackbarOpen: true,
         msg: "Task store and unstore must be assigned to resource 1",
@@ -68,7 +80,14 @@ export default function EditStateWorkingStepDialog(props) {
       });
       return false;
     }
-    if( (state["task"] ==="package" || state["task"] ==="unpackage" || state["task"] ==="color" || state["task"] ==="assemble" || state["task"] ==="generic") && state["assignedToUnit"] ==1 ){
+    if (
+      (state["task"] === "package" ||
+        state["task"] === "unpackage" ||
+        state["task"] === "color" ||
+        state["task"] === "assemble" ||
+        state["task"] === "generic") &&
+      state["assignedToUnit"] == 1
+    ) {
       setErrorState({
         snackbarOpen: true,
         msg: "Resource 1 can only execute tasks store and unstore",
@@ -77,7 +96,7 @@ export default function EditStateWorkingStepDialog(props) {
       return false;
     }
     //validate stepNo. It has to be a number
-    if (isNaN(state["stepNo"]) ||state["stepNo"] <1) {
+    if (isNaN(state["stepNo"]) || state["stepNo"] < 1) {
       setErrorState({
         snackbarOpen: true,
         msg: "Step number should be a number greater than 0. Its a convention to choose numbers multiple to 10 e.g. 20",
@@ -85,11 +104,19 @@ export default function EditStateWorkingStepDialog(props) {
       });
       return false;
     }
-    // validate if color os vaslid hexcolor
-    //expression !/^#[0-9A-F]{6}$/i:
-    // ^# check if first char is #
-    // [0-9A-F]{6} check if next 6 characters are 0-9 or a-f
+    if (!DEFINED_PLC_STATES.includes(state["state"])) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Unkown States. Defined tasks: " + DEFINED_PLC_STATES.toString(),
+        level: "error",
+      });
+      return false;
+    }
     if (!/^#[0-9A-F]{6}$/i.test(state["color"])) {
+      // validate if color os vaslid hexcolor
+      //expression !/^#[0-9A-F]{6}$/i:
+      // ^# check if first char is #
+      // [0-9A-F]{6} check if next 6 characters are 0-9 or a-f
       setErrorState({
         snackbarOpen: true,
         msg: "Color is not formatted as a hex color. Format: #0dccff",
@@ -107,7 +134,7 @@ export default function EditStateWorkingStepDialog(props) {
       return false;
     }
     // validate if name is given because name is required argument
-    if (state["name"]=== "") {
+    if (state["name"] === "") {
       setErrorState({
         snackbarOpen: true,
         msg: "Name is required",
@@ -139,18 +166,20 @@ export default function EditStateWorkingStepDialog(props) {
 
     if (onSave(state)) {
       if (state["stepNo"] % 10 !== 0) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Step number should be a multiple of 10",
-        level: "warning",
-      });
-    } else{
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Sucessfully added workingstep",
-        level: "success",
-      });}
-      setState({
+        setErrorState({
+          snackbarOpen: true,
+          msg: "Step number should be a multiple of 10",
+          level: "warning",
+        });
+      } else {
+        setErrorState({
+          snackbarOpen: true,
+          msg: "Sucessfully added workingstep",
+          level: "success",
+        });
+      }
+      if (clearDialogOnSave) {
+        setState({
           assignedToUnit: 0,
           description: "",
           state: "pending",
@@ -159,7 +188,8 @@ export default function EditStateWorkingStepDialog(props) {
           name: "",
           id: 0,
           color: "#000000",
-      });
+        });
+      }
       handleClose();
       return true;
     }
@@ -175,7 +205,7 @@ export default function EditStateWorkingStepDialog(props) {
   const onEdit = (key, value) => {
     let newState = state;
     newState[key] = value;
-    if(key !== "stepNo"){
+    if (key !== "stepNo") {
       newState["stepNo"] = data["stepNo"];
     }
     setState(newState);
@@ -235,12 +265,13 @@ export default function EditStateWorkingStepDialog(props) {
             helperText="Step number of the workingstep. Workingsteps gets executed in ascending order"
             onEdit={onEdit}
           />
-          <EditTextBox
+          <EditChoiceBox
             label="State"
             mapKey="state"
             initialValue={data["state"]}
             helperText="If workingstep is pending or finished"
             onEdit={onEdit}
+            choices={DEFINED_PLC_STATES}
           />
           <EditTextBox
             label="Assigned resource"

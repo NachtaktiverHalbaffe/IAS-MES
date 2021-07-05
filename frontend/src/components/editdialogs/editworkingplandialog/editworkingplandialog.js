@@ -44,6 +44,15 @@ export default function EditStateWorkingPlanDialog(props) {
       });
       return false;
     }
+    // validate if name is given because name is required argument
+    if (state["name"] === "") {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Name is required",
+        level: "error",
+      });
+      return false;
+    }
     if (state["description"] !== "") {
       if (state["description"].length > 200) {
         setErrorState({
@@ -100,7 +109,7 @@ export default function EditStateWorkingPlanDialog(props) {
         label="Description"
         mapKey="description"
         initialValue={data["description"]}
-        helperText="Description of the workingplan(optional)"
+        helperText="Optional: Description of the workingplan"
         onEdit={onEdit}
       />
       <EditTextBox
@@ -115,7 +124,6 @@ export default function EditStateWorkingPlanDialog(props) {
           justify="flex-end"
           variant="outlined"
           color="primary"
-          href="#outlined-buttons"
           onClick={handleSave}
         >
           Save
@@ -125,7 +133,6 @@ export default function EditStateWorkingPlanDialog(props) {
           justify="flex-end"
           variant="outlined"
           color="primary"
-          href="#outlined-buttons"
           onClick={handleDelete}
         >
           Delete

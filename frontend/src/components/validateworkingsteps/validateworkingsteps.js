@@ -1,7 +1,7 @@
 /*
-Filename: errorlogs.js
+Filename: validateWorkingSteps.js
 Version name: 0.1, 2021-06-29
-Short description: Page to display all errors
+Short description: Function to validate workingplan that it is executable
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 

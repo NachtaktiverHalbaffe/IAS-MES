@@ -114,6 +114,7 @@ export default function StateOrderCard(props) {
         orderPos: updatedData["orderPos"],
         name: updatedData["name"],
         costumer: costumerNo,
+        assignedWorkingPiece: updatedData["assignedWorkingPiece"],
       }
     );
 
@@ -192,7 +193,7 @@ export default function StateOrderCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Assigned workingpiece:{" "}
                   </Box>{" "}
-                  { "Workingpiece "+ assignedWorkingPiece.toString()}
+                  {"Workingpiece " + assignedWorkingPiece.toString()}
                 </Typography>
                 <Typography
                   variant="body1"

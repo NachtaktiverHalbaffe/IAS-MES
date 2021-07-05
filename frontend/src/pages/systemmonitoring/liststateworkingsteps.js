@@ -129,7 +129,7 @@ export default function ListStateWorkingSteps() {
 
   return (
     <Box width={1}>
-      <List>{createListItem(order, workingPlan, workingSteps, costumer)}</List>
+      <List>{createListItem(order, workingSteps, costumer)}</List>
     </Box>
   );
 }
@@ -197,7 +197,7 @@ function mCompareWorkingSteps(oldSteps, newSteps) {
   return true;
 }
 
-function createListItem(currentOrders, wp, wssteps, costumer) {
+function createListItem(currentOrders, wssteps, costumer) {
   let items = [];
   for (let i = 0; i < currentOrders.length; i++) {
     // create card for order info
@@ -212,7 +212,7 @@ function createListItem(currentOrders, wp, wssteps, costumer) {
           costumer={costumer[i]}
           id={currentOrders[i].id}
           costumerNo={currentOrders[i].costumer}
-          assignedWorkingPiece = {currentOrders[i].assignedWorkingPiece}
+          assignedWorkingPiece={currentOrders[i].assignedWorkingPiece}
         />
       </ListItem>
     );
@@ -238,14 +238,31 @@ function createListItem(currentOrders, wp, wssteps, costumer) {
         } else if (steps[j].task === "unpackage") {
           img = unpackage;
         }
-        // get wright order
+        // get wright state
         let state = "";
         if (statusBits[j] === 1) {
           state = "finished";
         } else if (statusBits[j] === 0) {
           state = "pending";
         }
-
+        const updateStatus = (index, state) => {
+          if (state === "pending") {
+            statusBits[index] = 0;
+          } else if (state === "finished") {
+            statusBits[index] = 1;
+          }
+          let payload = {
+            status: JSON.stringify(statusBits),
+          };
+          axios.patch(
+            "http://" +
+              IP_BACKEND +
+              ":8000/api/AssignedOrder/" +
+              currentOrders[i].id.toString(),
+            payload
+          );
+          return true;
+        };
         items.push(
           <ListItem width={1} key={steps[j].id}>
             <StateWorkingStepCard
@@ -259,6 +276,7 @@ function createListItem(currentOrders, wp, wssteps, costumer) {
               color={steps[j].color}
               id={steps[j].id}
               allSteps={steps}
+              updateStatus={updateStatus}
             />
           </ListItem>
         );

@@ -35,6 +35,10 @@ export default function StateWorkingStepCard(props) {
   let id = 0;
   let color = "";
   let data = new Map();
+  let clearDialogOnSave = false;
+  let updateStatus = (index, state) => {
+    return true;
+  };
 
   const [open, setOpen] = React.useState(false);
   // statemanagment for snackbar
@@ -94,6 +98,12 @@ export default function StateWorkingStepCard(props) {
   if (props.allSteps) {
     allSteps = props.allSteps;
   }
+  if (props.updateStatus) {
+    updateStatus = props.updateStatus;
+  }
+  if (props.clearDialogOnSave) {
+    clearDialogOnSave = props.clearDialogOnSave;
+  }
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -144,7 +154,10 @@ export default function StateWorkingStepCard(props) {
         updatedData["id"].toString(),
       payload
     );
-    return true;
+    let index = allSteps.findIndex((v) => v.id === updatedData["id"]);
+    if (updateStatus(index, updatedData["state"])) {
+      return true;
+    } else return false;
   };
 
   const onDelete = (stepToDelete) => {
@@ -271,6 +284,7 @@ export default function StateWorkingStepCard(props) {
           data={data}
           onSave={onSave}
           onDelete={onDelete}
+          clearDialogOnSave={clearDialogOnSave}
           title="Edit workingstep"
         />
         <ErrorSnackbar
