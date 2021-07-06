@@ -67,6 +67,7 @@ export default function CreateOrder() {
       name: data["name"],
       orderNo: data["orderNo"],
       orderPos: data["orderPos"],
+      costumer: data["costumerNo"]
     };
     if (data["description"] !== "") {
       payload["description"] = data["description"];
@@ -141,14 +142,14 @@ export default function CreateOrder() {
         onClose={handleClose}
         title="Create Order"
       />
-      <Grid container justify="center" alignItems="center" direction="column">
-        {createListItem(createdOrder.order, createdOrder.selectedWorkingPlan)}
+      <Typography gutterBottom variant="h5" component="h2">
+          Create order
+        </Typography>
         <Grid item>
           <div>&nbsp; &nbsp; &nbsp;</div>
         </Grid>
-        <Typography gutterBottom variant="h5" component="h2">
-          Create order (changes gets autosaved)
-        </Typography>
+      <Grid container justify="center" alignItems="center" direction="column">
+        {createListItem(createdOrder.order, createdOrder.selectedWorkingPlan)}
         <Grid item>
           <div>&nbsp; &nbsp; &nbsp;</div>
         </Grid>
@@ -196,6 +197,15 @@ function createListItem(order, workingPlan) {
       </Grid>
     );
   }
+
+  items.push(
+          <Grid item>
+            <div>&nbsp; &nbsp; &nbsp;</div>
+            <Typography gutterBottom variant="h5" component="h2">
+            Assign WorkingPlan
+            </Typography>
+          </Grid>
+        );
 
   if (workingPlan["workingPlanNo"] !== 0) {
     items.push(
