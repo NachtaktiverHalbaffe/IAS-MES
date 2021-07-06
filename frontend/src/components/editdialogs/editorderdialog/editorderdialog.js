@@ -68,11 +68,30 @@ export default function EditStateOrderDialog(props) {
 
   const handleSave = () => {
     //validate data
+    // name too long
+    if (state["name"].length > 30) {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Name too long. Max length: 30",
+        level: "error",
+      });
+      return false;
+    }
+    // name is required
+    if (state["name"] === "") {
+      setErrorState({
+        snackbarOpen: true,
+        msg: "Name is required",
+        level: "error",
+      });
+      return false;
+    }
+    // ordernumber not a number or less than 1
     if (isNaN(state["orderNo"]) || state["orderNo"] < 1) {
       setErrorState({
         snackbarOpen: true,
         msg: "Invalid ordernumber. Must be a positive number and not 0",
-        level: "warning",
+        level: "error",
       });
       return false;
     }
@@ -80,15 +99,7 @@ export default function EditStateOrderDialog(props) {
       setErrorState({
         snackbarOpen: true,
         msg: "Invalid order position. Must be a positive number and not 0",
-        level: "warning",
-      });
-      return false;
-    }
-    if (state["name"].length > 30) {
-      setErrorState({
-        snackbarOpen: true,
-        msg: "Name too long. Max length: 30",
-        level: "warning",
+        level: "error",
       });
       return false;
     }
@@ -97,7 +108,7 @@ export default function EditStateOrderDialog(props) {
         setErrorState({
           snackbarOpen: true,
           msg: "Description too long. Max length: 200",
-          level: "warning",
+          level: "error",
         });
         return false;
       }
@@ -108,14 +119,14 @@ export default function EditStateOrderDialog(props) {
         setErrorState({
           snackbarOpen: true,
           msg: "Invalid name. Please enter a fristname and lastname e.g. John Doe",
-          level: "warning",
+          level: "error",
         });
         return false;
       } else if (state["costumerNo"] === 0 && state["costumer"].length !== 0) {
         setErrorState({
           snackbarOpen: true,
           msg: "Costumer doesnt exist. Make sure to type the name wright",
-          level: "warning",
+          level: "error",
         });
         return false;
       }

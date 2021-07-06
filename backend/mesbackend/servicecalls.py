@@ -340,7 +340,8 @@ class Servicecalls(object):
             obj.stepNo = str(step.stepNo)
             obj.stepNo = step.stepNo
         # parse freestring
-            freeString = "http://129.69.102.129/I4.0/mes4/EN/mes4.php?content=manual&OpNo=510&Workpiece=3&Action=4&PNo=25"
+            #freeString = "http://129.69.102.129/I4.0/mes4/EN/mes4.php?content=manual&OpNo=510&Workpiece=3&Action=4&PNo=25"
+            freeString = "http://129.69.102.129:8080/"
 
         serviceParams = []
         # max length of string

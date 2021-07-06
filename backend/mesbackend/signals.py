@@ -10,8 +10,6 @@ callback functions for data managment pruposes are defined in the signals of mes
 
 from django.db.models.signals import post_save, pre_save, pre_delete, post_delete, m2m_changed
 from django.dispatch import receiver
-from django.db import transaction
-from django.utils import tree
 from threading import Thread
 import requests
 import logging
@@ -90,10 +88,66 @@ def deleteOrder(sender, instance, **kwargs):
                 Thread(target=_sendAbortVSTask, args=[ipAdress]).start()
 
 
+# send delete requests to a visualisationunit when a workingstep from the resource
+# bound to the unit gets deleted (assuming it happens on runtime, otherwise the delete-request
+# wont do anything which means the visualisation unit does nothing)
+@receiver(pre_delete, sender=WorkingStep)
+def deleteWorkingStep(sender, instance, **kwargs):
+    vsUnit = StateVisualisationUnit.objects.filter(
+        boundToRessource=instance.assignedToUnit)
+    if vsUnit.count() != 0:
+        ipAdress = vsUnit.first().ipAdress
+        Thread(target=_sendAbortVSTask, args=[ipAdress]).start()
+
+
+# send delete requests to a old visualisationunit when a workingstep from the resource
+# bound to the unit gets modified and send a put request to the new unit
+@receiver(pre_save, sender=WorkingStep)
+def editWorkingStep(sender, instance, **kwargs):
+    # get old instance of workingstep
+    try:
+        oldInstance = WorkingStep.objects.get(id=instance.id)
+    except WorkingStep.DoesNotExist:  # to handle initial object creation
+        return None
+
+    # check if assigned resource has changed
+    if oldInstance.assignedToUnit != instance.assignedToUnit:
+        # send delete request to old visualisation unit
+        oldVsUnit = StateVisualisationUnit.objects.filter(
+            boundToRessource=oldInstance.assignedToUnit)
+        if oldVsUnit.count() != 0:
+            ipAdress = oldVsUnit.first().ipAdress
+            Thread(target=_sendAbortVSTask, args=[ipAdress]).start()
+
+        # send visualisation task to new visualisation unit
+        newVsUnit = StateVisualisationUnit.objects.filter(
+            boundToRessource=instance.assignedToUnit)
+        if newVsUnit.count() != 0:
+            allOrders = AssignedOrder.objects.all()
+            for order in allOrders:
+                # search through all orders until modified workingstep is present in the order
+                workingPlan = order.assigendWorkingPlan
+                workingSteps = workingPlan.workingSteps.all()
+                hasFoundOrder = False
+                for i in range(len(workingSteps)):
+                    if workingSteps[i].id == instance.id:
+                        status = order.getStatus()
+                        # check if task is first unfinished step in order => then send visualisation task
+                        if status[i-1] == 1:
+                            # send task to ne visualisation unit
+                            Thread(target=_sendVisualisationTask, args=[
+                                order.orderNo, order.orderPos, instance.assignedToUnit, instance.stepNo]).start()
+                            hasFoundOrder = True
+                            break
+                # dont search in more orders if a visualisation task has been already send because a visualisation unit
+                # can only perform one task at a time
+                if hasFoundOrder == True:
+                    break
+
+
 # Gets executed after a workingplan is saved. It validates the workingplan if it is executable
 @receiver(m2m_changed, sender=WorkingPlan.workingSteps.through)
 def validateWorkingPlan(sender, instance, **kwargs):
-    print("[VALIDATING] Validate workingplan")
     workingSteps = instance.workingSteps.all()
     workingSteps = workingSteps.order_by('stepNo')
     if len(workingSteps) != 0:
@@ -465,3 +519,38 @@ def _sendAbortVSTask(ipAdress):
             errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
             msg=str(e)
         )
+
+
+def _sendVisualisationTask(orderNo, orderPos, resourceId, stepNo):
+    # get task
+    safteyMonitoring = SafteyMonitoring()
+    order = AssignedOrder.objects.filter(
+        orderNo=orderNo).filter(orderPos=orderPos).first()
+    visualisationTasks = order.assigendWorkingPlan.workingSteps.filter(
+        stepNo=stepNo).filter(assignedToUnit=resourceId)
+    if(visualisationTasks.count() != 0):
+        task = visualisationTasks.first()
+        # send task
+        payload = {
+            "task": task.task,
+            "assignedWorkingPiece": order.assignedWorkingPiece,
+            "stepNo": stepNo,
+            "paintColor": task.color
+        }
+        try:
+            request = requests.put("http://" +
+                                   StateVisualisationUnit.objects.filter(boundToRessource=resourceId).first().ipAdress + ':5000/api/VisualisationTask', data=payload)
+            if not request.ok:
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                    msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
+                    str(orderNo) + ":" + str(orderPos))
+
+        except Exception as e:
+            pass
+            safteyMonitoring.decodeError(
+                errorLevel=safteyMonitoring.LEVEL_ERROR,
+                errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
+                msg=str(e)
+            )

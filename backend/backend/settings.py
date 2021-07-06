@@ -11,10 +11,21 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import mimetypes
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    '/var/www/static/',
+]
+
+# FIx for loading css files for the REST-View provided by rest framework
+mimetypes.add_type("text/css", ".css", True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -107,7 +118,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -134,11 +144,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # For Rest Framework
 REST_FRAMEWORK = {
-# Use Django's standard `django.contrib.auth` permissions,
-# or allow read-only access for unauthenticated users.
- 'DEFAULT_PERMISSION_CLASSES': [
-      'rest_framework.permissions.AllowAny'
-  ]
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
+    ]
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
