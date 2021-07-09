@@ -6,7 +6,6 @@ class MesapiConfig(AppConfig):
     name = "mesapi"
 
     def ready(self):
-        import mesapi.signals
         from .models import StatePLC
 
         # # undock all robotinos
