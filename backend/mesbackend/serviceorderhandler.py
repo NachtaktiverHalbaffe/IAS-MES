@@ -1,13 +1,12 @@
 """
 Filename: serviceorderhandler.py
-Version name: 0.1, 2021-05-17
+Version name: 1.0, 2021-07-10
 Short description: Module for handling the service request and creating responsens
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
 import math
-import logging
 
 
 class ServiceOrderHandler(object):
@@ -55,11 +54,20 @@ class ServiceOrderHandler(object):
         self.ERROR_DECODINGSTRFULL = "Couldn't decode message. Tried to decode message in short format with method for full format"
         self.ERROR_OUTPUT = "Could't find servicecall for corresponding MClass and MNo. Check if servicecall is implemented."
 
+    # creates a response string for socket
+    # @param:
+    #   msg: tcp message from socket
+    #   ipAdress: ipAdress ofg resource which send request
+    # @return:
+    #   response which the socket can send back to resource
     def createResponse(self, msg, ipAdress):
         self.decodeMessage(msg)
         self.getOutputParams()
         return self.encodeMessage()
 
+    # decodes message depending on the formatting specified by tcpident
+    # @param:
+    #   msg: tcp message
     def decodeMessage(self, msg):
         from .safteymonitoring import SafteyMonitoring
         self.msg = msg
@@ -171,7 +179,6 @@ class ServiceOrderHandler(object):
             )
 
     # encodes message for PlcServiceOrderSocket in a format so it can be send
-    # @params: Takes all the neccessary attributes of the Object and parses them
     def encodeMessage(self):
         from .safteymonitoring import SafteyMonitoring
         # self._printAttr()
@@ -564,8 +571,8 @@ class ServiceOrderHandler(object):
 
     # parses a number to hex in the binary format
     # @params:
-    # number: number to parse
-    # isInt32: if number is int32 (true) or int16(false)
+    #   number: number to parse
+    #   isInt32: if number is int32 (true) or int16(false)
     def _parseToEndian(self, number, isInt32):
         if isInt32:
             hex = format(number, "08x")
@@ -586,7 +593,7 @@ class ServiceOrderHandler(object):
 
     # parses given bytes to number depending if message is in big or little endian
     # @params:
-    # bytes: bytes to parse
+    #   bytes: bytes to parse
     def _parseFromEndian(self, bytes):
         nmbrstr = ""
         if self.tcpIdent == "33333302":
@@ -598,6 +605,7 @@ class ServiceOrderHandler(object):
 
         return int(nmbrstr, 16)
 
+    # debugging tool which prints all attributes from instance in a readable format
     def _printAttr(self):
         print("tcpIdent: " + str(self.tcpIdent))
         print("requestID: " + str(self.requestID))

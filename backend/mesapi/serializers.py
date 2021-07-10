@@ -1,17 +1,18 @@
 """
 Filename: serializers.py
-Version name: 0.1, 2021-05-14
+Version name: 1.0, 2021-07-10
 Short description: Serializers for all data models. Needed to serialize Models for e.g. JSON Responses.
-Structure is the same on every serializer, so code will be documented only on first one
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
-
-from django.db.models import fields
 from rest_framework import serializers
 
 from .models import *
+
+"""
+Structure is the same on every serializer, so code will be documented only on first one
+"""
 
 
 class BufferSerializer(serializers.ModelSerializer):

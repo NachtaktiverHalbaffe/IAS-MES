@@ -1,6 +1,6 @@
 """
 Filename: safteymonitoring.py
-Version name: 0.1, 2021-05-17
+Version name: 1.0, 2021-07-10
 Short description: Module for error handling and for monitoring saftey constraints
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -10,11 +10,11 @@ Short description: Module for error handling and for monitoring saftey constrain
 
 class SafteyMonitoring(object):
     def __init__(self):
-        # self.error = apps.get_model('mesapi', 'Error')
+        # Constant for level
         self.LEVEL_WARNING = "[WARNING]"
         self.LEVEL_ERROR = "[ERROR]"
         self.LEVEL_CRITICIAL = "[CRITICAL]"
-
+        # Constant for categories
         self.CATEGORY_CONNECTION = "Connection issue"
         self.CATEGORY_INPUT = "Invalid input"
         self.CATEGORY_OPERATIONAL = "Operational issue"
@@ -45,3 +45,7 @@ class SafteyMonitoring(object):
         error.msg = msg
         error.isSolved = isSolved
         error.save()
+
+    """
+    handleErrors() is defined in signals.py
+    """

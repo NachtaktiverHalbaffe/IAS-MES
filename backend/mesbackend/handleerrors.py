@@ -1,6 +1,6 @@
 """
 Filename: handleerrors.py
-Version name: 0.1, 2021-06-15
+Version name: 1.0, 2021-07-10
 Short description: Functions which handles the errors itself
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -13,14 +13,19 @@ from .safteymonitoring import SafteyMonitoring
 
 import requests
 
+
 # handle error when visualisation unit isnt reachable
-
-
+# @params:
+#   id: id of the error
+#   oNo: ordernumber of order in which the error occured
+#   oPos: orderposition of order in which the error occured
 def vsNotReachable(id, oNo, oPos):
     order = AssignedOrder.objects.filter(
         orderNo=oNo).filter(orderPos=oPos)
     status = order.getStatus()
     steps = order.first().assigendWorkingPlan.workingSteps.all()
+    # validate if workingplan is still executable even if visualisation task
+    # which cant get executed isnt executed
     if not _validateUpdatedOrder(steps=steps, order=order, status=status):
         safteyMonitoring = SafteyMonitoring()
         safteyMonitoring.decodeError(
@@ -32,6 +37,9 @@ def vsNotReachable(id, oNo, oPos):
 
 
 # handle error when visualisation unit has aborted an task
+# @params:
+#   id: id of the error
+#   boundToResource: id of visualisationunit which has aborted task
 def vsAbortedProcessVisualisation(id, boundToResource):
     currentOrder = AssignedOrder.objects.all()
     for order in currentOrder:
@@ -92,6 +100,12 @@ def vsAbortedProcessVisualisation(id, boundToResource):
 
 
 # validate if an updated order due to an error is still executable
+# @params:
+#   steps: List of workingsteps which should be validated
+#   order: order which has steps assigned to it
+#   status: execution status of order
+# @return:
+#   Boolean if order is executable (True) or not (False)
 def _validateUpdatedOrder(steps, order, status):
     updatedSteps = []
     # create updated list of workingsteps which are reachaböe

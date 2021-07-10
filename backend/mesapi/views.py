@@ -1,6 +1,6 @@
 """
 Filename: views.py
-Version name: 0.1, 2021-05-14
+Version name: 1.0, 2021-07-10
 Short description: Views for all url endpoints. The views are inherited from classbased GenericView
 which inhertis from APIView. All the REST-Requests are handled here
 
@@ -20,9 +20,8 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIV
 from .serializers import *
 from .models import *
 
+
 # Overview of all API Endpoints
-
-
 class APIOverview(APIView):
     def get(self, request, *args, **kwargs):
         overview = {
@@ -40,7 +39,13 @@ class APIOverview(APIView):
         return Response(overview)
 
 
+"""
+All views have the same structure, so it will be explained in detail only one time
+"""
+
 # ListCreateView creates view with get and post options for collection of entities
+
+
 class StatePLCView(ListCreateAPIView):
     # serializer class so it can be used. needed for serializing request and responsen
     serializer_class = StatePLCSerializer
@@ -145,15 +150,20 @@ class SingleCostumerView(RetrieveUpdateDestroyAPIView):
     serializer_class = CostumerSerializer
     queryset = Costumer.objects.all()
 
+
+# Getting single costumer by name
 class SingleCostumerByNameView(ListCreateAPIView):
     serializer_class = CostumerSerializer
+    # get parameter from url
     lookup_url_kwarg = 'firstName'
     lookup_url_kwarg = 'lastName'
 
     def get_queryset(self):
-            queryset= Costumer.objects.all()
-            firstName = self.kwargs.get("firstName")
-            lastName = self.kwargs.get("lastName")
-            costumer = queryset.filter(firstName=firstName).filter(lastName=lastName)
-            return costumer
-
+        # Search for costumer by filtering by firstName
+        # and lastName which are passed from the url
+        queryset = Costumer.objects.all()
+        firstName = self.kwargs.get("firstName")
+        lastName = self.kwargs.get("lastName")
+        costumer = queryset.filter(
+            firstName=firstName).filter(lastName=lastName)
+        return costumer

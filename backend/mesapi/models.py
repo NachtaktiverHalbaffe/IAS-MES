@@ -1,6 +1,6 @@
 """
 Filename: models.py
-Version name: 0.1, 2021-05-14
+Version name: 1.0, 2021-07-10
 Short description: Data model definitions of the backend. All datamodels are defined here
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -94,9 +94,9 @@ class StateWorkingPiece(models.Model):
     # color of the working piece
     color = ColorField()
     # working piece is in assembled state
-    isAssembled = models.BooleanField(default= False)
+    isAssembled = models.BooleanField(default=False)
     # working piece is packaged
-    isPackaged = models.BooleanField(default= False)
+    isPackaged = models.BooleanField(default=False)
     # model name of 3D Model
     model = models.CharField(
         max_length=100, choices=MODEL_CHOICES, default='IAS-Logo')
@@ -148,7 +148,7 @@ class WorkingStep(models.Model):
 
     def __str__(self):
         return self.name + " (Step Number: " + str(self.stepNo) + ")"
-    
+
 
 # Model of a working plan. Working order define the production process of an order
 class WorkingPlan(models.Model):
@@ -156,7 +156,7 @@ class WorkingPlan(models.Model):
     description = models.CharField(max_length=200, default="")
     # number of the workingplan
     workingPlanNo = models.PositiveSmallIntegerField(primary_key=True)
-    workingSteps = models.ManyToManyField(WorkingStep,blank= True)
+    workingSteps = models.ManyToManyField(WorkingStep, blank=True)
 
     def __str__(self):
         return self.name
@@ -169,7 +169,7 @@ class Costumer(models.Model):
     firstName = models.CharField(max_length=30)
     lastName = models.CharField(max_length=100)
     adress = models.CharField(max_length=300, null=True)
-    phone = models.CharField(max_length=30, null = True)
+    phone = models.CharField(max_length=30, null=True)
     eMail = models.EmailField(null=True)
     company = models.CharField(max_length=100, null=True)
 
@@ -179,14 +179,14 @@ class Costumer(models.Model):
 
 # Model representing a Order which is assigned by the user
 class AssignedOrder(models.Model):
-    id = models.AutoField(primary_key= True)
+    id = models.AutoField(primary_key=True)
     # name of the working plan
     name = models.CharField(max_length=30, null=False)
     # short description of working plan (optional)
     description = models.CharField(max_length=200, default="")
     # Workingplan which should be executed
     assigendWorkingPlan = models.ForeignKey(
-        WorkingPlan, on_delete=models.CASCADE, null= True)
+        WorkingPlan, on_delete=models.CASCADE, null=True)
     # Assigned workingpiece
     assignedWorkingPiece = models.ForeignKey(
         StateWorkingPiece, on_delete=models.CASCADE, null=True)
@@ -263,8 +263,8 @@ class Setting(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk and Setting.objects.exists():
-        # if you'll not check for self.pk 
-        # then error will also raised in update of exists model
+            # if you'll not check for self.pk
+            # then error will also raised in update of exists model
             raise ValidationError('There is can be only one Setting instance')
         return super(Setting, self).save(*args, **kwargs)
 

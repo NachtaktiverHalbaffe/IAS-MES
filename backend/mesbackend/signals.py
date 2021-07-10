@@ -1,14 +1,14 @@
 """
 Filename: signals.py
-Version name: 0.1, 2021-05-19
-Short description: Signals that trigger callbackfunctions on certain triggers. Only handles signals which do buisness logic,
-callback functions for data managment pruposes are defined in the signals of mesapi
+Version name: 1.0, 2021-07-20
+Short description: Signals that trigger callbackfunctions on certain triggers which gets fired when models are
+modified by the orm
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 """
 
-from django.db.models.signals import post_save, pre_save, pre_delete, post_delete, m2m_changed
+from django.db.models.signals import post_save, pre_save, pre_delete, m2m_changed
 from django.dispatch import receiver
 from threading import Thread
 import requests
@@ -83,6 +83,7 @@ def createMissingParams(sender, instance, **kwargs):
             instance.delete()
 
 
+# creates and links a empty buffer to StatePLC when a instance is created
 @receiver(pre_save, sender=StatePLC)
 def createBuffer(sender, instance, **kwargs):
     if instance.buffer == None:
@@ -95,10 +96,9 @@ def createBuffer(sender, instance, **kwargs):
         buffer.save()
         instance.buffer = buffer
 
+
 # Gets executed after a error is saved. It analyses the error and decides what the system has to do
 # to solve the error
-
-
 @receiver(post_save, sender=Error)
 def handleError(sender, instance, **kwargs):
     from .handleerrors import vsNotReachable, vsAbortedProcessVisualisation
@@ -121,6 +121,7 @@ def handleError(sender, instance, **kwargs):
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
 
+    # print error to logs
     errorStr = instance.level + " " + instance.category + ": " + instance.msg
     if instance.level == "[WARNING]":
         logger.warning(errorStr)
@@ -129,6 +130,7 @@ def handleError(sender, instance, **kwargs):
     elif instance.level == "[CRITICAL]":
         logger.critical(errorStr)
 
+    # errorhandling depending on errormsg
     if instance.isSolved:
         return
     # Error during validating workingplan
@@ -246,7 +248,7 @@ def validateWorkingPlan(sender, instance, **kwargs):
 
 # condition checking if all conditions are met so the workingplan can run correctly
 # @param:
-# workingSteps: sorted List of the workingsteps in the workingplan which needs to be checked
+#   workingSteps: sorted List of the workingsteps in the workingplan which needs to be checked
 def _validateWorkingSteps(workingSteps):
     ERROR_PRE = "While saving workingplan: "
     isValid = False
@@ -356,6 +358,11 @@ def _validateWorkingSteps(workingSteps):
                 )
                 break
     return isValid
+
+
+"""
+subfunctions for validating workingplan
+"""
 
 
 def _checkUnpackage(workingSteps, i, state):
@@ -588,6 +595,9 @@ def _checkUnstore(workingSteps, i, state):
     return (isValid, errormsg, newState)
 
 
+# send delete-request to visualisation unit to abort visualisation task
+# @params:
+#   ipAdress: ip adress of visualisation unit
 def _sendAbortVSTask(ipAdress):
     try:
         request = requests.delete(
@@ -600,6 +610,13 @@ def _sendAbortVSTask(ipAdress):
             errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
             msg=str(e)
         )
+
+# send visualisation task to visualisation unit
+# @param:
+#   orderNo: ordernumber of order where visualisationtask is assigned to
+#   orderPos: orderposition of order where visualisationtask is assigned to
+#   resourceId: Id of resource where visualisationunit should be mounted on
+#   stepNo: stepNo of workingstep which the visualisation task corresponds to
 
 
 def _sendVisualisationTask(orderNo, orderPos, resourceId, stepNo):

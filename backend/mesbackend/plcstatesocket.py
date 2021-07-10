@@ -1,6 +1,6 @@
 """
 Filename: plcstatesocket.py
-Version name: 0.1, 2021-05-17
+Version name: 1.0, 2021-07-10
 Short description: Module for cyclic tcp communications with the plc
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -20,8 +20,6 @@ class PLCStateSocket(object):
         from django.apps import apps
         from .systemmonitoring import SystemMonitoring
         self.systemMonitoring = SystemMonitoring()
-        hostname = socket.gethostname()
-        #self.HOST = socket.gethostbyname(hostname)
         self.HOST = "129.69.102.129"
         self.PORT = 2001
         self.ADDR = (self.HOST, self.PORT)
@@ -30,14 +28,12 @@ class PLCStateSocket(object):
         self.SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.SERVER.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.SERVER.bind(self.ADDR)
-        
 
     # Thread for the cyclic communication. Receives messages from plc and gives them to SafteyMonitoring
     # @params:
-    # client: socket of the plc
-    # addr: ipv4 adress of the plc
+    #   client: socket of the plc
+    #   addr: ipv4 adress of the plc
     def cyclicCommunication(self, client, addr):
-        # django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
@@ -56,10 +52,8 @@ class PLCStateSocket(object):
 
     # Waits for a connection from a plc. When a plc connects,
     # it starts a new thread for the cyclic communication
-
     def waitForConnection(self):
         from .safteymonitoring import SafteyMonitoring
-
         while True:
             try:
                 client, addr = self.SERVER.accept()
@@ -72,7 +66,6 @@ class PLCStateSocket(object):
                 break
 
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server
-
     def runServer(self):
         django.setup()
         # delete all robotinos

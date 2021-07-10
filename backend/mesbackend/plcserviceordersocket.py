@@ -1,6 +1,6 @@
 """
 Filename: plcserviceordersocket.py
-Version name: 0.1, 2021-05-19
+Version name: 1.0, 2021-07-10
 Short description: Module for tcp communication with PLC regarding servicerequests
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -21,8 +21,6 @@ class PLCServiceOrderSocket(object):
     def __init__(self):
         from django.apps import apps
         # socket params
-        hostname = socket.gethostname()
-        #self.HOST = socket.gethostbyname(hostname)
         self.HOST = "129.69.102.129"
         self.PORT = 2000
         self.ADDR = (self.HOST, self.PORT)
@@ -32,15 +30,13 @@ class PLCServiceOrderSocket(object):
         self.SERVER.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.SERVER.bind(self.ADDR)
         logging.basicConfig(filename="safteymonitoring.log",
-                        level=logging.WARNING, format='[%(asctime)s ]  %(message)s')
-
+                            level=logging.WARNING, format='[%(asctime)s ]  %(message)s')
 
     # Thread for the service communication.
     # @params:
-    # client: socket of the plc
-    # addr: ipv4 adress of the plc
+    #   client: socket of the plc
+    #   addr: ipv4 adress of the plc
     def serviceCommunication(self, client, addr):
-        # django.setup()
         startTime = time.time()
         while True:
             msg = client.recv(self.BUFFSIZE)
@@ -55,7 +51,6 @@ class PLCServiceOrderSocket(object):
                     msg=str(msg), ipAdress=addr)
                 if response:
                     try:
-                        #client.connect(addr)
                         data = bytes.fromhex(response)
                         client.send(data)
                     except Exception as e:
@@ -84,7 +79,6 @@ class PLCServiceOrderSocket(object):
                 break
 
     # Starts and runs the tcpserver. When the server crashes in waitForConnection(), it will close the server
-
     def runServer(self):
         django.setup()
         self.SERVER.listen()

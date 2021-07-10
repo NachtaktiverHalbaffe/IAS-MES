@@ -1,6 +1,6 @@
 """
 Filename: systemmonitoring.py
-Version name: 0.1, 2021-05-17
+Version name: 1.0, 2021-07-10
 Short description: Module for monitoring the states of the plcs. Gets its information from PLCStateSocket and
 ServiceOrderHandler
 
@@ -28,7 +28,6 @@ class SystemMonitoring(object):
         self.ERROR_MSG_DATA1 = "tried to update workingpiece with location "
         self.ERROR_MSG_DATA2 = "where no ressource exists"
         self.ERROR_MSG_LEN = "invalid length of message"
-
 
     # Gets cyclic messages from PLCStateSocket, decodes it to StatePLC and saves it. All neccessary inputs are validated.
     # @params:
@@ -100,7 +99,7 @@ class SystemMonitoring(object):
                     errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
                     msg=self.ERROR_MSG_L1 + str(ressourceId),
                 )
-            elif errorL2 == 1and autoMode != 0 and manualMode != 0:
+            elif errorL2 == 1 and autoMode != 0 and manualMode != 0:
                 SafteyMonitoring().decodeError(
                     errorLevel=SafteyMonitoring().LEVEL_WARNING,
                     errorCategory=SafteyMonitoring().CATEGORY_OPERATIONAL,
@@ -171,8 +170,8 @@ class SystemMonitoring(object):
     # Decodes the ressourceId. Wether the PLC is big endian(Siemens) or little endian(Codesys) it needs
     # to be decoded diffrently
     # @params:
-    # ressourceIDStr: String with ressourceId
-    # spsType: type for sps (1= Codesys, 2 = Siemens)
+    #   ressourceIDStr: String with ressourceId
+    #   spsType: type for sps (1= Codesys, 2 = Siemens)
     def _getRessourceID(self, ressourceIDStr, spsType):
         if spsType == 2:
             # sps is big endian
