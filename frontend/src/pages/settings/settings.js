@@ -1,6 +1,6 @@
 /*
 Filename: settings.js
-Version name: 0.1, 2021-06-29
+Version name: 1.0, 2021-07-10
 Short description: Page to display settings
 
 (C) 2003-2021 IAS, Universitaet Stuttgart

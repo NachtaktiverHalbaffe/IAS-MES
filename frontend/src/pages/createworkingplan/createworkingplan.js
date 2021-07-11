@@ -1,6 +1,6 @@
 /*
 Filename: createworkingplan.js
-Version name: 0.1, 2021-06-18
+Version name: 1.0, 2021-07-10
 Short description: page for creating a workingplan
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -83,6 +83,7 @@ export default function CreateWorkingPlan() {
     msg: "",
     level: "",
   });
+  // close snackbar after AUTO_HIDE_DURATION exceeded
   React.useEffect(() => {
     setTimeout(() => {
       if (errorState.snackbarOpen) {
@@ -103,6 +104,7 @@ export default function CreateWorkingPlan() {
     setWSOpen(false);
   };
 
+  // callback funktion when save button on dialog for creating workingstep is pressed
   const addItem = (updatedData) => {
     // set some params and validate other params
     let opNo = 0;
@@ -198,6 +200,7 @@ export default function CreateWorkingPlan() {
     }
   };
 
+  // callback when save button in dialog for creating workingplan is pressed
   const createPlan = (data) => {
     let payload = {};
     if (data["description"] !== "") {
@@ -365,6 +368,9 @@ export default function CreateWorkingPlan() {
   );
 }
 
+// create cards for workingplan and workingsteps
+// @return:
+//    items: list of workingplancard and workingstepcards
 function createListItem(workingPlan, workingSteps) {
   let items = [];
   let steps = workingSteps;
@@ -423,6 +429,11 @@ function createListItem(workingPlan, workingSteps) {
 }
 
 // compares if two states of Workingsteps are equal. Returns true if equal and vise versa
+// @params:
+//    oldSteps: current Steps saved in state
+//    newSteps: steps polled from backend
+// @return:
+//    if workingsteps changed (false) or are the same (true)
 function mCompareWorkingSteps(oldSteps, newSteps) {
   // check lengths
 

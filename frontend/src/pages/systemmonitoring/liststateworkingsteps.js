@@ -1,7 +1,7 @@
 /*
 Filename: liststateworkingsteps.js
-Version name: 0.1, 2021-05-14
-Short description: Component to display current orders. gets data from mes and creates visual elements
+Version name: 1.0, 2021-07-10
+Short description: Component to display current orders
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 

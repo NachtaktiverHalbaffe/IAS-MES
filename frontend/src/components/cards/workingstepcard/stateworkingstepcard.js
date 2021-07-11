@@ -1,6 +1,6 @@
 /*
 Filename: stateworkingstepcard.js
-Version name: 0.1, 2021-06-18
+Version name: 1.0, 2021-07-10
 Short description: Card component for a specific working step
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -48,18 +48,16 @@ export default function StateWorkingStepCard(props) {
     msg: "",
     level: "",
   });
+  // close snackbar after AUTO_HIDE_DURATION exceeded
   React.useEffect(() => {
     setTimeout(() => {
       if (errorState.snackbarOpen) {
-        setErrorState({
-          snackbarOpen: false,
-          msg: "",
-          level: "",
-        });
+        setErrorState({ snackbarOpen: false, msg: "", level: "" });
       }
     }, AUTO_HIDE_DURATION);
   });
 
+  // apply props to internal variables
   if (props.assignedToUnit) {
     assignedToUnit = props.assignedToUnit;
     data["assignedToUnit"] = assignedToUnit;
@@ -109,6 +107,7 @@ export default function StateWorkingStepCard(props) {
     assignedToOrder = props.assignedToOrder;
   }
 
+  // state managment for Dialogs
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -117,6 +116,7 @@ export default function StateWorkingStepCard(props) {
     setOpen(false);
   };
 
+  // update data in backend after changes over the dialog finished
   const onSave = (updatedData) => {
     // set some params and validate other params
     let opNo = 0;
@@ -141,7 +141,7 @@ export default function StateWorkingStepCard(props) {
       return false;
     }
 
-    //update data in Mes
+    // update data in Mes
     let payload = {
       name: updatedData["name"],
       description: updatedData["description"],
@@ -164,6 +164,7 @@ export default function StateWorkingStepCard(props) {
     } else return false;
   };
 
+  // delete instance in backend if delete option in dialog was selected
   const onDelete = (stepToDelete) => {
     let isValid = true;
     let errormsg = "";
@@ -192,9 +193,7 @@ export default function StateWorkingStepCard(props) {
               IP_BACKEND +
               ":8000/api/AssignedOrder/" +
               assignedToOrder["id"].toString(),
-            {
-              status: JSON.stringify(status),
-            }
+            { status: JSON.stringify(status) }
           );
         });
       return true;
@@ -239,7 +238,7 @@ export default function StateWorkingStepCard(props) {
             <Grid item>
               <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
-                  {name}
+                  {name}{" "}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -249,7 +248,7 @@ export default function StateWorkingStepCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Task:{" "}
                   </Box>{" "}
-                  {task}
+                  {task}{" "}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -259,7 +258,7 @@ export default function StateWorkingStepCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Description:{" "}
                   </Box>{" "}
-                  {description}
+                  {description}{" "}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -269,7 +268,7 @@ export default function StateWorkingStepCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Step number:{" "}
                   </Box>{" "}
-                  {stepNo}
+                  {stepNo}{" "}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -279,7 +278,7 @@ export default function StateWorkingStepCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     State:{" "}
                   </Box>{" "}
-                  {state}
+                  {state}{" "}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -289,7 +288,7 @@ export default function StateWorkingStepCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Assigned resource:{" "}
                   </Box>{" "}
-                  {assignedToUnit}
+                  {assignedToUnit}{" "}
                 </Typography>
               </CardContent>
             </Grid>

@@ -1,6 +1,6 @@
 /*
 Filename: systemmonitoring.js
-Version name: 0.1, 2021-06-18
+Version name: 1.0, 2021-07-10
 Short description: Page with all components to show system state
 
 (C) 2003-2021 IAS, Universitaet Stuttgart

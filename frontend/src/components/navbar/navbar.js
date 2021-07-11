@@ -1,3 +1,12 @@
+/*
+Filename: navbar.js
+Version name: 1.0, 2021-07-10
+Short description: navbar for navigation and tabs with the pages
+
+(C) 2003-2021 IAS, Universitaet Stuttgart
+
+*/
+
 import React from "react";
 import Toolbar from "@material-ui/core/Toolbar";
 import logo from "../../assets/logo.png";
@@ -17,6 +26,7 @@ import Settings from "../../pages/settings/settings";
 export default function Navbar() {
   const [selectedTab, setSelectedTab] = React.useState(0);
 
+  // callback function when a new tab is selected
   const handleChange = (event, newValue) => {
     setSelectedTab(newValue);
   };

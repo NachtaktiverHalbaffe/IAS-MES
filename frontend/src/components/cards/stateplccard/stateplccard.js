@@ -1,6 +1,6 @@
 /*
 Filename: stateplccard.js
-Version name: 0.1, 2021-06-19
+Version name: 1.0, 2021-07-10
 Short description: Card component for a specific state of plc
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -45,6 +45,7 @@ export default function StatePLCCard(props) {
     level: "",
   });
   const { level, msg, snackbarOpen } = errorState;
+  // close snackbar after AUTO_HIDE_DURATION exceeded
   React.useEffect(() => {
     setTimeout(() => {
       if (snackbarOpen) {
@@ -57,6 +58,7 @@ export default function StatePLCCard(props) {
     }, AUTO_HIDE_DURATION);
   });
 
+  // apply props to internal variables
   if (props.name) {
     name = props.name;
     data["name"] = name;
@@ -98,6 +100,7 @@ export default function StatePLCCard(props) {
     data["bufOutOPos"] = bufOutOPos;
   }
 
+  // state managment for Dialogs
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -106,6 +109,7 @@ export default function StatePLCCard(props) {
     setOpen(false);
   };
 
+  // update data in backend after changes over the dialog finished
   const onSave = (updatedData) => {
     //validate input data
     if (updatedData["state"] !== "idle" && updatedData["state"] !== "busy") {

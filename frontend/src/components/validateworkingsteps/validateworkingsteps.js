@@ -1,12 +1,14 @@
 /*
 Filename: validateWorkingSteps.js
-Version name: 0.1, 2021-06-29
-Short description: Function to validate workingplan that it is executable
+Version name: 1.0, 2021-07-10
+Short description: Function to validate workingsteps if they are executable
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 */
 
+//@params:
+//  workingsteps: workingsteps which should get validated
 export default function validateWorkingsteps(workingsteps) {
   let steps = workingsteps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
   let state = {
@@ -18,6 +20,7 @@ export default function validateWorkingsteps(workingsteps) {
   let isValid = true;
   if (steps.length !== 0) {
     for (let i = 0; i < steps.length; i++) {
+      // check steps depending on newest step in the loop
       if (i === 0 && steps[i]["task"] !== "unstore") {
         return [false, "First workingstep must be unstore"];
       } else if (steps[i]["task"] === "unstore") {
@@ -83,6 +86,11 @@ export default function validateWorkingsteps(workingsteps) {
   return [true, errormsg];
 }
 
+// check task unstore
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckUnstore(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -119,6 +127,11 @@ function mCheckUnstore(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task store
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckStore(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -151,6 +164,11 @@ function mCheckStore(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task package
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckPackage(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -190,6 +208,11 @@ function mCheckPackage(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task unPackage
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckUnpackage(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -229,6 +252,11 @@ function mCheckUnpackage(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task assemble
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckAssemble(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -272,6 +300,11 @@ function mCheckAssemble(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task color
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckColor(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";
@@ -309,6 +342,11 @@ function mCheckColor(workingsteps, range, state) {
   return [mIsValid, errormsg, newState];
 }
 
+// check task generic
+// @params:
+//    workingSteps: workingsteps which get validated
+//    range: index of current step until the steps are already validated
+//    state: current state of workingpiece
 function mCheckGeneric(workingsteps, range, state) {
   let mIsValid = true;
   let errormsg = "";

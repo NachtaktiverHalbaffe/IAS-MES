@@ -1,7 +1,7 @@
 /*
-Filename: editchoicebox.js
-Version name: 0.1, 2021-06-27
-Short description: Component for text input with choices to select
+Filename: editcheckbox.js
+Version name: 1.0, 2021-07-10
+Short description: Component to check or uncheck an option
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -14,6 +14,7 @@ export default function EditCheckBox(props) {
   const { onEdit, label, initialValue, mapKey } = props;
   const [value, setValue] = React.useState(initialValue);
 
+  // callback when checkbox gets checked/unchecked
   const handleChange = (event) => {
     setValue(event.target.checked);
     onEdit(mapKey, event.target.checked);

@@ -1,7 +1,7 @@
 /*
 Filename: liststateworkingpieces.js
-Version name: 0.1, 2021-06-28
-Short description: top level card for löisting workingpieces
+Version name: 1.0, 2021-07-10
+Short description: top level card for listing all workingpieces
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 

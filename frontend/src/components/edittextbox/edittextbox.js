@@ -1,6 +1,6 @@
 /*
 Filename: edittextbox.js
-Version name: 0.1, 2021-06-22
+Version name: 1.0, 2021-07-10
 Short description: Component for text input
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -14,6 +14,7 @@ export default function EditTextBox(props) {
   const { onEdit, label, initialValue, helperText, mapKey } = props;
   const [value, setValue] = React.useState(initialValue);
 
+  // callback when value of textfiled gets changed
   const handleChange = (event) => {
     setValue(event.target.value);
     onEdit(mapKey, event.target.value);

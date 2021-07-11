@@ -1,7 +1,7 @@
 /*
-Filename: createorder.js
-Version name: 0.1, 2021-06-18
-Short description: page for creating a order
+Filename: editworkingplan.js
+Version name: 1.0, 2021-07-10
+Short description: page for editing a workingplan
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -57,6 +57,7 @@ export default function EditWorkingPlan() {
     msg: "",
     level: "",
   });
+  // close snackbar after AUTO_HIDE_DURATION exceeded
   React.useEffect(() => {
     setTimeout(() => {
       if (errorState.snackbarOpen) {
@@ -69,6 +70,7 @@ export default function EditWorkingPlan() {
     }, AUTO_HIDE_DURATION);
   });
 
+  // poll data from backend
   useEffect(() => {
     const pollingTime = 1; // interval for polling in seconds
 
@@ -85,6 +87,7 @@ export default function EditWorkingPlan() {
     return () => clearInterval(interval);
   });
 
+  // callback function when a workingplan is selected from the choose workingplan dialog
   const selectWorkingPlan = (selectedPlan) => {
     setSelectedWorkingplan({
       workingPlan: selectedPlan,
@@ -94,6 +97,7 @@ export default function EditWorkingPlan() {
     return true;
   };
 
+  // callback function when a workingplan is selected from the choose workingplan dialog
   const addItem = (updatedData) => {
     // set some params and validate other params
     let opNo = 0;
@@ -339,6 +343,10 @@ export default function EditWorkingPlan() {
     </Box>
   );
 }
+
+// create cards for workingplan and workingsteps
+// @return:
+//    items: list of workingplancard and workingstepcards
 function createListItem(workingPlan, workingSteps) {
   let items = [];
   let steps = workingSteps;
@@ -397,6 +405,11 @@ function createListItem(workingPlan, workingSteps) {
 }
 
 // compares if two states of Workingsteps are equal. Returns true if equal and vise versa
+// @params:
+//    oldSteps: current Steps saved in state
+//    newSteps: steps polled from backend
+// @return:
+//    if workingsteps changed (false) or are the same (true)
 function mCompareWorkingSteps(oldSteps, newSteps) {
   // check lengths
 

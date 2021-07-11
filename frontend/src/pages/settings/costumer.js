@@ -1,6 +1,6 @@
 /*
 Filename: costumer.js
-Version name: 0.1, 2021-07-1
+Version name: 1.0, 2021-07-10
 Short description: Card component for costumers
 
 (C) 2003-2021 IAS, Universitaet Stuttgart

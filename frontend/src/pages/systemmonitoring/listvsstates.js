@@ -1,3 +1,12 @@
+/*
+Filename: listvsstates.js
+Version name: 1.0, 2021-07-10
+Short description: list with cards of the states of all visualisation units
+
+(C) 2003-2021 IAS, Universitaet Stuttgart
+
+*/
+
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import axios from "axios";
 import { Box, GridList, ListItem } from "@material-ui/core";

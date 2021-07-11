@@ -1,6 +1,6 @@
 /*
 Filename: editchoicebox.js
-Version name: 0.1, 2021-06-27
+Version name: 1.0, 2021-07-10
 Short description: Component for text input with choices to select
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -14,6 +14,7 @@ export default function EditChoiceBox(props) {
   const { onEdit, label, initialValue, helperText, mapKey, choices } = props;
   const [value, setValue] = React.useState(initialValue);
 
+  // callback function when a option gets selected
   const handleChange = (event) => {
     setValue(event.target.value);
     onEdit(mapKey, event.target.value);

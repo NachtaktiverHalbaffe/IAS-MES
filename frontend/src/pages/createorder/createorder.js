@@ -1,6 +1,6 @@
 /*
 Filename: createorder.js
-Version name: 0.1, 2021-06-18
+Version name: 1.0, 2021-07-10
 Short description: page for creating a order
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
@@ -44,6 +44,7 @@ export default function CreateOrder() {
   const [open, setOpen] = React.useState(true);
   const [openChooseDialog, setOpenChooseDialog] = React.useState(false);
 
+  // poll data from backend
   useEffect(() => {
     const pollingTime = 1; // interval for polling in seconds
 
@@ -58,16 +59,18 @@ export default function CreateOrder() {
     return () => clearInterval(interval);
   });
 
+  // handle state of dialog
   const handleClose = () => {
     setOpen(false);
   };
 
+  // callback function if save button on dialog is pressed
   const createOrder = (data) => {
     let payload = {
       name: data["name"],
       orderNo: data["orderNo"],
       orderPos: data["orderPos"],
-      costumer: data["costumerNo"]
+      costumer: data["costumerNo"],
     };
     if (data["description"] !== "") {
       payload["description"] = data["description"];
@@ -84,6 +87,7 @@ export default function CreateOrder() {
     return true;
   };
 
+  // callback function when workingplan is selected in dialog
   const selectWorkingPlan = (selectedPlan) => {
     let order = createdOrder.order;
     setCreatedOrder({
@@ -104,6 +108,7 @@ export default function CreateOrder() {
     return true;
   };
 
+  // get workingplans from backend for choosing workingplan
   function getWorkingPlansFromMes() {
     axios
       .get("http://" + IP_BACKEND + ":8000/api/WorkingPlan/")
@@ -116,17 +121,21 @@ export default function CreateOrder() {
       });
   }
 
-  function getOrderFromMes(){
-    axios.get(
-      "http://" +
-        IP_BACKEND +
-        ":8000/api/AssignedOrder/" +
-        createdOrder.order["id"].toString()).then((res)=>{
-          setCreatedOrder({
+  // poll data from order
+  function getOrderFromMes() {
+    axios
+      .get(
+        "http://" +
+          IP_BACKEND +
+          ":8000/api/AssignedOrder/" +
+          createdOrder.order["id"].toString()
+      )
+      .then((res) => {
+        setCreatedOrder({
           order: res.data,
           selectedWorkingPlan: createdOrder.selectedWorkingPlan,
-           });
         });
+      });
   }
 
   return (
@@ -143,11 +152,11 @@ export default function CreateOrder() {
         title="Create Order"
       />
       <Typography gutterBottom variant="h5" component="h2">
-          Create order
-        </Typography>
-        <Grid item>
-          <div>&nbsp; &nbsp; &nbsp;</div>
-        </Grid>
+        Create order
+      </Typography>
+      <Grid item>
+        <div>&nbsp; &nbsp; &nbsp;</div>
+      </Grid>
       <Grid container justify="center" alignItems="center" direction="column">
         {createListItem(createdOrder.order, createdOrder.selectedWorkingPlan)}
         <Grid item>
@@ -191,21 +200,21 @@ function createListItem(order, workingPlan) {
           orderPos={order.orderPos}
           assignedAt={order.assignedAt}
           costumer=""
-          assignedWorkingPiece= {order.assignedWorkingPiece}
-          id = {order.id}
+          assignedWorkingPiece={order.assignedWorkingPiece}
+          id={order.id}
         />
       </Grid>
     );
   }
 
   items.push(
-          <Grid item>
-            <div>&nbsp; &nbsp; &nbsp;</div>
-            <Typography gutterBottom variant="h5" component="h2">
-            Assign WorkingPlan
-            </Typography>
-          </Grid>
-        );
+    <Grid item>
+      <div>&nbsp; &nbsp; &nbsp;</div>
+      <Typography gutterBottom variant="h5" component="h2">
+        Assign WorkingPlan
+      </Typography>
+    </Grid>
+  );
 
   if (workingPlan["workingPlanNo"] !== 0) {
     items.push(

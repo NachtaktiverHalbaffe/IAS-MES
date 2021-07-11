@@ -1,3 +1,12 @@
+/*
+Filename: liststates.js
+Version name: 1.0, 2021-07-10
+Short description: list with cards of the states of all resources
+
+(C) 2003-2021 IAS, Universitaet Stuttgart
+
+*/
+
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import { GridList, ListItem } from "@material-ui/core";
 import axios from "axios";

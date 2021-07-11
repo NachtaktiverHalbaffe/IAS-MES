@@ -1,7 +1,7 @@
 /*
 Filename: errorlogs.js
-Version name: 0.1, 2021-06-29
-Short description: Page to display all errors
+Version name: 1.0, 2021-07-10
+Short description: Page to display all errors from backend
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -15,15 +15,16 @@ import { IP_BACKEND } from "../../const";
 export default function ErrorLogs() {
   // React hooks
   const [state, setState] = useState([]);
-  // useEffect(() => {
-  //   const pollingTime = 3; // interval for polling in seconds
+  // poll darta from backend
+  useEffect(() => {
+    const pollingTime = 3; // interval for polling in seconds
 
-  //   const interval = setInterval(() => {
-  //     getDataFromMes();
-  //   }, pollingTime * 1000);
+    const interval = setInterval(() => {
+      getDataFromMes();
+    }, pollingTime * 1000);
 
-  //   return () => clearInterval(interval);
-  // });
+    return () => clearInterval(interval);
+  });
 
   useLayoutEffect(() => {
     getDataFromMes();
@@ -42,9 +43,12 @@ export default function ErrorLogs() {
   );
 }
 
+// create list with data from errors
+// @return:
+//    items: list of errors
 function createListItem(errors) {
   let items = [];
-  errors.sort((a, b) => (a.id > b.id ? 1 : -1));
+  errors.sort((a, b) => (a.id < b.id ? 1 : -1));
   for (let i = 0; i < errors.length; i++) {
     items.push(
       <ListItem width="100%" key={errors[i].id}>

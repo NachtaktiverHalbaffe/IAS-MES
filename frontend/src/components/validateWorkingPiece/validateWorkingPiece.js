@@ -1,12 +1,15 @@
 /*
-Filename: validateWorkingSteps.js
-Version name: 0.1, 2021-07-05
-Short description: Function to validate workingplan that it is executable
+Filename: validateWorkingPiece.js
+Version name: 1.0, 2021-07-10
+Short description: Function to validate workingpiece has right state for being applied to a specific workingplan
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
 */
 
+// @params
+//  workingSteps: workingsteps from workingplan which should get executed with workingpiece
+//  workingpiece: workingpiece which should get validated
 export default function (workingSteps, workingPiece) {
   let steps = workingSteps[0].sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
   let requiredState = {
@@ -34,7 +37,7 @@ export default function (workingSteps, workingPiece) {
       }
     }
   }
-  console.log(requiredState);
+
   // check if workingpiece has the right state
   if (requiredState.isAssembled != null) {
     if (workingPiece.isAssembled !== requiredState.isAssembled) {

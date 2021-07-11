@@ -1,3 +1,12 @@
+/*
+Filename: errorsnackbar.js
+Version name: 1.0, 2021-07-10
+Short description: Component to display a snackbar
+
+(C) 2003-2021 IAS, Universitaet Stuttgart
+
+*/
+
 import React from "react";
 import { Snackbar } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
@@ -13,12 +22,14 @@ export default function ErrorSnackbar(props) {
   const { isOpen, level, message } = props;
   const [open, setOpen] = React.useState(isOpen);
 
+  // open snackbar if value from props is open
   React.useEffect(() => {
     if (isOpen && !open) {
       setOpen(true);
     }
   });
 
+  // callback when snackbar closes
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
