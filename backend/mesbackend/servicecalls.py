@@ -78,7 +78,7 @@ class Servicecalls(object):
                                 obj.mainOPos = order.mainOrderPos
                                 obj.errorStepNo = 0
                                 workingPiece = order.assignedWorkingPiece
-                                obj.pNo = workingPiece.first().partNo
+                                obj.pNo = workingPiece.partNo
                                 # set output params specific to operation
                                 if step.operationNo == 210 or step.operationNo == 211:
                                     obj.dataLength = 12
@@ -180,7 +180,8 @@ class Servicecalls(object):
                     obj.mainOPos = currentOrder.mainOrderPos
                     obj.errorStepNo = 0
                     obj.pNo = 25  # 25= pallet, 31 = carrier
-                    obj.carrierId = currentOrder.assignedWorkingPiece.carrierId
+                    if currentOrder.assignedWorkingPiece.carrierId != None:
+                        obj.carrierId = currentOrder.assignedWorkingPiece.carrierId
                     # set output params specific to operation
                     # operation is store a part
                     if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
@@ -256,8 +257,8 @@ class Servicecalls(object):
             for i in range(len(status)):
                 # search for first unfinished step
                 if status[i] == 0:
-                    # check if step is for ASRS
-                    if workingsteps[i].assignedToUnit == resourceId:
+                    # check if step is for ASRS and if asrs isnt already executing this task
+                    if workingsteps[i].assignedToUnit == resourceId and StatePLC.objects.filter(id=1).state == "idle":
                         self.logger.info(
                             "[GETOPFORASRS] Found active order for ASRS")
                         # set general output parameter
@@ -282,25 +283,6 @@ class Servicecalls(object):
                         workingPiece = order.assignedWorkingPiece
                         partNo = workingPiece.partNo
                         # set output parameter specific to operation
-                        # operation is store a part
-                        if workingsteps[i].operationNo == 210 or workingsteps[i].operationNo == 211:
-                            if stopperId == 1:
-                                obj.opNo = 210
-                                # store from stopper 1
-                                obj.stopperId = 1
-                                # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
-                                obj.serviceParams = [
-                                    0, 90, 0, obj.bufPos, 0, partNo]
-                            elif stopperId == 2:
-                                # store from stopper 2
-                                obj.opNo = 211
-                                obj.stopperId = 2
-                                obj.serviceParams = [
-                                    0, 91, 0, obj.bufPos, 0, partNo]
-                            # update mes data
-                            workingPiece.storageLocation = obj.bufPos
-                            workingPiece.carrierId = 0
-                            workingPiece.save()
                         # operation is unstore a part
                         if obj.opNo == 212 or obj.opNo == 213:
                             obj.dataLength = 12
@@ -487,7 +469,7 @@ class Servicecalls(object):
             status = order.getStatus()
             for i in range(len(status)):
                 # find first unfinished step in list
-                if status[i] == 0 and workingsteps[i].assignedToUnit == requestId:
+                if status[i] == 0:
                     # set output parameters
                     # Write NFC tags, data for NFC tag can be manipulated here
                     stateVisualisationUnit = StateVisualisationUnit.objects.all().filter(
@@ -508,6 +490,7 @@ class Servicecalls(object):
                                 order.save()
                                 Thread(target=self._sendVisualisationTask, args=[
                                        oNo, oPos, obj.resourceId, obj.stepNo]).start()
+                                break
                         # visualisationunit hasnt finished => write current task again to repeat operation on PLC
                         elif stateVisualisationUnit.state == "playing" or stateVisualisationUnit.state == "waiting" and requestId > 1 and requestId < 7:
                             self.logger.info(
@@ -515,6 +498,7 @@ class Servicecalls(object):
                             obj.stepNo = workingsteps[i].stepNo
                             obj.resourceId = workingsteps[i].assignedToUnit
                             obj.opNo = workingsteps[i].operationNo
+                            break
                     # no visualisation unit mounted on resource
                     else:
                         # there is a next steo
@@ -527,6 +511,7 @@ class Servicecalls(object):
                             order.save()
                             Thread(target=self._sendVisualisationTask, args=[
                                    oNo, oPos, obj.resourceId, obj.stepNo]).start()
+                            break
                         # order finished
                         else:
                             obj.resourceId = 0
@@ -579,7 +564,7 @@ class Servicecalls(object):
             # serviceparams[position] with position = 1 straight forward and position=2 to bufOut
             obj.serviceParams = [1]
         # workingpiece is on branch 3 or 4 which are connected and has to stay on the two of them
-        elif (targetId == 3 and requestID == 4) or requestID == 3 or (targetId == 4 and requestID == 3):
+        elif (targetId == 3 and sourceId == 4) or sourceId == 3 or (targetId == 4 and sourceId == 3):
             self.logger.info("[GETSHUNTFORTARGET] Branch for resource " +
                              str(requestID) + " is set to straight forward")
             # serviceparams[position] with position = 1 straight forward and position=2 to bufOut
@@ -1059,6 +1044,7 @@ class Servicecalls(object):
     #   resourceId: Id of resource where visualisationunit should be mounted on
     #   stepNo: stepNo of workingstep which the visualisation task corresponds to
     def _sendVisualisationTask(self, orderNo, orderPos, resourceId, stepNo):
+        from .safteymonitoring import SafteyMonitoring
         # get task
         order = AssignedOrder.objects.filter(
             orderNo=orderNo).filter(orderPos=orderPos).first()
@@ -1080,17 +1066,17 @@ class Servicecalls(object):
                                        + ':5000/api/VisualisationTask', data=payload)
 
                 if not request.ok:
-                    pass
-                    self.safteyMonitoring.decodeError(
-                        errorLevel=self.safteyMonitoring.LEVEL_ERROR,
-                        errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
+                    safteyMonitoring = SafteyMonitoring()
+                    safteyMonitoring.decodeError(
+                        errorLevel=safteyMonitoring.LEVEL_ERROR,
+                        errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
                         msg="Visualisation unit is not reachable. Check connection of the unit to the MES. Ordernumber and orderposition:" +
                         str(orderNo) + ":" + str(orderPos))
 
             except Exception as e:
-                pass
-                self.safteyMonitoring.decodeError(
-                    errorLevel=self.safteyMonitoring.LEVEL_ERROR,
-                    errorCategory=self.safteyMonitoring.CATEGORY_CONNECTION,
+                safteyMonitoring = SafteyMonitoring()
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_CONNECTION,
                     msg=str(e)
                 )

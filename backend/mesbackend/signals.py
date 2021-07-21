@@ -71,8 +71,17 @@ def createMissingParams(sender, instance, **kwargs):
                 workingPieces = workingPieces.filter(isPackaged=False)
 
         if(workingPieces.count() != 0):
-            assignedWorkingPiece = workingPieces.first()
-            instance.assignedWorkingPiece = assignedWorkingPiece
+            for i in range(len(workingPieces)):
+                if workingPieces[i].storageLocation != 0:
+                    assignedWorkingPiece = workingPieces[i]
+                    currentOrders = AssignedOrder.objects.all()
+                    for i in range(len(currentOrders)):
+                        if assignedWorkingPiece.id == currentOrders[i].assignedWorkingPiece:
+                            break
+                        elif i== len(currentOrders):   
+                            instance.assignedWorkingPiece = assignedWorkingPiece  
+                            return  
+                            
         else:
             safteyMonitoring = SafteyMonitoring()
             safteyMonitoring.decodeError(
