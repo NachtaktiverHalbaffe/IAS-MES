@@ -1,8 +1,8 @@
 @echo off
-set IP_ADRESS="192.168.178.30"
+set IP_ADRESS="129.69.102.129"
 
 ECHO Starting backend...
-cd C:\Users\NachtaktiverHalbaffe\Documents\Git\IAS_MES\
+cd C:\Users\festo\Desktop\IAS_MES\
 CALL venv\Scripts\activate
 cd .\backend\
 start cmd /k waitress-serve --listen=%IP_ADRESS%:8000 --threads=10 backend.wsgi:application
