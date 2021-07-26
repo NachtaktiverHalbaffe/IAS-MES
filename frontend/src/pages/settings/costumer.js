@@ -1,7 +1,7 @@
 /*
-Filename: costumer.js
+Filename: customer.js
 Version name: 1.0, 2021-07-10
-Short description: Card component for costumers
+Short description: Card component for customers
 
 (C) 2003-2021 IAS, Universitaet Stuttgart
 
@@ -43,7 +43,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Costumer() {
+export default function Customer() {
   const classes = useStyles();
   const [state, setState] = React.useState([]);
 
@@ -84,8 +84,8 @@ export default function Costumer() {
     setWSOpen(false);
   };
 
-  const createCostumer = (data) => {
-    if (data["costumerNo"] < 1 || isNaN(data["costumerNo"])) {
+  const createCustomer = (data) => {
+    if (data["customerNo"] < 1 || isNaN(data["customerNo"])) {
       setErrorState({
         snackbarOpen: true,
         msg: "Costumer number must be greater than 0 and must be a integer",
@@ -110,7 +110,7 @@ export default function Costumer() {
       return false;
     }
     let payload = {
-      costumerNo: data["costumerNo"],
+      customerNo: data["customerNo"],
       firstName: data["firstName"],
       lastName: data["lastName"],
     };
@@ -130,7 +130,7 @@ export default function Costumer() {
     axios.post("http://" + IP_BACKEND + ":8000/api/Costumer/", payload);
     setErrorState({
       snackbarOpen: true,
-      msg: "Successfully created costumer",
+      msg: "Successfully created customer",
       level: "success",
     });
     return true;
@@ -138,7 +138,7 @@ export default function Costumer() {
 
   function getDataFromMes() {
     axios
-      .get("http://" + IP_BACKEND + ":8000/api/Costumer/")
+      .get("http://" + IP_BACKEND + ":8000/api/Customer/")
       .then(async (res) => {
         setState(res.data);
       });
@@ -155,19 +155,19 @@ export default function Costumer() {
 
   return (
     <Box>
-      <Typography gutterBottom variant="h5" component="h2">
-        Costumers
-      </Typography>
-
       <Grid
         container
         justify="space-evenly"
         alignItems="center"
         direction="column"
       >
+      <div>&nbsp; &nbsp; &nbsp;</div>
+      <Typography gutterBottom variant="h5" component="h2">
+        Customers
+      </Typography>
         <List width={1}>{createListItem(state)}</List>
         <Grid item>
-          <div>&nbsp; &nbsp; &nbsp;</div>
+          
           <Fab
             color="secondary"
             aria-label="add"
@@ -183,7 +183,7 @@ export default function Costumer() {
       </Grid>
       <EditCostumerDialog
         data={{
-          costumerNo: 0,
+          customerNo: 0,
           firstName: "",
           lastName: "",
           adress: "",
@@ -191,7 +191,7 @@ export default function Costumer() {
           eMail: "",
           company: "",
         }}
-        onSave={createCostumer}
+        onSave={createCustomer}
         open={wsopen}
         onClose={handleWSClose}
       />
@@ -204,19 +204,19 @@ export default function Costumer() {
   );
 }
 
-function createListItem(costumers) {
+function createListItem(customers) {
   let items = [];
-  for (let j = 0; j < costumers.length; j++) {
+  for (let j = 0; j < customers.length; j++) {
     items.push(
       <ListItem>
         <CostumerCard
-          costumerNo={costumers[j].costumerNo}
-          firstName={costumers[j].firstName}
-          lastName={costumers[j].lastName}
-          adress={costumers[j].adress}
-          phone={costumers[j].phone}
-          eMail={costumers[j].eMail}
-          company={costumers[j].company}
+          customerNo={customers[j].customerNo}
+          firstName={customers[j].firstName}
+          lastName={customers[j].lastName}
+          adress={customers[j].adress}
+          phone={customers[j].phone}
+          eMail={customers[j].eMail}
+          company={customers[j].company}
         />
       </ListItem>
     );
@@ -226,7 +226,7 @@ function createListItem(costumers) {
 }
 
 function CostumerCard(props) {
-  let costumerNo = 0;
+  let customerNo = 0;
   let firstName = "";
   let lastName = "";
   let adress = "";
@@ -254,9 +254,9 @@ function CostumerCard(props) {
     }, AUTO_HIDE_DURATION);
   });
 
-  if (props.costumerNo) {
-    costumerNo = props.costumerNo;
-    data["costumerNo"] = costumerNo;
+  if (props.customerNo) {
+    customerNo = props.customerNo;
+    data["customerNo"] = customerNo;
   }
   if (props.firstName) {
     firstName = props.firstName;
@@ -292,7 +292,7 @@ function CostumerCard(props) {
   };
 
   const onSave = (updatedData) => {
-    if (updatedData["costumerNo"] < 1 || isNaN(updatedData["costumerNo"])) {
+    if (updatedData["customerNo"] < 1 || isNaN(updatedData["customerNo"])) {
       setErrorState({
         snackbarOpen: true,
         msg: "Costumer number must be greater than 0 and must be a integer",
@@ -322,9 +322,9 @@ function CostumerCard(props) {
       "http://" +
         IP_BACKEND +
         ":8000/api/Costumer/" +
-        updatedData["costumerNo"].toString(),
+        updatedData["customerNo"].toString(),
       {
-        costumerNo: updatedData["costumerNo"],
+        customerNo: updatedData["customerNo"],
         firstName: updatedData["firstName"],
         lastName: updatedData["lastName"],
         adress: updatedData["adress"],
@@ -341,12 +341,12 @@ function CostumerCard(props) {
     return true;
   };
 
-  const onDelete = (costumerToDelete) => {
+  const onDelete = (customerToDelete) => {
     axios.delete(
       "http://" +
         IP_BACKEND +
         ":8000/api/Costumer/" +
-        costumerToDelete["costumerNo"].toString()
+        customerToDelete["customerNo"].toString()
     );
     return true;
   };
@@ -378,7 +378,7 @@ function CostumerCard(props) {
                   <Box fontWeight="fontWeightBold" display="inline">
                     Costumer number:{" "}
                   </Box>{" "}
-                  {costumerNo}
+                  {customerNo}
                 </Typography>
                 <Typography
                   variant="body1"
@@ -476,51 +476,51 @@ function EditCostumerDialog(props) {
       <DialogTitle id="simple-dialog-title">Edit Costumer</DialogTitle>
       <EditTextBox
         label="Costumer number"
-        mapKey="costumerNo"
-        initialValue={data["costumerNo"]}
-        helperText="Costumer number of costumer. Identifies the costumer"
+        mapKey="customerNo"
+        initialValue={data["customerNo"]}
+        helperText="Costumer number of customer. Identifies the customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="First name"
         mapKey="firstName"
         initialValue={data["firstName"]}
-        helperText="First name of costumer"
+        helperText="First name of customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="Last name"
         mapKey="lastName"
         initialValue={data["lastName"]}
-        helperText="Last name of costumer"
+        helperText="Last name of customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="Adress"
         mapKey="adress"
         initialValue={data["adress"]}
-        helperText="Adress of costumer"
+        helperText="Adress of customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="Phone"
         mapKey="phone"
         initialValue={data["phone"]}
-        helperText="Phone number of costumer"
+        helperText="Phone number of customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="E-Mail"
         mapKey="eMail"
         initialValue={data["eMail"]}
-        helperText="E-Mail adress of costumer"
+        helperText="E-Mail adress of customer"
         onEdit={onEdit}
       />
       <EditTextBox
         label="Company"
         mapKey="company"
         initialValue={data["company"]}
-        helperText="Company name of costumer"
+        helperText="Company name of customer"
         onEdit={onEdit}
       />
       <ListItem justify="flex-end">

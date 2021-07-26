@@ -70,7 +70,7 @@ export default function CreateOrder() {
       name: data["name"],
       orderNo: data["orderNo"],
       orderPos: data["orderPos"],
-      costumer: data["costumerNo"],
+      customer: data["customerNo"],
     };
     if (data["description"] !== "") {
       payload["description"] = data["description"];
@@ -199,7 +199,7 @@ function createListItem(order, workingPlan) {
           orderNo={order.orderNo}
           orderPos={order.orderPos}
           assignedAt={order.assignedAt}
-          costumer=""
+          customer=""
           assignedWorkingPiece={order.assignedWorkingPiece}
           id={order.id}
         />

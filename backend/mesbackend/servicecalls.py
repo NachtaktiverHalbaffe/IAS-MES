@@ -7,7 +7,7 @@ is handled here. Given on the servicecalls some output parameters are set
 (C) 2003-2021 IAS, Universitaet Stuttgart
 """
 
-from mesapi.models import AssignedOrder, Buffer, Costumer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
+from mesapi.models import AssignedOrder, Buffer, Customer, Setting, StatePLC, StateVisualisationUnit, WorkingPlan, WorkingStep, StateWorkingPiece
 import logging
 import requests
 from threading import Thread
@@ -73,8 +73,8 @@ class Servicecalls(object):
                                 obj.oPos = order.orderPos
                                 obj.wpNo = workingPlan.workingPlanNo
                                 obj.opNo = step.operationNo
-                                if order.costumer != None:
-                                    obj.cNo = order.costumer.costumerNo
+                                if order.customer != None:
+                                    obj.cNo = order.customer.customerNo
                                 obj.mainOPos = order.mainOrderPos
                                 obj.errorStepNo = 0
                                 workingPiece = order.assignedWorkingPiece
@@ -173,8 +173,8 @@ class Servicecalls(object):
                     obj.resourceId = workingsteps[i].assignedToUnit
                     obj.wpNo = workingPlan.workingPlanNo
                     obj.opNo = workingsteps[i].operationNo
-                    if currentOrder.costumer != None:
-                        obj.cNo = currentOrder.costumer.costumerNo
+                    if currentOrder.customer != None:
+                        obj.cNo = currentOrder.customer.customerNo
                     else:
                         obj.cNo = 0
                     obj.mainOPos = currentOrder.mainOrderPos
@@ -269,8 +269,8 @@ class Servicecalls(object):
                         obj.wpNo = workingPlan.workingPlanNo
                         obj.opNo = workingsteps[i].operationNo
                         obj.bufNo = 1
-                        if order.costumer != None:
-                            obj.cNo = order.costumer.costumerNo
+                        if order.customer != None:
+                            obj.cNo = order.customer.customerNo
                         obj.mainOPos = order.mainOrderPos
                         obj.errorStepNo = 0
                         obj.pNo = 25  # 25= pallet, 31 = carrier
@@ -459,8 +459,8 @@ class Servicecalls(object):
             obj.oNo = order.orderNo
             obj.oPos = order.orderPos
             obj.wpNo = workingPlan.workingPlanNo
-            if order.costumer != None:
-                obj.cNo = order.costumer.costumerNo
+            if order.customer != None:
+                obj.cNo = order.customer.customerNo
             else:
                 obj.cNo = 0
             obj.mainOPos = order.mainOrderPos

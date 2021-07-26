@@ -103,9 +103,9 @@ class StateWorkingPiece(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
 # Model of a single task in a working plan. represents one step in a working plan
-
-
 class WorkingStep(models.Model):
     TASK_CHOICES = [
         ("assemble", "Assemble the workingpiece"),
@@ -162,10 +162,10 @@ class WorkingPlan(models.Model):
         return self.name
 
 
-# model representing a costumer
-class Costumer(models.Model):
-    # costumer number which identifies the costumer. needs to be unique
-    costumerNo = models.PositiveIntegerField(primary_key=True)
+# model representing a Customer
+class Customer(models.Model):
+    # Customer number which identifies the Customer. needs to be unique
+    customerNo = models.PositiveIntegerField(primary_key=True)
     firstName = models.CharField(max_length=30)
     lastName = models.CharField(max_length=100)
     adress = models.CharField(max_length=300, null=True)
@@ -198,9 +198,9 @@ class AssignedOrder(models.Model):
     orderPos = models.PositiveSmallIntegerField()
     # main order position (optional)
     mainOrderPos = models.PositiveSmallIntegerField(default=0)
-    # costumer(optional)
-    costumer = models.ForeignKey(
-        Costumer, blank=True, on_delete=models.SET_NULL, null=True)
+    # Customer(optional)
+    customer = models.ForeignKey(
+        Customer, blank=True, on_delete=models.SET_NULL, null=True)
     # Status
     status = models.CharField(max_length=30, null=True)
 

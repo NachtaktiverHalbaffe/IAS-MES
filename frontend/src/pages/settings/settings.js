@@ -27,7 +27,7 @@ import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
 import ErrorSnackbar from "../../components/errorsnackbar/errorsnackbar";
 import EditCheckBox from "../../components/edittextbox/editcheckbox";
 import EditTextBox from "../../components/edittextbox/edittextbox";
-import Costumer from "../../pages/settings/costumer";
+import Customer from "../../pages/settings/costumer";
 
 export default function Settings() {
   // React hooks
@@ -126,7 +126,7 @@ export default function Settings() {
           data={state}
         />
       </Paper>
-      <Costumer />
+      <Customer />
     </Box>
   );
 }

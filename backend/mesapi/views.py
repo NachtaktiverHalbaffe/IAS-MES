@@ -34,7 +34,7 @@ class APIOverview(APIView):
             "Get or Post on all WorkingSteps": "api/WorkingStep/",
             "Get or Post on all Error": "api/Error/",
             "Get or Post on all Settings": "api/Setting/",
-            "Get or Post on all Costumers": "api/Costumer/",
+            "Get or Post on all Customers": "api/Customer/",
         }
         return Response(overview)
 
@@ -141,29 +141,29 @@ class SingleSettingView(RetrieveUpdateDestroyAPIView):
     queryset = Setting.objects.all()
 
 
-class CostumerView(ListCreateAPIView):
-    serializer_class = CostumerSerializer
-    queryset = Costumer.objects.all()
+class CustomerView(ListCreateAPIView):
+    serializer_class = CustomerSerializer
+    queryset = Customer.objects.all()
 
 
-class SingleCostumerView(RetrieveUpdateDestroyAPIView):
-    serializer_class = CostumerSerializer
-    queryset = Costumer.objects.all()
+class SingleCustomerView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CustomerSerializer
+    queryset = Customer.objects.all()
 
 
-# Getting single costumer by name
-class SingleCostumerByNameView(ListCreateAPIView):
-    serializer_class = CostumerSerializer
+# Getting single customer by name
+class SingleCustomerByNameView(ListCreateAPIView):
+    serializer_class = CustomerSerializer
     # get parameter from url
     lookup_url_kwarg = 'firstName'
     lookup_url_kwarg = 'lastName'
 
     def get_queryset(self):
-        # Search for costumer by filtering by firstName
+        # Search for customer by filtering by firstName
         # and lastName which are passed from the url
-        queryset = Costumer.objects.all()
+        queryset = Customer.objects.all()
         firstName = self.kwargs.get("firstName")
         lastName = self.kwargs.get("lastName")
-        costumer = queryset.filter(
+        customer = queryset.filter(
             firstName=firstName).filter(lastName=lastName)
-        return costumer
+        return customer

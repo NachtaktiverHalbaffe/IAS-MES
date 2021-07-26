@@ -89,7 +89,7 @@ class AssignedOrderSerializer(serializers.ModelSerializer):
             "orderNo",
             "orderPos",
             "mainOrderPos",
-            "costumer",
+            "customer",
             "status"
         )
 
@@ -121,11 +121,11 @@ class ErrorSerializer(serializers.ModelSerializer):
         fields = ("level", "msg", "category", "id", "timestamp", "isSolved")
 
 
-class CostumerSerializer(serializers.ModelSerializer):
+class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Costumer
+        model = Customer
         fields = (
-            "costumerNo",
+            "customerNo",
             "firstName",
             "lastName",
             "adress",

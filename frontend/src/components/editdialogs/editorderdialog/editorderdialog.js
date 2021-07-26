@@ -97,13 +97,13 @@ export default function EditStateOrderDialog(props) {
                 return false;
             }
         }
-        if (state["costumer"] !== undefined) {
-            let name = state["costumer"].split(" ");
-            if (name.length !== 2 && state["costumer"].length !== 0) {
+        if (state["customer"] !== undefined) {
+            let name = state["customer"].split(" ");
+            if (name.length !== 2 && state["customer"].length !== 0) {
                 setErrorState({snackbarOpen: true, msg: "Invalid name. Please enter a fristname and lastname e.g. John Doe", level: "error"});
                 return false;
-            } else if (state["costumerNo"] === 0 && state["costumer"].length !== 0) {
-                setErrorState({snackbarOpen: true, msg: "Costumer doesnt exist. Make sure to type the name wright", level: "error"});
+            } else if (state["customerNo"] === 0 && state["customer"].length !== 0) {
+                setErrorState({snackbarOpen: true, msg: "Customer doesnt exist. Make sure to type the name wright", level: "error"});
                 return false;
             }
         }
@@ -115,21 +115,21 @@ export default function EditStateOrderDialog(props) {
     // update state of dialog when a value gets changed
     const onEdit = async (key, value) => {
         let newState = state;
-        // check if costumer exists and then assign costumerNo
-        if (key === "costumer") {
+        // check if customer exists and then assign customerNo
+        if (key === "customer") {
             let name = value.split(" ");
             if (name.length === 2) {
-                axios.get("http://" + IP_BACKEND + ":8000/api/Costumer/byName/" + name[0] + "/" + name[1]).then(async (res) => {
+                axios.get("http://" + IP_BACKEND + ":8000/api/Customer/byName/" + name[0] + "/" + name[1]).then(async (res) => {
                     if (res.data.length === 1) {
-                        if (!isNaN(res.data[0]["costumerNo"])) {
-                            newState["costumerNo"] = res.data[0]["costumerNo"];
+                        if (!isNaN(res.data[0]["customerNo"])) {
+                            newState["customerNo"] = res.data[0]["customerNo"];
                         }
                     } else {
-                        newState["costumerNo"] = 0;
+                        newState["customerNo"] = 0;
                     }
                 });
             } else {
-                newState["costumerNo"] = "";
+                newState["customerNo"] = "";
             }
         } else if (key === "assignedWorkingPiece") { // validate if workingpiece has right state
             axios.get("http://" + IP_BACKEND + ":8000/api/StateWorkingPiece/" + value.toString()).then((res) => {
@@ -196,11 +196,11 @@ export default function EditStateOrderDialog(props) {
                 helperText="Optional: Id of the assigned workingpiece. Make sure that the state of the workingpiece is correct so the workingplan is executable. If not specified the MES searches by itself for the first available piece."
                 onEdit={onEdit}/>
 
-            <EditTextBox label="Costumer" mapKey="costumer"
+            <EditTextBox label="Customer" mapKey="customer"
                 initialValue={
-                    data["costumer"]
+                    data["customer"]
                 }
-                helperText="Optional: Name of the costumer who assigned the order. Only change if new costumer is already created as an costumer"
+                helperText="Optional: Name of the customer who assigned the order. Only change if new customer is already created as an customer"
                 onEdit={onEdit}/>
             <ListItem justify="flex-end">
                 <Button justify="flex-end" variant="outlined" color="primary"

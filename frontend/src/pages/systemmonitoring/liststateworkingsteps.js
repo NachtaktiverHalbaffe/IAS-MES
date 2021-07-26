@@ -30,7 +30,7 @@ export default function ListStateWorkingSteps() {
   const [order, setOrder] = useState([]);
   const [workingPlan, setWorkingPlan] = useState([]);
   const [workingSteps, setWorkingSteps] = useState([]);
-  const [costumer, setCostumer] = useState([]);
+  const [customer, setCustomer] = useState([]);
 
   useEffect(() => {
     const pollingTime = 2; // interval for polling in seconds
@@ -38,26 +38,26 @@ export default function ListStateWorkingSteps() {
     const interval = setInterval(async () => {
       getDataFromMes();
 
-      let costumers = [];
+      let customers = [];
       for (let i = 0; i < order.length; i++) {
-        if (order[i]["costumer"] !== null) {
+        if (order[i]["customer"] !== null) {
           axios
             .get(
               "http://" +
                 IP_BACKEND +
-                ":8000/api/Costumer/" +
-                order[i]["costumer"].toString()
+                ":8000/api/Customer/" +
+                order[i]["customer"].toString()
             )
             .then((res) => {
-              costumers.push(
+              customers.push(
                 res.data["firstName"] + " " + res.data["lastName"]
               );
-              if (costumers.length === order.length) {
-                setCostumer(costumers);
+              if (customers.length === order.length) {
+                setCustomer(customers);
               }
             });
         } else {
-          setCostumer([]);
+          setCustomer([]);
         }
       }
     }, pollingTime * 1000);
@@ -129,7 +129,7 @@ export default function ListStateWorkingSteps() {
 
   return (
     <Box width={1}>
-      <List>{createListItem(order, workingSteps, costumer)}</List>
+      <List>{createListItem(order, workingSteps, customer)}</List>
     </Box>
   );
 }
@@ -197,7 +197,7 @@ function mCompareWorkingSteps(oldSteps, newSteps) {
   return true;
 }
 
-function createListItem(currentOrders, wssteps, costumer) {
+function createListItem(currentOrders, wssteps, customer) {
   let items = [];
   for (let i = 0; i < currentOrders.length; i++) {
     // create card for order info
@@ -209,9 +209,9 @@ function createListItem(currentOrders, wssteps, costumer) {
           orderNo={currentOrders[i].orderNo}
           orderPos={currentOrders[i].orderPos}
           assignedAt={currentOrders[i].assignedAt}
-          costumer={costumer[i]}
+          customer={customer[i]}
           id={currentOrders[i].id}
-          costumerNo={currentOrders[i].costumer}
+          customerNo={currentOrders[i].customer}
           assignedWorkingPiece={currentOrders[i].assignedWorkingPiece}
           allSteps={wssteps}
         />

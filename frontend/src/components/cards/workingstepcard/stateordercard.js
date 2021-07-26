@@ -26,11 +26,11 @@ export default function StateOrderCard(props) {
     let description = "";
     let orderNo = 0;
     let orderPos = 0;
-    let costumer = "";
+    let customer = "";
     let assignedAt = "";
     let id = 0;
     let assignedWorkingPiece = 0;
-    let costumerNo = 0;
+    let customerNo = 0;
     let allSteps = [];
     let data = new Map();
 
@@ -64,9 +64,9 @@ export default function StateOrderCard(props) {
         orderPos = props.orderPos;
         data["orderPos"] = orderPos;
     }
-    if (props.costumer) {
-        costumer = props.costumer;
-        data["costumer"] = costumer;
+    if (props.customer) {
+        customer = props.customer;
+        data["customer"] = customer;
     }
     if (props.assignedAt) {
         assignedAt = props.assignedAt;
@@ -76,9 +76,9 @@ export default function StateOrderCard(props) {
         id = props.id;
         data["id"] = id;
     }
-    if (props.costumerNo) {
-        costumerNo = props.costumerNo;
-        data["costumerNo"] = costumerNo;
+    if (props.customerNo) {
+        customerNo = props.customerNo;
+        data["customerNo"] = customerNo;
     }
     if (props.assignedWorkingPiece) {
         assignedWorkingPiece = props.assignedWorkingPiece;
@@ -100,16 +100,16 @@ export default function StateOrderCard(props) {
 
     // update data in backend after changes over the dialog finished
     const onSave = (updatedData) => { // update data in Mes
-        let costumerNo = updatedData["costumerNo"];
-        if (costumerNo === 0) {
-            costumerNo = null;
+        let customerNo = updatedData["customerNo"];
+        if (customerNo === 0) {
+            customerNo = null;
         }
         axios.patch("http://" + IP_BACKEND + ":8000/api/AssignedOrder/" + updatedData["id"].toString(), {
             description: updatedData["description"],
             orderNo: updatedData["orderNo"],
             orderPos: updatedData["orderPos"],
             name: updatedData["name"],
-            costumer: costumerNo,
+            customer: customerNo,
             assignedWorkingPiece: updatedData["assignedWorkingPiece"]
         });
 
@@ -160,9 +160,9 @@ export default function StateOrderCard(props) {
                                 } </Typography>
                                 <Typography variant="body1" color="textSecondary" component="div">
                                     <Box fontWeight="fontWeightBold" display="inline">
-                                        Costumer:{" "} </Box>
+                                        Customer:{" "} </Box>
                                     {" "}
-                                    {costumer} </Typography>
+                                    {customer} </Typography>
                                 <Typography variant="body1" color="textSecondary" component="div">
                                     <Box fontWeight="fontWeightBold" display="inline">
                                         Assigned at:{" "} </Box>
