@@ -13,7 +13,8 @@ urlpatterns = [
     path("api-auth/", include("rest_framework.urls")),
     # API urls. Each model has a endpoint for a view for all entities
     # and a enpoint for a single entity of an object
-    path("api/Customer/byName/<str:firstName>/<str:lastName>", SingleCustomerByNameView.as_view()),
+    path("api/Customer/byName/<str:firstName>/<str:lastName>",
+         SingleCustomerByNameView.as_view()),
     path("api/Customer/<pk>", SingleCustomerView.as_view()),
     path("api/Customer/", CustomerView.as_view()),
     path("api/Setting/<pk>", SingleSettingView.as_view()),
@@ -38,7 +39,7 @@ urlpatterns = [
     # Overview for all endpoints
     path("api/", APIOverview.as_view()),
     # admin panel as landing page
-    path("", admin.site.urls),
+    #path("", admin.site.urls),
 ]
 
 try:
