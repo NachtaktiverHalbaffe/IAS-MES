@@ -70,18 +70,40 @@ def createMissingParams(sender, instance, **kwargs):
             elif step.task == "package" and workingPieces.filter(isPackaged=False).count() != 0:
                 workingPieces = workingPieces.filter(isPackaged=False)
 
-        if(workingPieces.count() != 0):
+        currentOrders = AssignedOrder.objects.all()
+        # check if workingpiece is in storage and isnt already assigned to an order
+        if workingPieces.count() != 0 and currentOrders.count() > 1:
             for i in range(len(workingPieces)):
+                # check if workingpiece is in storage
                 if workingPieces[i].storageLocation != 0:
                     assignedWorkingPiece = workingPieces[i]
-                    currentOrders = AssignedOrder.objects.all()
-                    for i in range(len(currentOrders)):
-                        if assignedWorkingPiece.id == currentOrders[i].assignedWorkingPiece:
-                            break
-                        elif i== len(currentOrders):   
-                            instance.assignedWorkingPiece = assignedWorkingPiece  
-                            return  
-                            
+                    isAlreadyAssigned = False
+                    # check if workingpiece is already assigned to an order
+                    for order in currentOrders:
+                        if order.assignedWorkingPiece != None:
+                            if assignedWorkingPiece.id == order.assignedWorkingPiece.id:
+                                isAlreadyAssigned = True
+                                break
+                    # assign workingpiece if its not already assigned to an order
+                    if not isAlreadyAssigned:
+                        instance.assignedWorkingPiece = assignedWorkingPiece
+                        break
+        # check if workingpiece is in storage (theres only the created order which needs to be assigned a workingpiece)
+        elif workingPieces.count() != 0 and currentOrders.count() == 1:
+            for piece in workingPieces:
+                # only assign workingpiece if its not in storage
+                if piece.storageLocation != 0:
+                    instance.assignedWorkingPiece = piece
+                    break
+            # throw error and delete order if no workingpiece was found to be assigned
+            if instance.assignedWorkingPiece != None:
+                safteyMonitoring = SafteyMonitoring()
+                safteyMonitoring.decodeError(
+                    errorLevel=safteyMonitoring.LEVEL_ERROR,
+                    errorCategory=safteyMonitoring.CATEGORY_OPERATIONAL,
+                    msg="No workingpiece which is in storage exists with the matching state to execute the order. Deleting order..."
+                )
+                instance.delete()
         else:
             safteyMonitoring = SafteyMonitoring()
             safteyMonitoring.decodeError(
