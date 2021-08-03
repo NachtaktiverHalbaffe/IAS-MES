@@ -30,44 +30,78 @@ export default function ListStateWorkingSteps() {
   const [order, setOrder] = useState([]);
   const [workingPlan, setWorkingPlan] = useState([]);
   const [workingSteps, setWorkingSteps] = useState([]);
-  const [customer, setCustomer] = useState([]);
+  const [orderData, setOrderData] = useState([]);
 
   useEffect(() => {
-    const pollingTime = 2; // interval for polling in seconds
+    const pollingTime = 1.5; // interval for polling in seconds
 
     const interval = setInterval(async () => {
-      getDataFromMes();
-
-      let customers = [];
-      for (let i = 0; i < order.length; i++) {
-        if (order[i]["customer"] !== null) {
-          axios
-            .get(
-              "http://" +
-                IP_BACKEND +
-                ":8000/api/Customer/" +
-                order[i]["customer"].toString()
-            )
-            .then((res) => {
-              customers.push(
-                res.data["firstName"] + " " + res.data["lastName"]
-              );
-              if (customers.length === order.length) {
-                setCustomer(customers);
-              }
-            });
-        } else {
-          setCustomer([]);
-        }
-      }
+      updateData();
     }, pollingTime * 1000);
     return () => clearInterval(interval);
   });
 
   useLayoutEffect(() => {
-    getDataFromMes();
+    updateData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function updateData() {
+    getDataFromMes();
+    let orderData = [];
+    // link all orders, workingplans, workingsteps and costumer together to one object
+    for (let i = 0; i < order.length; i++) {
+      let currentOrder = {
+        order: null,
+        workingPlan: null,
+        workingSteps: [],
+        customer: "",
+      };
+      currentOrder.order = order[i];
+      // get customer name from mes for corresponding order
+      if (currentOrder.order.customer !== null) {
+        await axios
+          .get(
+            "http://" +
+              IP_BACKEND +
+              ":8000/api/Customer/" +
+              currentOrder.order.customer.toString()
+          )
+          .then((res) => {
+            currentOrder.customer =
+              res.data["firstName"] + " " + res.data["lastName"];
+          });
+      }
+      // search for workingplan object which is assigned to order
+      for (let j = 0; j < workingPlan.length; j++) {
+        if (workingPlan[j].workingPlanNo === order[i].assigendWorkingPlan) {
+          currentOrder.workingPlan = workingPlan[j];
+          break;
+        }
+      }
+      // search for workingsteps object which is assigned to order
+      for (let j = 0; j < workingSteps.length; j++) {
+        let steps = workingSteps[j].sort((a, b) =>
+          a["stepNo"] > b["stepNo"] ? 1 : -1
+        );
+        if (currentOrder.workingPlan.workingSteps[0] === steps[0].id) {
+          currentOrder.workingSteps = steps;
+          break;
+        }
+      }
+      orderData.push(currentOrder);
+    }
+    if (orderData.length !== 0) {
+      // sort orderdata by orderNo and if these match by orderPos
+      orderData = orderData.sort(function (a, b) {
+        if (a.order.orderNo < b.order.orderNo) return -1;
+        if (a.order.orderNo > b.order.orderNo) return 1;
+        if (a.order.orderPos < b.order.orderPos) return -1;
+        if (a.order.orderPos > b.order.orderPos) return 1;
+      });
+      setOrderData(orderData);
+    }
+  }
 
   function getDataFromMes() {
     axios
@@ -88,11 +122,8 @@ export default function ListStateWorkingSteps() {
               .then(async (res) => {
                 plans.push(res.data);
                 if (plans.length === order.length) {
-                  let oldPlan = workingPlan;
                   // only set workingplan if it has changed
-                  if (!mCompareWorkingPlans(oldPlan, plans)) {
-                    setWorkingPlan(plans);
-                  }
+                  setWorkingPlan(plans);
                   // get workingsteps
                   let allSteps = [];
                   for (let j = 0; j < plans.length; j++) {
@@ -110,11 +141,8 @@ export default function ListStateWorkingSteps() {
                           if (steps.length === plans[j].workingSteps.length) {
                             allSteps.push(steps);
                             if (allSteps.length === plans.length) {
-                              let oldSteps = workingSteps;
                               // only set state if workingsteps have changed
-                              if (!mCompareWorkingSteps(oldSteps, allSteps)) {
-                                setWorkingSteps(allSteps);
-                              }
+                              setWorkingSteps(allSteps);
                             }
                           }
                         });
@@ -129,161 +157,100 @@ export default function ListStateWorkingSteps() {
 
   return (
     <Box width={1}>
-      <List>{createListItem(order, workingSteps, customer)}</List>
+      <List>{createListItem(orderData)}</List>
     </Box>
   );
 }
 
-// compares if two states of Workingplans are equal. Returns true if equal and vise versa
-function mCompareWorkingPlans(oldPlan, newPlan) {
-  // check lengths
-  if (oldPlan.length !== newPlan.length) {
-    return false;
-  }
-  for (let i = 0; i < oldPlan.length; i++) {
-    if (oldPlan[i].length !== newPlan[i].length) {
-      return false;
-    } else if (
-      oldPlan[i].workingSteps.length === newPlan[i].workingSteps.length
-    ) {
-      let old = oldPlan[i].workingSteps;
-      old.sort((a, b) => (a > b ? 1 : -1));
-      let newP = newPlan[i].workingSteps;
-      newP.sort((a, b) => (a > b ? 1 : -1));
-      for (let j = 0; j < old.length; j++) {
-        if (old[j] !== newP[j]) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
-// compares if two states of Workingsteps are equal. Returns true if equal and vise versa
-function mCompareWorkingSteps(oldSteps, newSteps) {
-  // check lengths
-  if (oldSteps.length !== newSteps.length) {
-    return false;
-  }
-  // check workingsteps
-  for (let i = 0; i < oldSteps.length; i++) {
-    if (oldSteps[i].length !== newSteps[i].length) {
-      return false;
-    } else if (oldSteps[i].length === newSteps[i].length) {
-      let old = oldSteps[i];
-      old = old.sort((a, b) => (a["stepNo"] > b["stepNo"] ? 1 : -1));
-      let newP = newSteps[i];
-      newP = newP.sort((a, b) => (a["stepNo"] > b["stepNo"] ? 1 : -1));
-      for (let j = 0; j < old.length; j++) {
-        if (old[j]["task"] !== newP[j]["task"]) {
-          return false;
-        }
-        if (old[j].color !== newP[j].color) {
-          return false;
-        }
-        if (old[j].assignedToUnit !== newP[j].assignedToUnit) {
-          return false;
-        }
-        if (old[j].name !== newP[j].name) {
-          return false;
-        }
-        if (old[j].description !== newP[j].description) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
-function createListItem(currentOrders, wssteps, customer) {
+function createListItem(currentOrders) {
   let items = [];
-  for (let i = 0; i < currentOrders.length; i++) {
-    // create card for order info
-    items.push(
-      <ListItem width={1} key={0}>
-        <StateOrderCard
-          name={currentOrders[i].name}
-          description={currentOrders[i].description}
-          orderNo={currentOrders[i].orderNo}
-          orderPos={currentOrders[i].orderPos}
-          assignedAt={currentOrders[i].assignedAt}
-          customer={customer[i]}
-          id={currentOrders[i].id}
-          customerNo={currentOrders[i].customer}
-          assignedWorkingPiece={currentOrders[i].assignedWorkingPiece}
-          allSteps={wssteps}
-        />
-      </ListItem>
-    );
+  if (currentOrders.length !== 0) {
+    for (let i = 0; i < currentOrders.length; i++) {
+      // create card for order info
+      items.push(
+        <ListItem width={1} key={currentOrders[i].order.id}>
+          <StateOrderCard
+            name={currentOrders[i].order.name}
+            description={currentOrders[i].order.description}
+            orderNo={currentOrders[i].order.orderNo}
+            orderPos={currentOrders[i].order.orderPos}
+            assignedAt={currentOrders[i].order.assignedAt}
+            customer={currentOrders[i].customer}
+            id={currentOrders[i].order.id}
+            customerNo={currentOrders[i].order.customer}
+            assignedWorkingPiece={currentOrders[i].order.assignedWorkingPiece}
+            allSteps={currentOrders[i].workingSteps}
+          />
+        </ListItem>
+      );
 
-    // create cards of workingsteps
-    if (wssteps.length !== 0) {
-      let steps = wssteps[i];
-      steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
-      for (let j = 0; j < steps.length; j++) {
-        let statusBits = JSON.parse(currentOrders[i].status);
-        // get right image
-        let img = null;
-        if (steps[j].task === "unstore" || steps[j].task === "store") {
-          img = store;
-        } else if (steps[j].task === "assemble") {
-          img = assemble;
-        } else if (steps[j].task === "color") {
-          img = color;
-        } else if (steps[j].task === "generic") {
-          img = generic;
-        } else if (steps[j].task === "package") {
-          img = imgPackage;
-        } else if (steps[j].task === "unpackage") {
-          img = unpackage;
-        }
-        // get wright state
-        let state = "";
-        if (statusBits[j] === 1) {
-          state = "finished";
-        } else if (statusBits[j] === 0) {
-          state = "pending";
-        }
-        const updateStatus = (index, state) => {
-          if (state === "pending") {
-            statusBits[index] = 0;
-          } else if (state === "finished") {
-            statusBits[index] = 1;
+      // create cards of workingsteps
+      if (currentOrders[i].workingSteps.length !== 0) {
+        let steps = currentOrders[i].workingSteps;
+        steps.sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
+        for (let j = 0; j < steps.length; j++) {
+          let statusBits = JSON.parse(currentOrders[i].order.status);
+          // get right image
+          let img = null;
+          if (steps[j].task === "unstore" || steps[j].task === "store") {
+            img = store;
+          } else if (steps[j].task === "assemble") {
+            img = assemble;
+          } else if (steps[j].task === "color") {
+            img = color;
+          } else if (steps[j].task === "generic") {
+            img = generic;
+          } else if (steps[j].task === "package") {
+            img = imgPackage;
+          } else if (steps[j].task === "unpackage") {
+            img = unpackage;
           }
-          let payload = {
-            status: JSON.stringify(statusBits),
+          // get wright state
+          let state = "";
+          if (statusBits[j] === 1) {
+            state = "finished";
+          } else if (statusBits[j] === 0) {
+            state = "pending";
+          }
+          const updateStatus = (index, state) => {
+            if (state === "pending") {
+              statusBits[index] = 0;
+            } else if (state === "finished") {
+              statusBits[index] = 1;
+            }
+            let payload = {
+              status: JSON.stringify(statusBits),
+            };
+            axios.patch(
+              "http://" +
+                IP_BACKEND +
+                ":8000/api/AssignedOrder/" +
+                currentOrders[i].order.id.toString(),
+              payload
+            );
+            return true;
           };
-          axios.patch(
-            "http://" +
-              IP_BACKEND +
-              ":8000/api/AssignedOrder/" +
-              currentOrders[i].id.toString(),
-            payload
+          items.push(
+            <ListItem width={1} key={steps[j].id}>
+              <StateWorkingStepCard
+                assignedToUnit={steps[j].assignedToUnit}
+                description={steps[j].description}
+                name={steps[j].name}
+                img={img}
+                state={state}
+                task={steps[j].task}
+                stepNo={steps[j].stepNo}
+                color={steps[j].color}
+                id={steps[j].id}
+                allSteps={steps}
+                updateStatus={updateStatus}
+                assignedToOrder={currentOrders[i].order}
+              />
+            </ListItem>
           );
-          return true;
-        };
-        items.push(
-          <ListItem width={1} key={steps[j].id}>
-            <StateWorkingStepCard
-              assignedToUnit={steps[j].assignedToUnit}
-              description={steps[j].description}
-              name={steps[j].name}
-              img={img}
-              state={state}
-              task={steps[j].task}
-              stepNo={steps[j].stepNo}
-              color={steps[j].color}
-              id={steps[j].id}
-              allSteps={steps}
-              updateStatus={updateStatus}
-              assignedToOrder={currentOrders[i]}
-            />
-          </ListItem>
-        );
+        }
       }
     }
+    return items;
   }
-  return items;
 }
