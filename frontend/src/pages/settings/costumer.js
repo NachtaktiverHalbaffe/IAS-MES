@@ -58,7 +58,6 @@ export default function Customer() {
 
   const [wsopen, setWSOpen] = React.useState(false);
   // states stuff for opening and closing dialogs
-  const [open, setOpen] = React.useState(true);
   const [errorState, setErrorState] = React.useState({
     snackbarOpen: false,
     msg: "",
@@ -76,10 +75,6 @@ export default function Customer() {
     }, AUTO_HIDE_DURATION);
   });
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const handleWSClose = () => {
     setWSOpen(false);
   };
@@ -93,7 +88,7 @@ export default function Customer() {
       });
       return false;
     }
-    if (data["firstName"] == "") {
+    if (data["firstName"] === "") {
       setErrorState({
         snackbarOpen: true,
         msg: "A first name is needed",
@@ -101,7 +96,7 @@ export default function Customer() {
       });
       return false;
     }
-    if (data["lastName"] == "") {
+    if (data["lastName"] === "") {
       setErrorState({
         snackbarOpen: true,
         msg: "A last name is needed",
@@ -114,16 +109,16 @@ export default function Customer() {
       firstName: data["firstName"],
       lastName: data["lastName"],
     };
-    if (data["adress"] != "") {
+    if (data["adress"] !== "") {
       payload["adress"] = data["adress"];
     }
-    if (data["phone"] != "") {
+    if (data["phone"] !== "") {
       payload["phone"] = data["phone"];
     }
-    if (data["eMail"] != "") {
+    if (data["eMail"] !== "") {
       payload["eMail"] = data["eMail"];
     }
-    if (data["company"] != "") {
+    if (data["company"] !== "") {
       payload["company"] = data["company"];
     }
 
@@ -161,13 +156,12 @@ export default function Customer() {
         alignItems="center"
         direction="column"
       >
-      <div>&nbsp; &nbsp; &nbsp;</div>
-      <Typography gutterBottom variant="h5" component="h2">
-        Customers
-      </Typography>
+        <div>&nbsp; &nbsp; &nbsp;</div>
+        <Typography gutterBottom variant="h5" component="h2">
+          Customers
+        </Typography>
         <List width={1}>{createListItem(state)}</List>
         <Grid item>
-          
           <Fab
             color="secondary"
             aria-label="add"
@@ -300,7 +294,7 @@ function CostumerCard(props) {
       });
       return false;
     }
-    if (updatedData["firstName"] == "") {
+    if (updatedData["firstName"] === "") {
       setErrorState({
         snackbarOpen: true,
         msg: "A first name is needed",
@@ -308,7 +302,7 @@ function CostumerCard(props) {
       });
       return false;
     }
-    if (updatedData["lastName"] == "") {
+    if (updatedData["lastName"] === "") {
       setErrorState({
         snackbarOpen: true,
         msg: "A last name is needed",

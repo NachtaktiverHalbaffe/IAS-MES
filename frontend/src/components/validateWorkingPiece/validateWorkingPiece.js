@@ -10,7 +10,7 @@ Short description: Function to validate workingpiece has right state for being a
 // @params
 //  workingSteps: workingsteps from workingplan which should get executed with workingpiece
 //  workingpiece: workingpiece which should get validated
-export default function (workingSteps, workingPiece) {
+export default function validateWorkingPiece(workingSteps, workingPiece) {
   let steps = workingSteps[0].sort((a, b) => (a.stepNo > b.stepNo ? 1 : -1));
   let requiredState = {
     isAssembled: null,

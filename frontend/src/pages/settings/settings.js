@@ -26,7 +26,6 @@ import {
 import { IP_BACKEND, AUTO_HIDE_DURATION } from "../../const";
 import ErrorSnackbar from "../../components/errorsnackbar/errorsnackbar";
 import EditCheckBox from "../../components/edittextbox/editcheckbox";
-import EditTextBox from "../../components/edittextbox/edittextbox";
 import Customer from "../../pages/settings/costumer";
 
 export default function Settings() {
@@ -37,11 +36,7 @@ export default function Settings() {
     useFleetmanager: false,
   });
   const [open, setOpen] = React.useState(false);
-  const [errorState, setErrorState] = React.useState({
-    snackbarOpen: false,
-    msg: "",
-    level: "",
-  });
+
   useEffect(() => {
     const pollingTime = 1.5; // interval for polling in seconds
 

@@ -139,13 +139,13 @@ function mCheckStore(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "store") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = false;
         errormsg = "Workingpiece must be unstored before being stored";
       }
       newState["isStored"] = true;
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -176,19 +176,19 @@ function mCheckPackage(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "unpackage") {
-      if (newState["isPackaged"] == true) {
+      if (newState["isPackaged"] === true) {
         mIsValid = true;
         errormsg = "";
       }
       newState["isPackaged"] = false;
     } else if (workingsteps[i]["task"] === "package") {
-      if (newState["isPackaged"] == true) {
+      if (newState["isPackaged"] === true) {
         mIsValid = false;
         errormsg = "Workingpiece must be unpackaged before being packaged";
       }
       newState["isPackaged"] = true;
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -220,13 +220,13 @@ function mCheckUnpackage(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "unpackage") {
-      if (newState["isPackaged"] == false) {
+      if (newState["isPackaged"] === false) {
         mIsValid = false;
         errormsg = "Workingpiece must be packaged before being unpackaged";
       }
       newState["isPackaged"] = false;
     } else if (workingsteps[i]["task"] === "package") {
-      if (newState["isPackaged"] == false) {
+      if (newState["isPackaged"] === false) {
         mIsValid = true;
         errormsg = "";
       }
@@ -236,7 +236,7 @@ function mCheckUnpackage(workingsteps, range, state) {
       mIsValid = false;
       errormsg = "Workingpiece must be unstored before executing generic task";
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -264,7 +264,7 @@ function mCheckAssemble(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "unpackage") {
-      if (newState["isPackaged"] == true) {
+      if (newState["isPackaged"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -278,19 +278,19 @@ function mCheckAssemble(workingsteps, range, state) {
       mIsValid = false;
       errormsg = "Workingpiece must be unstored before executing assemble";
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
       newState["isStored"] = false;
     } else if (workingsteps[i]["task"] === "assemble") {
-      if (newState["isAssembled"] == true) {
+      if (newState["isAssembled"] === true) {
         mIsValid = false;
         errormsg = "Workingpiece must be disassembled before being assembled";
       }
       newState["isAssembled"] = true;
     } else if (workingsteps[i]["task"] === "generic") {
-      if (newState["isAssembled"] == true) {
+      if (newState["isAssembled"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -312,7 +312,7 @@ function mCheckColor(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "unpackage") {
-      if (newState["isPackaged"] == true) {
+      if (newState["isPackaged"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -326,7 +326,7 @@ function mCheckColor(workingsteps, range, state) {
       mIsValid = false;
       errormsg = "Workingpiece must be unstored before executing generic task";
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -354,7 +354,7 @@ function mCheckGeneric(workingsteps, range, state) {
   for (let i = 0; i < range; i++) {
     // validating
     if (workingsteps[i]["task"] === "unpackage") {
-      if (newState["isPackaged"] == true) {
+      if (newState["isPackaged"] === true) {
         mIsValid = true;
         errormsg = "";
       }
@@ -369,7 +369,7 @@ function mCheckGeneric(workingsteps, range, state) {
       mIsValid = false;
       errormsg = "Workingpiece must be unstored before executing generic task";
     } else if (workingsteps[i]["task"] === "unstore") {
-      if (newState["isStored"] == true) {
+      if (newState["isStored"] === true) {
         mIsValid = true;
         errormsg = "";
       }
