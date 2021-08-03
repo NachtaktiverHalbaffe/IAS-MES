@@ -54,79 +54,85 @@ class Servicecalls(object):
         currentOrder = AssignedOrder.objects.all()
         for order in currentOrder:
             workingPlan = order.assigendWorkingPlan
-            workingsteps = workingPlan.workingSteps.all().filter(assignedToUnit=resourceId)
-            status = order.getStatus()
-            if workingsteps.count() != 0:
-                for step in workingsteps:
-                    stepsToCheck = workingPlan.workingSteps.all()
-                    # search position in workingsteps
-                    for i in range(len(status)):
-                        # only start operation if it isnt already finished
-                        if status[i] == 0:
-                            if stepsToCheck[i].id == step.id:
-                                self.logger.info(
-                                    "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
-                                # set general output parameter
-                                obj.resourceId = resourceId
-                                obj.stepNo = step.stepNo
-                                obj.oNo = order.orderNo
-                                obj.oPos = order.orderPos
-                                obj.wpNo = workingPlan.workingPlanNo
-                                obj.opNo = step.operationNo
-                                if order.customer != None:
-                                    obj.cNo = order.customer.customerNo
-                                obj.mainOPos = order.mainOrderPos
-                                obj.errorStepNo = 0
-                                workingPiece = order.assignedWorkingPiece
-                                obj.pNo = workingPiece.partNo
-                                # set output params specific to operation
-                                if step.operationNo == 210 or step.operationNo == 211:
-                                    obj.dataLength = 12
-                                    bufPos = 0
-                                    for j in range(1, 30):
-                                        # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
-                                        if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
-                                            bufPos = j
-                                    if stopperId == 1:
-                                        # store from stopper 1
-                                        obj.stopperId = 1
-                                        obj.opNo = 210
-                                        # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
-                                        obj.serviceParams = [
-                                            0, bufPos, 0, 90, 0, obj.pNo]
-                                    elif stopperId == 2:
-                                        # store from stopper 2
-                                        obj.stopperId = 2
-                                        obj.opNo = 211
-                                        obj.serviceParams = [
-                                            0, bufPos, 0, 91, 0, obj.pNo]
+            if workingPlan != None:
+                workingsteps = workingPlan.workingSteps.all().filter(assignedToUnit=resourceId)
+                status = order.getStatus()
+                if workingsteps.count() != 0:
+                    for step in workingsteps:
+                        stepsToCheck = workingPlan.workingSteps.all()
+                        # search position in workingsteps
+                        for i in range(len(status)):
+                            # only start operation if it isnt already finished
+                            if status[i] == 0:
+                                if stepsToCheck[i].id == step.id:
+                                    self.logger.info(
+                                        "[GETFIRSTOPFORRSC] Found active order for resource " + str(resourceId))
+                                    # set general output parameter
+                                    obj.resourceId = resourceId
+                                    obj.stepNo = step.stepNo
+                                    obj.oNo = order.orderNo
+                                    obj.oPos = order.orderPos
+                                    obj.wpNo = workingPlan.workingPlanNo
+                                    obj.opNo = step.operationNo
+                                    if order.customer != None:
+                                        obj.cNo = order.customer.customerNo
+                                    obj.mainOPos = order.mainOrderPos
+                                    obj.errorStepNo = 0
+                                    workingPiece = order.assignedWorkingPiece
+                                    obj.pNo = workingPiece.partNo
+                                    # set output params specific to operation
+                                    if step.operationNo == 210 or step.operationNo == 211:
+                                        obj.dataLength = 12
+                                        bufPos = 0
+                                        for j in range(1, 30):
+                                            # no Stateworkingpiece with that storagelocation => storagelocation must be emtpy
+                                            if StateWorkingPiece.objects.filter(storageLocation=j).count() == 0:
+                                                bufPos = j
+                                        if stopperId == 1:
+                                            # store from stopper 1
+                                            obj.stopperId = 1
+                                            obj.opNo = 210
+                                            # serviceparams[constant, position in storage, part number], each param has 2 bytes, so each param is padded with a 0
+                                            obj.serviceParams = [
+                                                0, bufPos, 0, 90, 0, obj.pNo]
+                                        elif stopperId == 2:
+                                            # store from stopper 2
+                                            obj.stopperId = 2
+                                            obj.opNo = 211
+                                            obj.serviceParams = [
+                                                0, bufPos, 0, 91, 0, obj.pNo]
+                                        # update mes data
+                                        workingPiece.storageLocation = obj.bufPos
+                                        workingPiece.carrierId = 0
+                                    # operation is manual work
+                                    elif step.operationNo == 510:
+                                        obj.stopperId = 0
+                                        obj.serviceParams = [0, 1, 0, 1,
+                                                             0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
+                                        obj.dataLength = 28
+                                    # operation is delay
+                                    elif step.operationNo == 1110:
+                                        obj.stopperId = 0
+                                        delayTime = 5
+                                        obj.dataLength = 2
+                                        # serviceparam[seconds], seconds = seconds which the carrier will wait,
+                                        # param consists of two bytes, so param is padded with leading zero
+                                        obj.serviceParams = [0, delayTime]
                                     # update mes data
-                                    workingPiece.storageLocation = obj.bufPos
-                                    workingPiece.carrierId = 0
-                                # operation is manual work
-                                elif step.operationNo == 510:
+                                    workingPiece.location = resourceId
+                                    workingPiece.save()
+                                    return obj
+                                else:
                                     obj.stopperId = 0
-                                    obj.serviceParams = [0, 1, 0, 1,
-                                                         0, 25, 0, 0, 0, 0, 0, 0, 0, 0]
-                                    obj.dataLength = 28
-                                # operation is delay
-                                elif step.operationNo == 1110:
-                                    obj.stopperId = 0
-                                    delayTime = 5
-                                    obj.dataLength = 2
-                                    # serviceparam[seconds], seconds = seconds which the carrier will wait,
-                                    # param consists of two bytes, so param is padded with leading zero
-                                    obj.serviceParams = [0, delayTime]
-                                # update mes data
-                                workingPiece.location = resourceId
-                                workingPiece.save()
-                                return obj
-                            else:
-                                obj.stopperId = 0
-                                obj.resourceId = 0
-                                obj.serviceParams = [0, 0]
-                                obj.dataLength = 4
-                                break
+                                    obj.resourceId = 0
+                                    obj.serviceParams = [0, 0]
+                                    obj.dataLength = 4
+                                    break
+                    obj.resourceId = 0
+                    obj.serviceParams = [0, 0]
+                    obj.dataLength = 4
+                    obj.stopperId = 0
+            else:
                 obj.resourceId = 0
                 obj.serviceParams = [0, 0]
                 obj.dataLength = 4
@@ -334,8 +340,8 @@ class Servicecalls(object):
             obj.stepNo = str(step.stepNo)
             obj.stepNo = step.stepNo
         # parse freestring
-            #freeString = "http://129.69.102.129/I4.0/mes4/EN/mes4.php?content=manual&OpNo=510&Workpiece=3&Action=4&PNo=25"
-            freeString = "http://129.69.102.129:8080/"  # page from frontend
+            freeString = "http://129.69.102.129/I4.0/mes4/EN/mes4.php?content=manual&OpNo=510&Workpiece=3&Action=4&PNo=25"
+            # freeString = "http://129.69.102.129:8080/"  # page from frontend
 
         serviceParams = []
         # max length of string
@@ -412,23 +418,22 @@ class Servicecalls(object):
         oNo = obj.oNo
         oPos = obj.oPos
         requestId = obj.requestID
-        # order = AssignedOrder.objects.filter(
-        #     orderNo=oNo).filter(orderPos=oPos)
-        # if order.count() == 1:
-        #     order = order.first()
-        #     workingsteps = order.assigendWorkingPlan.workingSteps.all().filter(
-        #         assignedToUnit=requestId)
-        #     status = order.getStatus()
-        #     for i in range(len(status)):
-        #         if workingsteps[i].assignedToUnit == requestId:
-        #             # update status of task to unfinished if it is marked as finished
-        #             if status[i] == 1:
-        #                 status[i] = 0
-        #                 order.setStatus(status)
-        #                 order.save()
-        #                 self.logger.info(
-        #                     "[OPRESET] Reset operation  on resource " + str(requestId))
-
+        order = AssignedOrder.objects.filter(
+            orderNo=oNo).filter(orderPos=oPos)
+        if order.count() != 0:
+            order = order.first()
+            workingsteps = order.assigendWorkingPlan.workingSteps.filter(
+                assignedToUnit=requestId)
+            status = order.getStatus()
+            for i in range(len(status)):
+                if workingsteps[i].assignedToUnit == requestId:
+                    # update status of task to unfinished if it is marked as finished
+                    if status[i] == 1:
+                        status[i] = 0
+                        order.setStatus(status)
+                        order.save()
+                        self.logger.info(
+                            "[OPRESET] Reset operation  on resource " + str(requestId))
         # set output parameter
         obj.oNo = 0
         obj.oPos = 0
@@ -459,14 +464,14 @@ class Servicecalls(object):
             obj.oNo = order.orderNo
             obj.oPos = order.orderPos
             obj.wpNo = workingPlan.workingPlanNo
-            if order.customer != None:
-                obj.cNo = order.customer.customerNo
-            else:
-                obj.cNo = 0
             obj.mainOPos = order.mainOrderPos
             obj.errorStepNo = 0
             obj.pNo = 25  # 25= pallet, 31 = carrier
             status = order.getStatus()
+            if order.customer != None:
+                obj.cNo = order.customer.customerNo
+            else:
+                obj.cNo = 0
             for i in range(len(status)):
                 # find first unfinished step in list
                 if status[i] == 0:
@@ -698,6 +703,7 @@ class Servicecalls(object):
         requestId = obj.requestID
         # get buffer of robotino
         robotino = StatePLC.objects.filter(dockedAt=requestId)
+        buffer = None
         if robotino.count() == 1:
             buffer = robotino.first().buffer
             obj.resourceId = robotino.first().id
@@ -713,12 +719,17 @@ class Servicecalls(object):
                         break
 
         # set output params
-        obj.oNo = buffer.bufOutONo
-        obj.oPos = buffer.bufOutOPos
-        if obj.oNo != 0:
-            obj.bufNo = 1
-            obj.bufPos = 1
-            obj.pNo = 25
+        if buffer != None:
+            obj.oNo = buffer.bufOutONo
+            obj.oPos = buffer.bufOutOPos
+            if obj.oNo != 0:
+                obj.bufNo = 1
+                obj.bufPos = 1
+                obj.pNo = 25
+            else:
+                obj.bufNo = 0
+                obj.bufPos = 0
+                obj.pNo = 0
         else:
             obj.bufNo = 0
             obj.bufPos = 0
