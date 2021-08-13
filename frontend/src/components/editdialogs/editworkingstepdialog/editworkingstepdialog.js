@@ -71,7 +71,7 @@ export default function EditStateWorkingStepDialog(props) {
     }
     if (
       (state["task"] === "unstore" || state["task"] === "store") &&
-      state["assignedToUnit"] !== 1
+      state["assignedToUnit"] != 1
     ) {
       setErrorState({
         snackbarOpen: true,
@@ -86,7 +86,7 @@ export default function EditStateWorkingStepDialog(props) {
         state["task"] === "color" ||
         state["task"] === "assemble" ||
         state["task"] === "generic") &&
-      state["assignedToUnit"] === 1
+      state["assignedToUnit"] == 1
     ) {
       setErrorState({
         snackbarOpen: true,
