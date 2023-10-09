@@ -10,7 +10,7 @@ Steuerung des MES und Datenverwaltung. Entwicklet mit den Django-Framework, Cele
 Benutzerschnittstelle. Nicht zwingend notwenig, da die API für alle Schnittstellen auch die nötigen Weboberflächen bereitstellt. Geplant mit React-Framework. Keine hohe Priorisierung
 
 # License
-Copyright 2023 NachtaktiverHalbaffe
+Copyright 2023 Institute of Industrial Automation and Software Engineering, University of Stuttgart
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
